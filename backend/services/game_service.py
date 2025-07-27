@@ -322,20 +322,6 @@ class GameService:
             return 0.05 if event.type in [EventType.INTELLIGENCE, EventType.FORCE, EventType.AGILITE] else 0
     
     @classmethod
-    def _get_random_death_cause(cls, event: GameEvent) -> str:
-        """Retourne une cause de mort aléatoire selon l'épreuve"""
-        causes = {
-            "Feu rouge, Feu vert": ['Abattu en mouvement', 'Panique collective', 'Tentative de fuite'],
-            "Pont de verre": ['Chute mortelle', 'Verre brisé', 'Poussé par un autre joueur'],
-            "Combat de gladiateurs": ['Coup fatal', 'Hémorragie', 'Épuisement'],
-            "Bataille royale": ['Éliminé au combat', 'Blessures multiples', 'Abandon'],
-            "Arène sanglante": ['Mort au combat', 'Coup de grâce', 'Saignement']
-        }
-        
-        event_causes = causes.get(event.name, ['Élimination standard', 'Erreur fatale', 'Mauvaise décision'])
-        return random.choice(event_causes)
-    
-    @classmethod
     def generate_celebrities(cls, count: int = 1000) -> List[Celebrity]:
         """Génère une liste de célébrités fictives"""
         celebrities = []
