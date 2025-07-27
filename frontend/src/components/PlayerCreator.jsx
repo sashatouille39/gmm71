@@ -26,6 +26,8 @@ import {
 
 const PlayerCreator = ({ gameState, updateGameState }) => {
   const navigate = useNavigate();
+  const { addPlayer } = useCustomPlayers();
+  const [savedStatus, setSavedStatus] = useState(false);
   
   const [player, setPlayer] = useState({
     name: '',
