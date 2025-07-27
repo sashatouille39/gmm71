@@ -98,8 +98,7 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
   const tabs = [
     { id: 'basic', name: 'Informations', icon: '👤' },
     { id: 'portrait', name: 'Portrait', icon: '🎨' },
-    { id: 'stats', name: 'Statistiques', icon: '📊' },
-    { id: 'uniform', name: 'Uniforme', icon: '👕' }
+    { id: 'stats', name: 'Statistiques', icon: '📊' }
   ];
 
   const handleSavePlayer = () => {
