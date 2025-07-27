@@ -1,50 +1,97 @@
-import { useEffect } from "react";
-import "./App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
-
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
-
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
-
-  return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import './App.css';
+import MainMenu from './components/MainMenu';
+import GameSetup from './components/GameSetup';
+import GameArena from './components/GameArena';
+import Statistics from './components/Statistics';
+import UniformCustomization from './components/UniformCustomization';
+import VipSalon from './components/VipSalon';
+import Settings from './components/Settings';
+import PlayerCreator from './components/PlayerCreator';
+import { INITIAL_GAME_STATE } from './mock/mockData';
 
 function App() {
+  const [gameState, setGameState] = useState(() => {
+    const saved = localStorage.getItem('gamemaster-state');
+    return saved ? JSON.parse(saved) : INITIAL_GAME_STATE;
+  });
+
+  const [currentGame, setCurrentGame] = useState(null);
+
+  // Sauvegarde automatique
+  useEffect(() => {
+    localStorage.setItem('gamemaster-state', JSON.stringify(gameState));
+  }, [gameState]);
+
+  const updateGameState = (updates) => {
+    setGameState(prev => ({ ...prev, ...updates }));
+  };
+
+  const startNewGame = (players, selectedEvents) => {
+    setCurrentGame({
+      id: Date.now(),
+      players,
+      events: selectedEvents,
+      currentEventIndex: 0,
+      startTime: new Date(),
+      completed: false
+    });
+  };
+
   return (
-    <div className="App">
+    <div className="App min-h-screen bg-gradient-to-br from-gray-900 via-red-900 to-black">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
+          <Route path="/" element={
+            <MainMenu 
+              gameState={gameState}
+              hasActiveGame={!!currentGame}
+            />
+          } />
+          <Route path="/game-setup" element={
+            <GameSetup 
+              gameState={gameState}
+              onStartGame={startNewGame}
+            />
+          } />
+          <Route path="/player-creator" element={
+            <PlayerCreator 
+              gameState={gameState}
+              updateGameState={updateGameState}
+            />
+          } />
+          <Route path="/game-arena" element={
+            <GameArena 
+              currentGame={currentGame}
+              setCurrentGame={setCurrentGame}
+              gameState={gameState}
+              updateGameState={updateGameState}
+            />
+          } />
+          <Route path="/statistics" element={
+            <Statistics 
+              gameState={gameState}
+            />
+          } />
+          <Route path="/uniform-customization" element={
+            <UniformCustomization 
+              gameState={gameState}
+              updateGameState={updateGameState}
+            />
+          } />
+          <Route path="/vip-salon" element={
+            <VipSalon 
+              gameState={gameState}
+              updateGameState={updateGameState}
+            />
+          } />
+          <Route path="/settings" element={
+            <Settings 
+              gameState={gameState}
+              updateGameState={updateGameState}
+            />
+          } />
         </Routes>
       </BrowserRouter>
     </div>
