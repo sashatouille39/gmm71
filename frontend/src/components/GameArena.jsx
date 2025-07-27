@@ -367,14 +367,49 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState }) 
                 </>
               ) : (
                 <div className="text-center py-12 text-gray-400">
-                  <AlertTriangle className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <p>Partie terminée</p>
-                  <Button
-                    onClick={() => navigate('/statistics')}
-                    className="mt-4 bg-red-600 hover:bg-red-700"
-                  >
-                    Voir les statistiques
-                  </Button>
+                  <Trophy className="w-16 h-16 mx-auto mb-4 text-yellow-400" />
+                  
+                  {/* Message de fin de jeu */}
+                  {alivePlayers.length === 1 ? (
+                    <div className="mb-6">
+                      <p className="text-xl text-white mb-2">Nous avons un gagnant !</p>
+                      <div className="text-lg text-yellow-400 font-bold">
+                        🏆 {alivePlayers[0].name} (#{alivePlayers[0].number})
+                      </div>
+                      <p className="text-sm text-gray-400 mt-2">
+                        Score final: {alivePlayers[0].totalScore} points
+                      </p>
+                    </div>
+                  ) : alivePlayers.length === 0 ? (
+                    <div className="mb-6">
+                      <p className="text-xl text-red-400 mb-2">Aucun survivant</p>
+                      <p className="text-sm text-gray-400">Tous les joueurs ont été éliminés</p>
+                    </div>
+                  ) : (
+                    <div className="mb-6">
+                      <p className="text-xl text-white mb-2">Partie terminée</p>
+                      <p className="text-sm text-gray-400">{alivePlayers.length} survivants restants</p>
+                    </div>
+                  )}
+                  
+                  {/* Boutons d'action */}
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Button
+                      onClick={() => navigate('/')}
+                      variant="outline"
+                      className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Retour au menu
+                    </Button>
+                    <Button
+                      onClick={() => navigate('/statistics')}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      <Trophy className="w-4 h-4 mr-2" />
+                      Voir les statistiques
+                    </Button>
+                  </div>
                 </div>
               )}
             </CardContent>
