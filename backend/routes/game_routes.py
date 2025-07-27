@@ -10,6 +10,7 @@ from models.game_models import (
 )
 from services.game_service import GameService
 from services.vip_service import VipService
+from services.events_service import EventsService
 
 router = APIRouter(prefix="/api/games", tags=["games"])
 
