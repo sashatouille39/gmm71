@@ -573,27 +573,50 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
                     </div>
                   </div>
 
-                  {Object.entries(player.stats).map(([stat, value]) => (
-                    <div key={stat} className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <Label className="text-gray-300 capitalize">{stat}</Label>
-                        <span className="text-white">{value}/10</span>
-                      </div>
-                      <Slider
-                        value={[value]}
-                        min={0}
-                        max={10}
-                        step={1}
-                        onValueChange={(newValue) => updateStats(stat, newValue)}
-                        className="w-full"
-                      />
-                      <div className="flex justify-between text-xs text-gray-500">
-                        <span>0</span>
-                        <span>5</span>
-                        <span>10</span>
+                  {/* Affichage des bonus de rôle */}
+                  {PLAYER_ROLES[player.role].bonusStats && Object.keys(PLAYER_ROLES[player.role].bonusStats).length > 0 && (
+                    <div className="bg-blue-900/20 border border-blue-500/30 p-4 rounded-lg">
+                      <h4 className="text-blue-400 font-medium mb-2">Bonus de rôle actifs</h4>
+                      <div className="text-sm text-gray-300">
+                        {Object.entries(PLAYER_ROLES[player.role].bonusStats).map(([stat, bonus]) => (
+                          <div key={stat} className="flex justify-between">
+                            <span className="capitalize">{stat}:</span>
+                            <span className="text-blue-400">+{bonus} (minimum)</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  ))}
+                  )}
+
+                  {Object.entries(player.stats).map(([stat, value]) => {
+                    const baseStats = getBaseStatsForRole(player.role);
+                    const minValue = baseStats[stat];
+                    
+                    return (
+                      <div key={stat} className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <Label className="text-gray-300 capitalize">
+                            {stat}
+                            {minValue > 0 && <span className="text-blue-400 text-xs ml-1">(min: {minValue})</span>}
+                          </Label>
+                          <span className="text-white">{value}/10</span>
+                        </div>
+                        <Slider
+                          value={[value]}
+                          min={minValue}
+                          max={10}
+                          step={1}
+                          onValueChange={(newValue) => updateStats(stat, newValue)}
+                          className="w-full"
+                        />
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>{minValue}</span>
+                          <span>5</span>
+                          <span>10</span>
+                        </div>
+                      </div>
+                    );
+                  })}
 
                   <div className="bg-gray-800/30 p-4 rounded-lg">
                     <h4 className="text-white font-medium mb-2">Impact des statistiques</h4>
@@ -602,6 +625,11 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
                       <li>• <strong className="text-red-400">Force</strong>: Combat, intimidation, résistance</li>
                       <li>• <strong className="text-red-400">Agilité</strong>: Vitesse, précision, esquive</li>
                     </ul>
+                    
+                    <div className="mt-3 pt-3 border-t border-gray-600">
+                      <h5 className="text-white font-medium mb-1">Rôle sélectionné: {PLAYER_ROLES[player.role].name}</h5>
+                      <p className="text-xs text-gray-400">{PLAYER_ROLES[player.role].bonus.join(', ')}</p>
+                    </div>
                   </div>
                 </div>
               )}
