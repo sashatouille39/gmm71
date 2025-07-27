@@ -46,6 +46,38 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
   const [statsPoints, setStatsPoints] = useState(15);
   const [currentTab, setCurrentTab] = useState('basic');
 
+  // Calculer les stats de base selon le rôle
+  const getBaseStatsForRole = (role) => {
+    const roleData = PLAYER_ROLES[role];
+    if (!roleData || !roleData.bonusStats) return { intelligence: 0, force: 0, agilité: 0 };
+    
+    return {
+      intelligence: roleData.bonusStats.intelligence || 0,
+      force: roleData.bonusStats.force || 0,
+      agilité: roleData.bonusStats.agilité || 0
+    };
+  };
+
+  // Calculer les points disponibles selon le rôle
+  const getAvailablePoints = (role) => {
+    const roleData = PLAYER_ROLES[role];
+    if (roleData.penalty) return 15 + roleData.penalty; // Peureux a -4 points
+    return 15;
+  };
+
+  // Mettre à jour les stats quand le rôle change
+  const updatePlayerRole = (role) => {
+    const baseStats = getBaseStatsForRole(role);
+    const availablePoints = getAvailablePoints(role);
+    
+    setPlayer(prev => ({ 
+      ...prev, 
+      role, 
+      stats: baseStats 
+    }));
+    setStatsPoints(availablePoints);
+  };
+
   const updatePlayerField = (field, value) => {
     setPlayer(prev => ({ ...prev, [field]: value }));
   };
