@@ -262,6 +262,18 @@ const GameSetup = ({ gameState, onStartGame }) => {
             </div>
           </TabsContent>
 
+          {/* Joueurs personnalisés */}
+          <TabsContent value="custom" className="space-y-6">
+            <CustomPlayersList 
+              onSelectPlayer={(player) => {
+                // Ajouter le joueur à la liste des joueurs sélectionnés
+                setPlayers(prev => [...prev, { ...player, id: Date.now() + Math.random() }]);
+              }}
+              onCreateNew={() => navigate('/player-creator')}
+              selectedPlayers={players.filter(p => p.isCustom)}
+            />
+          </TabsContent>
+
           {/* Configuration des épreuves */}
           <TabsContent value="events" className="space-y-6">
             <Card className="bg-black/50 border-red-500/30">
