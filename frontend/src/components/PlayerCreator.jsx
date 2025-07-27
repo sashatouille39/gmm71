@@ -102,6 +102,27 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
     { id: 'uniform', name: 'Uniforme', icon: '👕' }
   ];
 
+  const handleSavePlayer = () => {
+    if (!player.name || !player.nationality) {
+      alert('Veuillez remplir au moins le nom et la nationalité du joueur.');
+      return;
+    }
+
+    // Ajouter le joueur aux joueurs personnalisés
+    const savedPlayer = addPlayer(player);
+    
+    // Afficher le statut de sauvegarde
+    setSavedStatus(true);
+    setTimeout(() => setSavedStatus(false), 2000);
+
+    console.log('Joueur sauvegardé:', savedPlayer);
+    
+    // Optionnel: retourner au menu de configuration
+    setTimeout(() => {
+      navigate('/game-setup');
+    }, 1500);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-red-900 to-black p-6">
       <div className="max-w-6xl mx-auto">
