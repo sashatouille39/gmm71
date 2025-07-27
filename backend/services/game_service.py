@@ -5,6 +5,7 @@ from models.game_models import (
     Player, PlayerRole, PlayerStats, PlayerPortrait, PlayerUniform,
     Game, GameEvent, EventResult, Celebrity, VipCharacter, EventType
 )
+from services.events_service import EventsService
 
 class GameService:
     
