@@ -543,16 +543,20 @@ class BackendTester:
         # Test 4: Player generation
         self.test_generate_players()
         
-        # Test 5: Game creation
+        # Test 5: CRITICAL - Full names generation (NEW TEST)
+        print("\n🎯 Testing CRITICAL fix: Full names with nationality consistency...")
+        self.test_full_names_generation()
+        
+        # Test 6: Game creation
         game_id = self.test_create_game()
         
-        # Test 6: Event simulation
+        # Test 7: Event simulation
         self.test_simulate_event(game_id)
         
-        # Test 7: Model validation
+        # Test 8: Model validation
         self.test_pydantic_models()
         
-        # Test 8: CRITICAL - One survivor condition (NEW TEST)
+        # Test 9: CRITICAL - One survivor condition
         print("\n🎯 Testing CRITICAL fix: 1 survivor condition...")
         self.test_one_survivor_condition()
         
