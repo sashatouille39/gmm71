@@ -220,27 +220,34 @@ const Statistics = ({ gameState }) => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {mockStats.topEvents.map((event, index) => (
-                      <div key={event.name} className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                            index === 0 ? 'bg-red-600' : index === 1 ? 'bg-red-500' : 'bg-red-400'
-                          }`}>
-                            {index + 1}
-                          </div>
-                          <div>
-                            <div className="text-white font-medium">{event.name}</div>
-                            <div className="text-gray-400 text-sm">
-                              Taux de survie: {(event.survival_rate * 100).toFixed(1)}%
+                    {realStats.topEvents.length === 0 ? (
+                      <div className="text-center py-8 text-gray-400">
+                        <Target className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                        <p>Aucune donnée d'épreuve</p>
+                      </div>
+                    ) : (
+                      realStats.topEvents.map((event, index) => (
+                        <div key={event.name} className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                              index === 0 ? 'bg-red-600' : index === 1 ? 'bg-red-500' : 'bg-red-400'
+                            }`}>
+                              {index + 1}
+                            </div>
+                            <div>
+                              <div className="text-white font-medium">{event.name}</div>
+                              <div className="text-gray-400 text-sm">
+                                Taux de survie: {((event.survival_rate || 0) * 100).toFixed(1)}%
+                              </div>
                             </div>
                           </div>
+                          <div className="text-right">
+                            <div className="text-red-400 font-bold">{event.deaths || 0}</div>
+                            <div className="text-gray-400 text-xs">morts</div>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-red-400 font-bold">{event.deaths}</div>
-                          <div className="text-gray-400 text-xs">morts</div>
-                        </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>
