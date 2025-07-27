@@ -128,6 +128,9 @@
         - working: true
           agent: "main"
           comment: "Génération aléatoire selon rôles et probabilités, stats cohérentes"
+        - working: true
+          agent: "testing"
+          comment: "✅ NOMS COMPLETS VALIDÉS: Correction des noms complets parfaitement implémentée. Tests complets effectués sur la fonction _generate_random_name dans game_service.py: 1) **Format des noms**: 100% des joueurs générés ont des noms complets (prénom + nom de famille) au lieu de seulement un prénom. 2) **Cohérence par nationalité**: Noms parfaitement adaptés aux nationalités - Coréens: 'Sung-min Lee', 'Ye-jin Yoon' - Japonais: 'Hiroshi Yoshida' - Chinois: 'Bin Huang', 'Chen Wang' - Américains: 'Michael Hernandez', 'Karen Rodriguez'. 3) **Variété des noms**: 96.7% de noms uniques sur 30 générations testées. 4) **Routes testées**: /api/games/generate-players et /api/games/create fonctionnent parfaitement avec les noms complets. La correction répond exactement aux exigences du cahier des charges."
 
   - task: "API Routes de base"
     implemented: true
