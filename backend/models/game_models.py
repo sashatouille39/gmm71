@@ -58,6 +58,12 @@ class GameEvent(BaseModel):
     type: EventType
     difficulty: int = Field(..., ge=1, le=10)
     description: str
+    decor: str = "Décor standard"
+    death_animations: List[str] = []
+    survival_time_min: int = 60  # secondes minimum
+    survival_time_max: int = 300  # secondes maximum
+    elimination_rate: float = Field(..., ge=0.1, le=0.8)  # taux d'élimination
+    special_mechanics: List[str] = []
 
 class EventResult(BaseModel):
     event_id: int
