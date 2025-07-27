@@ -266,9 +266,9 @@ class BackendTester:
     def test_one_survivor_condition(self):
         """Test CRITICAL: Vérifier que le jeu s'arrête à 1 survivant (pas 0)"""
         try:
-            # Create a game with 15 players for testing
+            # Create a game with 20 players for testing (minimum required)
             game_request = {
-                "player_count": 15,
+                "player_count": 20,
                 "game_mode": "standard", 
                 "selected_events": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],  # Multiple events
                 "manual_players": []
