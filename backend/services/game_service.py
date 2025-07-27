@@ -223,7 +223,7 @@ class GameService:
     
     @classmethod
     def simulate_event(cls, players: List[Player], event: GameEvent) -> EventResult:
-        """Simule une épreuve et retourne les résultats"""
+        """Simule une épreuve et retourne les résultats avec animations de mort"""
         alive_players = [p for p in players if p.alive]
         survivors = []
         eliminated = []
@@ -232,11 +232,18 @@ class GameService:
             # Calcul des chances de survie selon les stats et le rôle
             stat_bonus = cls._get_stat_bonus_for_event(player, event)
             role_bonus = cls._get_role_bonus_for_event(player, event)
-            survive_chance = min(0.9, 0.3 + (stat_bonus * 0.06) + role_bonus)
+            
+            # Calcul base de survie influencé par difficulté et taux d'élimination
+            base_survival = 1.0 - event.elimination_rate
+            survive_chance = min(0.95, base_survival + (stat_bonus * 0.06) + role_bonus)
+            
+            # Ajustement selon difficulté
+            difficulty_malus = (event.difficulty - 5) * 0.02  # Malus pour épreuves difficiles
+            survive_chance = max(0.05, survive_chance - difficulty_malus)
             
             if random.random() < survive_chance:
                 # Survie
-                time_remaining = random.randint(20, 120)
+                time_remaining = random.randint(event.survival_time_min // 4, event.survival_time_max // 2)
                 event_kills = random.randint(0, 2) if event.type == EventType.FORCE else random.randint(0, 1)
                 betrayed = random.random() < 0.1
                 
@@ -250,18 +257,29 @@ class GameService:
                 
                 survivors.append({
                     "player": player,
+                    "number": player.number,
+                    "name": player.name,
                     "time_remaining": time_remaining,
                     "event_kills": event_kills,
                     "betrayed": betrayed,
-                    "score": score
+                    "score": score,
+                    "kills": player.kills,
+                    "total_score": player.total_score,
+                    "survived_events": player.survived_events
                 })
             else:
-                # Élimination
+                # Élimination avec animation de mort spécifique
                 player.alive = False
+                death_animation = EventsService.get_random_death_animation(event)
+                
                 eliminated.append({
                     "player": player,
-                    "elimination_time": random.randint(10, 120),
-                    "cause": cls._get_random_death_cause(event)
+                    "number": player.number,
+                    "name": player.name,
+                    "elimination_time": random.randint(10, event.survival_time_max // 2),
+                    "cause": death_animation,
+                    "decor": event.decor,
+                    "event_name": event.name
                 })
         
         # Trier les survivants par score
@@ -270,8 +288,8 @@ class GameService:
         return EventResult(
             event_id=event.id,
             event_name=event.name,
-            survivors=[s["player"].dict() for s in survivors],
-            eliminated=[e["player"].dict() for e in eliminated],
+            survivors=survivors,
+            eliminated=eliminated,
             total_participants=len(alive_players)
         )
     
