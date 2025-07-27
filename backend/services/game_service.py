@@ -57,41 +57,8 @@ class GameService:
     UNIFORM_COLORS = ["Rouge", "Bleu", "Vert", "Jaune", "Rose", "Violet", "Orange", "Noir", "Blanc"]
     UNIFORM_PATTERNS = ["Uni", "Rayures", "Carreaux", "Points", "Floral", "Géométrique"]
     
-    GAME_EVENTS = [
-        # Épreuves classiques Squid Game
-        GameEvent(id=1, name="Feu rouge, Feu vert", type=EventType.AGILITE, difficulty=3, 
-                 description="Avancez quand c'est vert, arrêtez-vous au rouge"),
-        GameEvent(id=2, name="Pont de verre", type=EventType.INTELLIGENCE, difficulty=8, 
-                 description="Choisissez le bon verre pour traverser"),
-        GameEvent(id=3, name="Billes", type=EventType.INTELLIGENCE, difficulty=6, 
-                 description="Jeu de stratégie avec des billes"),
-        GameEvent(id=4, name="Tir à la corde", type=EventType.FORCE, difficulty=7, 
-                 description="Tirez plus fort que l'équipe adverse"),
-        GameEvent(id=5, name="Gaufres au sucre", type=EventType.AGILITE, difficulty=5, 
-                 description="Découpez la forme sans la casser"),
-        
-        # Épreuves originales
-        GameEvent(id=6, name="Labyrinthe mortel", type=EventType.INTELLIGENCE, difficulty=6, 
-                 description="Trouvez la sortie avant le temps"),
-        GameEvent(id=7, name="Combat de gladiateurs", type=EventType.FORCE, difficulty=9, 
-                 description="Battez-vous pour survivre"),
-        GameEvent(id=8, name="Énigme du sphinx", type=EventType.INTELLIGENCE, difficulty=8, 
-                 description="Résolvez l'énigme ou mourez"),
-        GameEvent(id=9, name="Course d'obstacles", type=EventType.AGILITE, difficulty=7, 
-                 description="Premier arrivé, premier servi"),
-        GameEvent(id=10, name="Jeu de la confiance", type=EventType.INTELLIGENCE, difficulty=5, 
-                 description="Faites confiance ou trahissez"),
-        GameEvent(id=11, name="Bataille royale", type=EventType.FORCE, difficulty=10, 
-                 description="Seuls les plus forts survivront"),
-        GameEvent(id=12, name="Puzzle temporel", type=EventType.INTELLIGENCE, difficulty=9, 
-                 description="Résolvez avant que le temps s'écoule"),
-        GameEvent(id=13, name="Parkour de la mort", type=EventType.AGILITE, difficulty=8, 
-                 description="Parcours d'obstacles extrême"),
-        GameEvent(id=14, name="Test de loyauté", type=EventType.INTELLIGENCE, difficulty=4, 
-                 description="Trahirez-vous vos alliés ?"),
-        GameEvent(id=15, name="Arène sanglante", type=EventType.FORCE, difficulty=10, 
-                 description="Combat à mort dans l'arène")
-    ]
+    # Utiliser le service d'événements pour les 80+ épreuves
+    GAME_EVENTS = EventsService.GAME_EVENTS
     
     ROLE_PROBABILITIES = {
         PlayerRole.NORMAL: 0.60,
