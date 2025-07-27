@@ -507,6 +507,12 @@ export const INITIAL_GAME_STATE = {
     totalGamesPlayed: 0,
     totalKills: 0,
     totalBetrayals: 0,
+    zeroAppearances: 0,
     favoriteCelebrity: null
-  }
+  },
+  completedGames: [],
+  eventStats: [],
+  totalEarnings: 0,
+  customPlayers: [],
+  purchasedCelebrities: []
 };
