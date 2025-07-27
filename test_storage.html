@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test LocalStorage</title>
+</head>
+<body>
+    <h1>Test LocalStorage pour Game Master Manager</h1>
+    <div id="content"></div>
+    
+    <script>
+        // Vérifier le contenu du localStorage
+        const customPlayersData = localStorage.getItem('gamemaster-custom-players');
+        const content = document.getElementById('content');
+        
+        if (customPlayersData) {
+            try {
+                const players = JSON.parse(customPlayersData);
+                content.innerHTML = `
+                    <h2>Joueurs trouvés dans localStorage:</h2>
+                    <pre>${JSON.stringify(players, null, 2)}</pre>
+                    <p>Nombre de joueurs: ${players.length}</p>
+                `;
+            } catch (error) {
+                content.innerHTML = `<p style="color: red;">Erreur lors du parsing: ${error.message}</p>`;
+            }
+        } else {
+            content.innerHTML = '<p>Aucun joueur trouvé dans localStorage</p>';
+        }
+        
+        // Bouton pour vider le localStorage (pour test)
+        const clearBtn = document.createElement('button');
+        clearBtn.textContent = 'Vider localStorage';
+        clearBtn.onclick = () => {
+            localStorage.removeItem('gamemaster-custom-players');
+            location.reload();
+        };
+        document.body.appendChild(clearBtn);
+    </script>
+</body>
+</html>
