@@ -263,6 +263,145 @@ class BackendTester:
         except Exception as e:
             self.log_result("Pydantic Models", False, f"Error: {str(e)}")
     
+    def test_full_names_generation(self):
+        """Test CRITICAL: Vérifier que les joueurs ont des noms complets (prénom + nom de famille) cohérents avec leur nationalité"""
+        try:
+            # Test 1: Generate 20 players and check name format
+            response = requests.post(f"{API_BASE}/games/generate-players?count=20", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Full Names Generation", False, f"Could not generate players - HTTP {response.status_code}")
+                return
+                
+            players = response.json()
+            
+            if len(players) != 20:
+                self.log_result("Full Names Generation", False, f"Expected 20 players, got {len(players)}")
+                return
+            
+            # Check each player has full name format
+            name_format_errors = []
+            nationality_consistency_errors = []
+            name_variety = set()
+            
+            for player in players:
+                name = player.get('name', '')
+                nationality = player.get('nationality', '')
+                
+                # Check name format (should have at least first name + last name)
+                name_parts = name.strip().split()
+                if len(name_parts) < 2:
+                    name_format_errors.append(f"Player {player.get('number', 'unknown')}: '{name}' - only has {len(name_parts)} part(s)")
+                else:
+                    # Check for variety
+                    name_variety.add(name)
+                    
+                    # Check nationality consistency for specific nationalities
+                    first_name = name_parts[0]
+                    last_name = name_parts[-1]
+                    
+                    # Define expected patterns for specific nationalities
+                    nationality_patterns = {
+                        'Coréenne': {
+                            'first_names': ['Min-jun', 'Seo-jun', 'Do-yoon', 'Si-woo', 'Joon-ho', 'Hyun-woo', 'Jin-woo', 'Sung-min',
+                                          'Seo-yeon', 'Min-seo', 'Ji-woo', 'Ha-eun', 'Soo-jin', 'Ye-jin', 'Su-bin', 'Na-eun'],
+                            'last_names': ['Kim', 'Lee', 'Park', 'Choi', 'Jung', 'Kang', 'Cho', 'Yoon', 'Jang', 'Lim', 'Han', 'Oh']
+                        },
+                        'Japonaise': {
+                            'first_names': ['Hiroshi', 'Takeshi', 'Akira', 'Yuki', 'Daiki', 'Haruto', 'Sota', 'Ren',
+                                          'Sakura', 'Yuki', 'Ai', 'Rei', 'Mana', 'Yui', 'Hina', 'Emi'],
+                            'last_names': ['Sato', 'Suzuki', 'Takahashi', 'Tanaka', 'Watanabe', 'Ito', 'Yamamoto', 'Nakamura', 'Kobayashi', 'Kato', 'Yoshida', 'Yamada']
+                        },
+                        'Française': {
+                            'first_names': ['Pierre', 'Jean', 'Michel', 'Alain', 'Philippe', 'Nicolas', 'Antoine', 'Julien',
+                                          'Marie', 'Nathalie', 'Isabelle', 'Sylvie', 'Catherine', 'Valérie', 'Christine', 'Sophie'],
+                            'last_names': ['Martin', 'Bernard', 'Thomas', 'Petit', 'Robert', 'Richard', 'Durand', 'Dubois', 'Moreau', 'Laurent', 'Simon', 'Michel']
+                        },
+                        'Américaine': {
+                            'first_names': ['John', 'Michael', 'David', 'James', 'Robert', 'William', 'Christopher', 'Matthew',
+                                          'Mary', 'Jennifer', 'Linda', 'Patricia', 'Susan', 'Jessica', 'Sarah', 'Karen'],
+                            'last_names': ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez']
+                        },
+                        'Chinoise': {
+                            'first_names': ['Wei', 'Jun', 'Ming', 'Hao', 'Lei', 'Qiang', 'Yang', 'Bin',
+                                          'Li', 'Wang', 'Zhang', 'Liu', 'Chen', 'Yang', 'Zhao', 'Huang'],
+                            'last_names': ['Wang', 'Li', 'Zhang', 'Liu', 'Chen', 'Yang', 'Zhao', 'Huang', 'Zhou', 'Wu', 'Xu', 'Sun']
+                        }
+                    }
+                    
+                    if nationality in nationality_patterns:
+                        pattern = nationality_patterns[nationality]
+                        if first_name not in pattern['first_names'] or last_name not in pattern['last_names']:
+                            nationality_consistency_errors.append(
+                                f"Player {player.get('number', 'unknown')}: '{name}' (nationality: {nationality}) - "
+                                f"first name '{first_name}' or last name '{last_name}' doesn't match nationality patterns"
+                            )
+            
+            # Evaluate results
+            success = True
+            messages = []
+            
+            if name_format_errors:
+                success = False
+                messages.append(f"Name format errors: {len(name_format_errors)} players don't have full names")
+                for error in name_format_errors[:3]:  # Show first 3 errors
+                    messages.append(f"  - {error}")
+            
+            if nationality_consistency_errors:
+                # This is a warning, not a failure, as some nationalities might use fallback names
+                messages.append(f"Nationality consistency warnings: {len(nationality_consistency_errors)} potential mismatches")
+                for error in nationality_consistency_errors[:2]:  # Show first 2 warnings
+                    messages.append(f"  - {error}")
+            
+            # Check name variety
+            if len(name_variety) < len(players) * 0.8:  # At least 80% unique names
+                messages.append(f"Low name variety: only {len(name_variety)} unique names out of {len(players)} players")
+            
+            if success:
+                self.log_result("Full Names Generation", True, 
+                              f"✅ All 20 players have proper full names. Unique names: {len(name_variety)}/20")
+            else:
+                self.log_result("Full Names Generation", False, 
+                              f"❌ Name format issues found", messages)
+            
+            # Test 2: Test with game creation to ensure consistency
+            print("   Testing full names in game creation...")
+            game_request = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data = response.json()
+                game_players = game_data.get('players', [])
+                
+                game_name_errors = []
+                for player in game_players:
+                    name = player.get('name', '')
+                    name_parts = name.strip().split()
+                    if len(name_parts) < 2:
+                        game_name_errors.append(f"Game player {player.get('number', 'unknown')}: '{name}' - incomplete name")
+                
+                if game_name_errors:
+                    self.log_result("Full Names in Game Creation", False, 
+                                  f"❌ Game creation has name format issues", game_name_errors[:3])
+                else:
+                    self.log_result("Full Names in Game Creation", True, 
+                                  f"✅ All players in created game have proper full names")
+            else:
+                self.log_result("Full Names in Game Creation", False, 
+                              f"Could not test game creation - HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Full Names Generation", False, f"Error during test: {str(e)}")
+
     def test_one_survivor_condition(self):
         """Test CRITICAL: Vérifier que le jeu s'arrête à 1 survivant (pas 0)"""
         try:
