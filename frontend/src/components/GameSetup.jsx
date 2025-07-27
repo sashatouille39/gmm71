@@ -17,7 +17,8 @@ import {
   Settings2,
   Target,
   DollarSign,
-  Crown
+  Crown,
+  Star
 } from 'lucide-react';
 import { generateRandomPlayer, GAME_EVENTS, MOCK_CELEBRITIES } from '../mock/mockData';
 import CustomPlayersList from './CustomPlayersList';
