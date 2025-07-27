@@ -109,15 +109,16 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState }) 
     
     // Préparer le prochain événement
     const nextEventIndex = currentGame.currentEventIndex + 1;
-    if (nextEventIndex < currentGame.events.length) {
-      setCurrentGame(prev => ({
-        ...prev,
-        currentEventIndex: nextEventIndex,
+    const alivePlayers = survivors.filter(s => s.alive !== false);
+    
+    // Condition d'arrêt : 1 survivant OU tous les événements terminés
+    if (alivePlayers.length <= 1 || nextEventIndex >= currentGame.events.length) {
+      // Fin de la partie
+      setCurrentGame(prev => ({ 
+        ...prev, 
+        completed: true,
         players: [...survivors, ...eliminated]
       }));
-    } else {
-      // Fin de la partie
-      setCurrentGame(prev => ({ ...prev, completed: true }));
       updateGameState({
         money: gameState.money + calculateWinnings(survivors.length),
         gameStats: {
@@ -126,6 +127,13 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState }) 
           totalKills: gameState.gameStats.totalKills + survivors.reduce((acc, p) => acc + p.kills, 0)
         }
       });
+    } else {
+      // Continuer au prochain événement
+      setCurrentGame(prev => ({
+        ...prev,
+        currentEventIndex: nextEventIndex,
+        players: [...survivors, ...eliminated]
+      }));
     }
 
     setIsPlaying(false);
