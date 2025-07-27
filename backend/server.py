@@ -10,6 +10,10 @@ from typing import List
 import uuid
 from datetime import datetime
 
+# Import game routes
+from routes.game_routes import router as game_router
+from routes.gamestate_routes import router as gamestate_router
+from routes.celebrities_routes import router as celebrities_router
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -20,11 +24,10 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # Create the main app without a prefix
-app = FastAPI()
+app = FastAPI(title="Game Master Manager API", version="1.0.0")
 
-# Create a router with the /api prefix
+# Create a router with the /api prefix for basic routes
 api_router = APIRouter(prefix="/api")
-
 
 # Define Models
 class StatusCheck(BaseModel):
@@ -35,10 +38,10 @@ class StatusCheck(BaseModel):
 class StatusCheckCreate(BaseModel):
     client_name: str
 
-# Add your routes to the router instead of directly to app
+# Add basic routes to the router
 @api_router.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "Game Master Manager API - Ready"}
 
 @api_router.post("/status", response_model=StatusCheck)
 async def create_status_check(input: StatusCheckCreate):
@@ -52,8 +55,11 @@ async def get_status_checks():
     status_checks = await db.status_checks.find().to_list(1000)
     return [StatusCheck(**status_check) for status_check in status_checks]
 
-# Include the router in the main app
+# Include all routers in the main app
 app.include_router(api_router)
+app.include_router(game_router)
+app.include_router(gamestate_router)
+app.include_router(celebrities_router)
 
 app.add_middleware(
     CORSMiddleware,
