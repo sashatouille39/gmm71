@@ -372,21 +372,20 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
                     </div>
                   </div>
 
-                    <div>
-                      <Label className="text-gray-300">Rôle</Label>
-                      <Select value={player.role} onValueChange={updatePlayerRole}>
-                        <SelectTrigger className="bg-gray-800 border-gray-600 text-white mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(PLAYER_ROLES).map(([role, data]) => (
-                            <SelectItem key={role} value={role}>
-                              {data.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div>
+                    <Label className="text-gray-300">Rôle</Label>
+                    <Select value={player.role} onValueChange={updatePlayerRole}>
+                      <SelectTrigger className="bg-gray-800 border-gray-600 text-white mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(PLAYER_ROLES).map(([role, data]) => (
+                          <SelectItem key={role} value={role}>
+                            {data.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="bg-gray-800/30 p-4 rounded-lg">
