@@ -94,18 +94,25 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
     const newValue = value[0];
     const difference = newValue - currentValue;
     
-    if (statsPoints - difference >= 0 && newValue >= 0 && newValue <= 10) {
+    // Vérifier les minimums selon le rôle
+    const baseStats = getBaseStatsForRole(player.role);
+    const minValue = baseStats[stat];
+    
+    if (statsPoints - difference >= 0 && newValue >= minValue && newValue <= 10) {
       setStatsPoints(prev => prev - difference);
       updateNestedField('stats', stat, newValue);
     }
   };
 
   const resetStats = () => {
+    const baseStats = getBaseStatsForRole(player.role);
+    const availablePoints = getAvailablePoints(player.role);
+    
     setPlayer(prev => ({
       ...prev,
-      stats: { intelligence: 5, force: 5, agilité: 5 }
+      stats: baseStats
     }));
-    setStatsPoints(15 - 15); // 15 points utilisés initialement
+    setStatsPoints(availablePoints);
   };
 
   const randomizePortrait = () => {
