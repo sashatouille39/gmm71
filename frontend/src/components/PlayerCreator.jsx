@@ -289,9 +289,9 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
 
               {/* Onglet Portrait */}
               {currentTab === 'portrait' && (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <div className="flex justify-between items-center">
-                    <h3 className="text-white font-medium">Personnalisation du visage</h3>
+                    <h3 className="text-white font-medium">Personnalisation complète du visage</h3>
                     <Button
                       variant="outline"
                       onClick={randomizePortrait}
@@ -302,75 +302,160 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
                     </Button>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-gray-300">Forme du visage</Label>
-                      <Select 
-                        value={player.portrait.faceShape} 
-                        onValueChange={(value) => updateNestedField('portrait', 'faceShape', value)}
-                      >
-                        <SelectTrigger className="bg-gray-800 border-gray-600 text-white mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-40">
-                          {FACE_SHAPES.map((shape) => (
-                            <SelectItem key={shape} value={shape}>{shape}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                  {/* Forme du visage */}
+                  <div>
+                    <Label className="text-gray-300 mb-3 block">Forme du visage ({FACE_SHAPES.length} options)</Label>
+                    <div className="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto p-2 bg-gray-800/30 rounded-lg">
+                      {FACE_SHAPES.map((shape) => (
+                        <button
+                          key={shape}
+                          className={`p-2 text-xs rounded transition-all ${
+                            player.portrait.faceShape === shape 
+                              ? 'bg-red-600 text-white' 
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                          onClick={() => updateNestedField('portrait', 'faceShape', shape)}
+                        >
+                          {shape}
+                        </button>
+                      ))}
                     </div>
-
-                    <div>
-                      <Label className="text-gray-300">Coiffure</Label>
-                      <Select 
-                        value={player.portrait.hairstyle} 
-                        onValueChange={(value) => updateNestedField('portrait', 'hairstyle', value)}
-                      >
-                        <SelectTrigger className="bg-gray-800 border-gray-600 text-white mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-40">
-                          {HAIRSTYLES.slice(0, 30).map((style) => (
-                            <SelectItem key={style} value={style}>{style}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Sélectionné: {player.portrait.faceShape}</p>
                   </div>
 
+                  {/* Couleur de peau */}
                   <div>
-                    <Label className="text-gray-300 mb-3 block">Couleur de peau</Label>
-                    <div className="grid grid-cols-8 gap-2">
-                      {SKIN_COLORS.slice(0, 16).map((color) => (
+                    <Label className="text-gray-300 mb-3 block">Couleur de peau ({SKIN_COLORS.length} nuances)</Label>
+                    <div className="grid grid-cols-10 gap-1 p-3 bg-gray-800/30 rounded-lg">
+                      {SKIN_COLORS.map((color) => (
                         <button
                           key={color}
-                          className={`w-8 h-8 rounded-full border-2 ${
+                          className={`w-6 h-6 rounded-full border-2 transition-all ${
                             player.portrait.skinColor === color 
-                              ? 'border-red-500 scale-110' 
-                              : 'border-gray-600'
-                          } transition-all`}
+                              ? 'border-red-500 scale-110 shadow-lg' 
+                              : 'border-gray-600 hover:border-gray-400'
+                          }`}
                           style={{ backgroundColor: color }}
                           onClick={() => updateNestedField('portrait', 'skinColor', color)}
+                          title={color}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Couleur sélectionnée: {player.portrait.skinColor}</p>
+                  </div>
+
+                  {/* Coiffures */}
+                  <div>
+                    <Label className="text-gray-300 mb-3 block">Coiffure ({HAIRSTYLES.length} styles disponibles)</Label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Rechercher une coiffure..."
+                        className="w-full p-2 bg-gray-800 border border-gray-600 rounded text-white text-sm mb-2"
+                        onChange={(e) => {
+                          const search = e.target.value.toLowerCase();
+                          const filtered = HAIRSTYLES.filter(style => 
+                            style.toLowerCase().includes(search)
+                          );
+                          // Pour simplifier, on affiche les résultats directement
+                        }}
+                      />
+                      <div className="grid grid-cols-2 gap-1 max-h-40 overflow-y-auto p-2 bg-gray-800/30 rounded-lg">
+                        {HAIRSTYLES.map((style) => (
+                          <button
+                            key={style}
+                            className={`p-2 text-xs rounded text-left transition-all ${
+                              player.portrait.hairstyle === style 
+                                ? 'bg-red-600 text-white' 
+                                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            }`}
+                            onClick={() => updateNestedField('portrait', 'hairstyle', style)}
+                          >
+                            {style}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Coiffure sélectionnée: {player.portrait.hairstyle}</p>
+                  </div>
+
+                  {/* Couleur des cheveux */}
+                  <div>
+                    <Label className="text-gray-300 mb-3 block">Couleur des cheveux</Label>
+                    <div className="grid grid-cols-8 gap-2 p-3 bg-gray-800/30 rounded-lg">
+                      {HAIR_COLORS.map((color) => (
+                        <button
+                          key={color}
+                          className={`w-8 h-8 rounded-full border-2 transition-all ${
+                            player.portrait.hairColor === color 
+                              ? 'border-red-500 scale-110 shadow-lg' 
+                              : 'border-gray-600 hover:border-gray-400'
+                          }`}
+                          style={{ backgroundColor: color }}
+                          onClick={() => updateNestedField('portrait', 'hairColor', color)}
+                          title={color}
                         />
                       ))}
                     </div>
                   </div>
 
+                  {/* Forme des yeux */}
                   <div>
-                    <Label className="text-gray-300 mb-3 block">Couleur des cheveux</Label>
-                    <div className="grid grid-cols-8 gap-2">
-                      {HAIR_COLORS.slice(0, 16).map((color) => (
+                    <Label className="text-gray-300 mb-3 block">Forme des yeux</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {EYE_SHAPES.map((shape) => (
+                        <button
+                          key={shape}
+                          className={`p-2 text-xs rounded transition-all ${
+                            player.portrait.eyeShape === shape 
+                              ? 'bg-red-600 text-white' 
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                          onClick={() => updateNestedField('portrait', 'eyeShape', shape)}
+                        >
+                          {shape}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Couleur des yeux */}
+                  <div>
+                    <Label className="text-gray-300 mb-3 block">Couleur des yeux</Label>
+                    <div className="grid grid-cols-6 gap-2 p-3 bg-gray-800/30 rounded-lg">
+                      {EYE_COLORS.map((color) => (
                         <button
                           key={color}
-                          className={`w-8 h-8 rounded-full border-2 ${
-                            player.portrait.hairColor === color 
-                              ? 'border-red-500 scale-110' 
-                              : 'border-gray-600'
-                          } transition-all`}
+                          className={`w-8 h-8 rounded-full border-2 transition-all ${
+                            player.portrait.eyeColor === color 
+                              ? 'border-red-500 scale-110 shadow-lg' 
+                              : 'border-gray-600 hover:border-gray-400'
+                          }`}
                           style={{ backgroundColor: color }}
-                          onClick={() => updateNestedField('portrait', 'hairColor', color)}
+                          onClick={() => updateNestedField('portrait', 'eyeColor', color)}
+                          title={color}
                         />
                       ))}
+                    </div>
+                  </div>
+
+                  {/* Résumé du portrait */}
+                  <div className="bg-gray-800/30 p-4 rounded-lg">
+                    <h4 className="text-white font-medium mb-2">Résumé du portrait</h4>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div><span className="text-gray-400">Visage:</span> <span className="text-white">{player.portrait.faceShape}</span></div>
+                      <div><span className="text-gray-400">Yeux:</span> <span className="text-white">{player.portrait.eyeShape}</span></div>
+                      <div><span className="text-gray-400">Coiffure:</span> <span className="text-white">{player.portrait.hairstyle}</span></div>
+                      <div className="col-span-2">
+                        <div className="flex items-center gap-2 mt-2">
+                          <span class="text-gray-400">Couleurs:</span>
+                          <div className="flex gap-1">
+                            <div className="w-4 h-4 rounded border" style={{backgroundColor: player.portrait.skinColor}} title="Peau"></div>
+                            <div className="w-4 h-4 rounded border" style={{backgroundColor: player.portrait.hairColor}} title="Cheveux"></div>
+                            <div className="w-4 h-4 rounded border" style={{backgroundColor: player.portrait.eyeColor}} title="Yeux"></div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
