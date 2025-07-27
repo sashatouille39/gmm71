@@ -263,6 +263,100 @@ class BackendTester:
         except Exception as e:
             self.log_result("Pydantic Models", False, f"Error: {str(e)}")
     
+    def test_one_survivor_condition(self):
+        """Test CRITICAL: Vérifier que le jeu s'arrête à 1 survivant (pas 0)"""
+        try:
+            # Create a game with 15 players for testing
+            game_request = {
+                "player_count": 15,
+                "game_mode": "standard", 
+                "selected_events": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],  # Multiple events
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("One Survivor Condition", False, f"Could not create test game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            if not game_id:
+                self.log_result("One Survivor Condition", False, "No game ID returned from creation")
+                return
+            
+            # Simulate events until game ends
+            max_events = 20  # Safety limit
+            event_count = 0
+            final_survivors = 0
+            game_completed = False
+            winner_found = False
+            
+            while event_count < max_events:
+                event_count += 1
+                
+                # Simulate one event
+                response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if response.status_code != 200:
+                    self.log_result("One Survivor Condition", False, 
+                                  f"Event simulation failed at event {event_count} - HTTP {response.status_code}")
+                    return
+                
+                data = response.json()
+                game = data.get('game', {})
+                result = data.get('result', {})
+                
+                # Count current survivors
+                survivors = result.get('survivors', [])
+                final_survivors = len(survivors)
+                game_completed = game.get('completed', False)
+                winner = game.get('winner')
+                winner_found = winner is not None
+                
+                print(f"   Event {event_count}: {final_survivors} survivors, completed: {game_completed}")
+                
+                # If game is completed, check the conditions
+                if game_completed:
+                    if final_survivors == 1:
+                        if winner_found:
+                            self.log_result("One Survivor Condition", True, 
+                                          f"✅ Game correctly stopped at 1 survivor after {event_count} events. Winner properly set.")
+                        else:
+                            self.log_result("One Survivor Condition", False, 
+                                          f"Game stopped at 1 survivor but no winner was set")
+                    elif final_survivors == 0:
+                        self.log_result("One Survivor Condition", False, 
+                                      f"❌ CRITICAL: Game continued until 0 survivors (old behavior)")
+                    else:
+                        self.log_result("One Survivor Condition", False, 
+                                      f"Game stopped with {final_survivors} survivors (unexpected)")
+                    return
+                
+                # If we have 1 survivor but game is not completed, that's an error
+                if final_survivors == 1 and not game_completed:
+                    self.log_result("One Survivor Condition", False, 
+                                  f"❌ CRITICAL: 1 survivor remaining but game not marked as completed")
+                    return
+                
+                # If we have 0 survivors, the game should have ended before this
+                if final_survivors == 0:
+                    self.log_result("One Survivor Condition", False, 
+                                  f"❌ CRITICAL: Game reached 0 survivors without stopping at 1")
+                    return
+            
+            # If we exit the loop without the game completing
+            self.log_result("One Survivor Condition", False, 
+                          f"Game did not complete after {max_events} events. Final survivors: {final_survivors}")
+            
+        except Exception as e:
+            self.log_result("One Survivor Condition", False, f"Error during test: {str(e)}")
+
     def check_backend_logs(self):
         """Check backend logs for errors"""
         try:
