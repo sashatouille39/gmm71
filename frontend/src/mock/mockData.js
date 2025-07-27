@@ -37,13 +37,24 @@ export const EYE_COLORS = [
   "#FF8C00", "#DC143C", "#4B0082", "#B22222", "#228B22", "#FF4500"
 ];
 
-// Couleurs de peau
+// Couleurs de peau (25+ couleurs du blanc clair au noir foncé)
 export const SKIN_COLORS = [
-  "#FDF2E9", "#FAE7D0", "#F8D7C0", "#F6C8A0", "#F4B980", "#E8A456",
-  "#D49156", "#C07D46", "#AC6A36", "#985726", "#844516", "#703306",
-  "#5C2100", "#481000", "#340000", "#FFEEE6", "#FFE4D6", "#FFDAC6",
-  "#FFD0B6", "#FFC6A6", "#FFBC96", "#FFB286", "#FFA876", "#FF9E66",
-  "#FF9456", "#E88A46", "#D18036", "#BA7626", "#A36C16"
+  // Tons très clairs
+  "#FDF2E9", "#FAE7D0", "#F8D7C0", "#F6C8A0", "#F4B980", 
+  // Tons clairs
+  "#E8A456", "#D49156", "#C07D46", "#AC6A36", "#985726", 
+  // Tons moyens
+  "#844516", "#703306", "#5C2100", "#481000", "#340000", 
+  // Tons rosés/beiges
+  "#FFEEE6", "#FFE4D6", "#FFDAC6", "#FFD0B6", "#FFC6A6", 
+  // Tons dorés
+  "#FFBC96", "#FFB286", "#FFA876", "#FF9E66", "#FF9456", 
+  // Tons olivâtres
+  "#E88A46", "#D18036", "#BA7626", "#A36C16", "#8B5A00",
+  // Tons plus foncés
+  "#7A4F12", "#6B4423", "#5C3317", "#4D2B1A", "#3E1F0A",
+  // Tons très foncés
+  "#2F1608", "#251308", "#1B0F05", "#120A03", "#080401"
 ];
 
 // Coiffures
