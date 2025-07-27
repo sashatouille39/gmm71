@@ -498,7 +498,7 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
                       <div><span className="text-gray-400">Coiffure:</span> <span className="text-white">{player.portrait.hairstyle}</span></div>
                       <div className="col-span-2">
                         <div className="flex items-center gap-2 mt-2">
-                          <span class="text-gray-400">Couleurs:</span>
+                          <span className="text-gray-400">Couleurs:</span>
                           <div className="flex gap-1">
                             <div className="w-4 h-4 rounded border" style={{backgroundColor: player.portrait.skinColor}} title="Peau"></div>
                             <div className="w-4 h-4 rounded border" style={{backgroundColor: player.portrait.hairColor}} title="Cheveux"></div>
