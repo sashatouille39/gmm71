@@ -86,8 +86,8 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
       skinColor: SKIN_COLORS[Math.floor(Math.random() * SKIN_COLORS.length)],
       hairstyle: HAIRSTYLES[Math.floor(Math.random() * HAIRSTYLES.length)],
       hairColor: HAIR_COLORS[Math.floor(Math.random() * HAIR_COLORS.length)],
-      eyeColor: ['#8B4513', '#654321', '#2F4F2F', '#483D8B'][Math.floor(Math.random() * 4)],
-      eyeShape: ['Amande', 'Rond', 'Allongé', 'Tombant'][Math.floor(Math.random() * 4)]
+      eyeColor: EYE_COLORS[Math.floor(Math.random() * EYE_COLORS.length)],
+      eyeShape: EYE_SHAPES[Math.floor(Math.random() * EYE_SHAPES.length)]
     };
     setPlayer(prev => ({ ...prev, portrait: randomPortrait }));
   };
