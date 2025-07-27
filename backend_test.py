@@ -413,6 +413,10 @@ class BackendTester:
         # Test 7: Model validation
         self.test_pydantic_models()
         
+        # Test 8: CRITICAL - One survivor condition (NEW TEST)
+        print("\n🎯 Testing CRITICAL fix: 1 survivor condition...")
+        self.test_one_survivor_condition()
+        
         # Check logs
         self.check_backend_logs()
         
