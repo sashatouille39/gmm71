@@ -18,7 +18,7 @@ import {
   Target,
   DollarSign
 } from 'lucide-react';
-import { generateRandomPlayer, GAME_EVENTS } from '../mock/mockData';
+import { generateRandomPlayer, GAME_EVENTS, MOCK_CELEBRITIES } from '../mock/mockData';
 import CustomPlayersList from './CustomPlayersList';
 
 const GameSetup = ({ gameState, onStartGame }) => {
