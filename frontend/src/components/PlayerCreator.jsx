@@ -360,7 +360,7 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
 
                     <div>
                       <Label className="text-gray-300">Rôle</Label>
-                      <Select value={player.role} onValueChange={(value) => updatePlayerField('role', value)}>
+                      <Select value={player.role} onValueChange={updatePlayerRole}>
                         <SelectTrigger className="bg-gray-800 border-gray-600 text-white mt-1">
                           <SelectValue />
                         </SelectTrigger>
