@@ -2,12 +2,12 @@
 
 // Rôles des joueurs avec probabilités
 export const PLAYER_ROLES = {
-  normal: { probability: 0.60, name: "Normal", baseStats: "équilibrés", bonus: [] },
-  sportif: { probability: 0.11, name: "Sportif", baseStats: "agilité", bonus: ["+2 force"] },
-  peureux: { probability: 0.10, name: "Peureux", baseStats: "faibles", bonus: ["-4 répartis"] },
-  brute: { probability: 0.11, name: "La Brute", baseStats: "force", bonus: ["+2 agilité", "intimidation"] },
-  intelligent: { probability: 0.07, name: "L'Intelligent", baseStats: "intelligence", bonus: ["+2 aléatoire", "manipulation"] },
-  zero: { probability: 0.01, name: "Le Zéro", baseStats: "aléatoires 4-10", bonus: ["très manipulateur"] }
+  normal: { probability: 0.60, name: "Normal", baseStats: "équilibrés", bonus: [], bonusStats: {} },
+  sportif: { probability: 0.11, name: "Sportif", baseStats: "agilité", bonus: ["+2 agilité"], bonusStats: { agilité: 2 } },
+  peureux: { probability: 0.10, name: "Peureux", baseStats: "faibles", bonus: ["-4 répartis"], bonusStats: {}, penalty: -4 },
+  brute: { probability: 0.11, name: "La Brute", baseStats: "force", bonus: ["+2 force", "intimidation"], bonusStats: { force: 2 } },
+  intelligent: { probability: 0.07, name: "L'Intelligent", baseStats: "intelligence", bonus: ["+2 intelligence", "manipulation"], bonusStats: { intelligence: 2 } },
+  zero: { probability: 0.01, name: "Le Zéro", baseStats: "aléatoires 4-10", bonus: ["très manipulateur"], bonusStats: {}, special: true }
 };
 
 // Nationalités cohérentes
