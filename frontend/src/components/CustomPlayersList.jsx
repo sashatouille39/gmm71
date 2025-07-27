@@ -213,11 +213,11 @@ const CustomPlayersList = ({ onSelectPlayer, onCreateNew, selectedPlayers = [] }
                       </div>
                       
                       <div>
-                        <h5 className="text-white font-medium mb-2">Uniforme</h5>
+                        <h5 className="text-white font-medium mb-2">Informations</h5>
                         <div className="space-y-1 text-gray-400">
-                          <div>Style: {player.uniform.style}</div>
-                          <div>Couleur: {player.uniform.color}</div>
-                          <div>Motif: {player.uniform.pattern}</div>
+                          <div>Genre: {player.gender === 'M' ? 'Homme' : 'Femme'}</div>
+                          <div>Âge: {player.age || 'Non spécifié'} ans</div>
+                          <div>Rôle: {PLAYER_ROLES[player.role].name}</div>
                         </div>
                       </div>
                     </div>
