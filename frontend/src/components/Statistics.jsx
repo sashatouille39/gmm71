@@ -151,48 +151,58 @@ const Statistics = ({ gameState }) => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockStats.games.map((game) => (
-                    <div key={game.id} className="bg-gray-800/30 p-4 rounded-lg hover:bg-gray-700/30 transition-colors">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h3 className="text-white font-medium">Jeu #{game.id}</h3>
-                          <p className="text-gray-400 text-sm">{game.date}</p>
-                        </div>
-                        <Badge variant="outline" className="text-green-400 border-green-400">
-                          +${game.earnings.toLocaleString()}
-                        </Badge>
-                      </div>
-
-                      <div className="grid grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <span className="text-gray-400">Joueurs:</span>
-                          <div className="text-white font-medium">{game.players}</div>
-                        </div>
-                        <div>
-                          <span className="text-gray-400">Survivants:</span>
-                          <div className="text-white font-medium">{game.survivors}</div>
-                        </div>
-                        <div>
-                          <span className="text-gray-400">Durée:</span>
-                          <div className="text-white font-medium">{game.duration}</div>
-                        </div>
-                        <div>
-                          <span className="text-gray-400">Vainqueur:</span>
-                          <div className="text-white font-medium text-xs">{game.winner}</div>
-                        </div>
-                      </div>
-
-                      <div className="mt-3 bg-gray-700/50 rounded-full h-2">
-                        <div 
-                          className="bg-red-500 h-2 rounded-full"
-                          style={{ width: `${((game.players - game.survivors) / game.players) * 100}%` }}
-                        ></div>
-                      </div>
-                      <div className="text-xs text-gray-400 mt-1">
-                        Taux d'élimination: {(((game.players - game.survivors) / game.players) * 100).toFixed(1)}%
-                      </div>
+                  {realStats.games.length === 0 ? (
+                    <div className="text-center py-12 text-gray-400">
+                      <Trophy className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                      <p>Aucune partie jouée</p>
+                      <p className="text-sm">Lancez votre première partie pour voir les statistiques</p>
                     </div>
-                  ))}
+                  ) : (
+                    realStats.games.map((game) => (
+                      <div key={game.id} className="bg-gray-800/30 p-4 rounded-lg hover:bg-gray-700/30 transition-colors">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h3 className="text-white font-medium">Jeu #{game.id}</h3>
+                            <p className="text-gray-400 text-sm">{game.date}</p>
+                          </div>
+                          <Badge variant="outline" className="text-green-400 border-green-400">
+                            +${(game.earnings || 0).toLocaleString()}
+                          </Badge>
+                        </div>
+
+                        <div className="grid grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-400">Joueurs:</span>
+                            <div className="text-white font-medium">{game.totalPlayers || 0}</div>
+                          </div>
+                          <div>
+                            <span className="text-gray-400">Survivants:</span>
+                            <div className="text-white font-medium">{game.survivors || 0}</div>
+                          </div>
+                          <div>
+                            <span className="text-gray-400">Durée:</span>
+                            <div className="text-white font-medium">{game.duration || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <span className="text-gray-400">Vainqueur:</span>
+                            <div className="text-white font-medium text-xs">{game.winner || 'Aucun'}</div>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 bg-gray-700/50 rounded-full h-2">
+                          <div 
+                            className="bg-red-500 h-2 rounded-full"
+                            style={{ 
+                              width: `${game.totalPlayers > 0 ? ((game.totalPlayers - game.survivors) / game.totalPlayers) * 100 : 0}%` 
+                            }}
+                          ></div>
+                        </div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          Taux d'élimination: {game.totalPlayers > 0 ? (((game.totalPlayers - game.survivors) / game.totalPlayers) * 100).toFixed(1) : 0}%
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>
