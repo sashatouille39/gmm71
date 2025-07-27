@@ -57,20 +57,48 @@ export const SKIN_COLORS = [
   "#2F1608", "#251308", "#1B0F05", "#120A03", "#080401"
 ];
 
-// Coiffures
+// Coiffures (80+)
 export const HAIRSTYLES = [
-  "Cheveux courts", "Cheveux longs", "Bob", "Pixie", "Afro", "Dreadlocks",
-  "Tresses", "Queue de cheval", "Chignon", "Mohawk", "Undercut", "Fade",
-  "Pompadour", "Quiff", "Buzz cut", "Crew cut", "Slicked back", "Wavy",
-  "Curly", "Straight", "Layered", "Shag", "Mullet", "Top knot", "Man bun",
-  "Cornrows", "Bangs", "Side swept", "Spiky", "Messy", "Sleek", "Volume",
-  "Textured", "Choppy", "Blunt", "Asymmetrical", "Retro", "Modern",
-  "Classic", "Edgy", "Romantic", "Bohemian", "Punk", "Gothic", "Vintage",
-  "Contemporary", "Trendy", "Timeless", "Elegant", "Casual", "Formal",
-  "Sporty", "Artistic", "Creative", "Bold", "Subtle", "Natural", "Styled",
-  "Wild", "Tame", "Flowing", "Structured", "Loose", "Tight", "Soft",
-  "Hard", "Smooth", "Rough", "Fine", "Thick", "Thin", "Full", "Sparse",
-  "Dense", "Light", "Heavy", "Bouncy", "Flat", "Voluminous", "Sleek"
+  // Coupes courtes
+  "Cheveux courts", "Pixie", "Buzz cut", "Crew cut", "Undercut", "Fade", 
+  "High and tight", "Caesar", "Textured crop", "French crop", "Induction cut",
+  "Burr cut", "Butch cut", "Flat top", "High top", "Brush cut",
+  
+  // Coupes moyennes
+  "Bob", "Lob", "Carré plongeant", "Carré court", "Carré long", "Shag",
+  "Layered", "Wavy bob", "Asymmetrical bob", "A-line bob", "Inverted bob",
+  "Stacked bob", "Graduated bob", "Textured bob", "Blunt bob",
+  
+  // Coupes longues
+  "Cheveux longs", "Cheveux très longs", "Layers", "Beach waves", "Straight long",
+  "V-cut", "U-cut", "Feathered", "Side-swept long", "Curtain bangs long",
+  "Bohemian long", "Waterfall layers", "Face-framing layers",
+  
+  // Styles spéciaux
+  "Mohawk", "Faux hawk", "Pompadour", "Quiff", "Slicked back", "Comb over",
+  "Side part", "Deep side part", "Middle part", "Zigzag part",
+  
+  // Coiffures attachées
+  "Queue de cheval", "Queue haute", "Queue basse", "Queue sur le côté",
+  "Chignon", "Chignon bas", "Chignon haut", "Chignon messy", "Top knot", 
+  "Man bun", "Space buns", "Double buns", "Half-up half-down",
+  
+  // Tresses et locks
+  "Tresses", "Tresse française", "Tresse hollandaise", "Tresses africaines",
+  "Box braids", "Cornrows", "Dreadlocks", "Faux locs", "Twist out",
+  "Bantu knots", "Fulani braids", "Dutch braids", "Fishtail braid",
+  
+  // Textures et styles
+  "Afro", "Curly", "Wavy", "Straight", "Spiky", "Messy", "Sleek", "Volume",
+  "Textured", "Choppy", "Blunt", "Feathered", "Tousled", "Bedhead",
+  
+  // Styles avec frange
+  "Bangs", "Side swept", "Blunt bangs", "Wispy bangs", "Curtain bangs",
+  "Baby bangs", "Long bangs", "Choppy bangs", "Round bangs",
+  
+  // Styles rétro/vintage
+  "Retro", "Vintage", "Pin-up", "Victory rolls", "Beehive", "Bouffant",
+  "Finger waves", "Marcel waves", "Gibson tuck", "Pompadour féminin"
 ];
 
 // Couleurs de cheveux
