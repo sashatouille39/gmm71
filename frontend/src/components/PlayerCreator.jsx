@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Slider } from './ui/slider';
 import { Badge } from './ui/badge';
 import { Separator } from './ui/separator';
-import { ArrowLeft, Save, Eye, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Save, Eye, RotateCcw, CheckCircle } from 'lucide-react';
+import { useCustomPlayers } from '../hooks/useCustomPlayers';
 import { 
   NATIONALITIES, 
   FACE_SHAPES, 
