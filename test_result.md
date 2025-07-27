@@ -274,3 +274,5 @@
 ## agent_communication:
     - agent: "main"
       message: "Projet Game Master Manager analysé. Base solide mais 70% des fonctionnalités du cahier des charges manquantes. Priorité : MongoDB, épreuves complètes, personnalisation joueurs."
+    - agent: "testing"
+      message: "BACKEND TESTING COMPLETE - ALL CORE FUNCTIONALITY WORKING. Fixed critical issue where game routes were not included in server.py. Backend now fully functional with: ✅ API startup on configured port ✅ All game routes working (/api/games/events/available, /api/games/generate-players, /api/games/create, /api/games/simulate-event) ✅ Player generation with correct Pydantic models ✅ Game creation and event simulation ✅ Additional routes (celebrities, gamestate) ✅ No errors in backend logs. The backend core is solid and ready for frontend integration. Main agent should focus on expanding game features (80+ events, MongoDB integration) rather than fixing basic API functionality."
