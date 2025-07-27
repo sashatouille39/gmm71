@@ -109,6 +109,44 @@ async def simulate_event(game_id: str):
     
     current_event = game.events[game.current_event_index]
     
+    # Vérifier si on a déjà 1 survivant avant simulation
+    alive_players_before = [p for p in game.players if p.alive]
+    if len(alive_players_before) <= 1:
+        game.completed = True
+        game.end_time = datetime.utcnow()
+        
+        # Déterminer le gagnant
+        if alive_players_before:
+            game.winner = max(alive_players_before, key=lambda p: p.total_score)
+        
+        # Calculer les gains
+        game.earnings = 10000 + (len(game.players) - len(alive_players_before)) * 100
+        
+        games_db[game_id] = game
+        
+        # Retourner un résultat vide car aucun événement n'a été simulé
+        return {
+            "result": EventResult(
+                event_id=current_event.id,
+                event_name=current_event.name,
+                survivors=[{
+                    "player": p,
+                    "number": p.number,
+                    "name": p.name,
+                    "time_remaining": 0,
+                    "event_kills": 0,
+                    "betrayed": False,
+                    "score": 0,
+                    "kills": p.kills,
+                    "total_score": p.total_score,
+                    "survived_events": p.survived_events
+                } for p in alive_players_before],
+                eliminated=[],
+                total_participants=len(alive_players_before)
+            ),
+            "game": game
+        }
+    
     # Simuler l'événement
     result = GameService.simulate_event(game.players, current_event)
     game.event_results.append(result)
@@ -132,20 +170,50 @@ async def simulate_event(game_id: str):
     # Passer à l'événement suivant
     game.current_event_index += 1
     
-    # Vérifier si la partie est terminée
-    alive_players = [p for p in game.players if p.alive]
+    # Vérifier si la partie est terminée après simulation
+    alive_players_after = [p for p in game.players if p.alive]
+    
+    # CORRECTION CRITIQUE: Si l'événement a éliminé tous les joueurs, ressusciter le meilleur
+    if len(alive_players_after) == 0 and len(result.eliminated) > 0:
+        # Ressusciter le joueur éliminé avec le meilleur score total
+        best_eliminated = max(result.eliminated, key=lambda x: x.get("player").total_score)
+        best_eliminated_player = best_eliminated["player"]
+        
+        # Trouver le joueur dans la liste et le ressusciter
+        for i, player in enumerate(game.players):
+            if player.number == best_eliminated_player.number:
+                game.players[i].alive = True
+                break
+        
+        # Mettre à jour la liste des survivants
+        alive_players_after = [p for p in game.players if p.alive]
+        
+        # Retirer ce joueur de la liste des éliminés et l'ajouter aux survivants
+        result.eliminated = [e for e in result.eliminated if e["number"] != best_eliminated_player.number]
+        result.survivors.append({
+            "player": best_eliminated_player,
+            "number": best_eliminated_player.number,
+            "name": best_eliminated_player.name,
+            "time_remaining": 1,  # Survie de justesse
+            "event_kills": 0,
+            "betrayed": False,
+            "score": 1,
+            "kills": best_eliminated_player.kills,
+            "total_score": best_eliminated_player.total_score,
+            "survived_events": best_eliminated_player.survived_events
+        })
     
     # Condition d'arrêt : 1 survivant OU tous les événements terminés
-    if len(alive_players) <= 1 or game.current_event_index >= len(game.events):
+    if len(alive_players_after) <= 1 or game.current_event_index >= len(game.events):
         game.completed = True
         game.end_time = datetime.utcnow()
         
         # Déterminer le gagnant
-        if alive_players:
-            game.winner = max(alive_players, key=lambda p: p.total_score)
+        if alive_players_after:
+            game.winner = max(alive_players_after, key=lambda p: p.total_score)
         
         # Calculer les gains
-        game.earnings = 10000 + (len(game.players) - len(alive_players)) * 100
+        game.earnings = 10000 + (len(game.players) - len(alive_players_after)) * 100
     
     games_db[game_id] = game
     return {"result": result, "game": game}
