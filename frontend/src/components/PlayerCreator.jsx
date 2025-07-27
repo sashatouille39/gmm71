@@ -33,8 +33,9 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
     name: '',
     nationality: '',
     gender: 'M',
+    age: 20,
     role: 'normal',
-    stats: { intelligence: 5, force: 5, agilité: 5 },
+    stats: { intelligence: 0, force: 0, agilité: 0 },
     portrait: {
       faceShape: FACE_SHAPES[0],
       skinColor: SKIN_COLORS[0],
@@ -42,11 +43,6 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
       hairColor: HAIR_COLORS[0],
       eyeColor: EYE_COLORS[0],
       eyeShape: EYE_SHAPES[0]
-    },
-    uniform: {
-      style: UNIFORM_STYLES[0],
-      color: UNIFORM_COLORS[0],
-      pattern: UNIFORM_PATTERNS[0]
     }
   });
 
