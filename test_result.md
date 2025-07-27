@@ -146,6 +146,9 @@
         - working: true
           agent: "testing"
           comment: "FIXED: Added missing route imports to server.py. All game routes now working: /api/games/events/available (15 events), /api/games/generate-players (working with count=10), /api/games/create (creates games with 20-1000 players), /api/games/{id}/simulate-event (event simulation working). Additional routes also working: /api/celebrities/ (1000 celebrities), /api/gamestate/ (user state management). All Pydantic models validated correctly. Backend fully functional for core game features."
+        - working: true
+          agent: "testing"
+          comment: "✅ CRITICAL FIX VALIDATED: 1 survivor condition now working perfectly. Game correctly stops at exactly 1 survivor instead of continuing to 0. Fixed Pydantic validation error (elimination_rate constraint), added resurrection logic to prevent 0-survivor scenarios, enhanced game termination logic. All backend tests passing at 100% success rate. The /api/games/{id}/simulate-event route properly marks games as completed:true and sets winner when 1 survivor remains."
 
   - task: "Intégration MongoDB"
     implemented: false
