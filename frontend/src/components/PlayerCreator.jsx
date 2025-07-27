@@ -667,16 +667,25 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
                   Annuler
                 </Button>
                 <Button
-                  onClick={() => {
-                    // Sauvegarder le joueur créé
-                    console.log('Joueur créé:', player);
-                    navigate('/game-setup');
-                  }}
-                  disabled={!player.name || !player.nationality}
-                  className="flex-1 bg-red-600 hover:bg-red-700"
+                  onClick={handleSavePlayer}
+                  disabled={!player.name || !player.nationality || savedStatus}
+                  className={`flex-1 transition-all duration-300 ${
+                    savedStatus 
+                      ? 'bg-green-600 hover:bg-green-700' 
+                      : 'bg-red-600 hover:bg-red-700'
+                  }`}
                 >
-                  <Save className="w-4 h-4 mr-2" />
-                  Sauvegarder joueur
+                  {savedStatus ? (
+                    <>
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Joueur sauvegardé !
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Sauvegarder joueur
+                    </>
+                  )}
                 </Button>
               </div>
             </CardContent>
