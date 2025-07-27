@@ -135,11 +135,17 @@
     file: "routes/game_routes.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: true
           agent: "main"
           comment: "Routes pour créer/récupérer parties, générer joueurs, simuler événements. Stockage en mémoire actuellement."
+        - working: false
+          agent: "testing"
+          comment: "CRITICAL ISSUE FOUND: Game routes were not included in main server.py. All game endpoints returned 404 errors."
+        - working: true
+          agent: "testing"
+          comment: "FIXED: Added missing route imports to server.py. All game routes now working: /api/games/events/available (15 events), /api/games/generate-players (working with count=10), /api/games/create (creates games with 20-1000 players), /api/games/{id}/simulate-event (event simulation working). Additional routes also working: /api/celebrities/ (1000 celebrities), /api/gamestate/ (user state management). All Pydantic models validated correctly. Backend fully functional for core game features."
 
   - task: "Intégration MongoDB"
     implemented: false
