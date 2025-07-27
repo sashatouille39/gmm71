@@ -20,56 +20,48 @@ const Statistics = ({ gameState }) => {
   const navigate = useNavigate();
   const [selectedPeriod, setSelectedPeriod] = useState('all');
 
-  // Mock data pour les statistiques détaillées
-  const mockStats = {
-    games: [
-      {
-        id: 1,
-        date: '2025-01-15',
-        players: 456,
-        survivors: 23,
-        duration: '2h 34m',
-        winner: 'Player #087 - Jin Woo',
-        earnings: 15400
-      },
-      {
-        id: 2,
-        date: '2025-01-12',
-        players: 234,
-        survivors: 12,
-        duration: '1h 45m',
-        winner: 'Player #156 - Sarah Kim',
-        earnings: 12300
-      },
-      {
-        id: 3,
-        date: '2025-01-10',
-        players: 789,
-        survivors: 45,
-        duration: '3h 12m',
-        winner: 'Player #023 - Viktor Kozlov',
-        earnings: 28900
-      }
-    ],
-    topEvents: [
-      { name: 'Feu rouge, Feu vert', deaths: 1247, survival_rate: 0.23 },
-      { name: 'Pont de verre', deaths: 1089, survival_rate: 0.15 },
-      { name: 'Combat de gladiateurs', deaths: 987, survival_rate: 0.18 },
-      { name: 'Labyrinthe mortel', deaths: 756, survival_rate: 0.31 },
-      { name: 'Tir à la corde', deaths: 623, survival_rate: 0.42 }
-    ],
+  // Utiliser les vraies données de jeu au lieu des données mockées
+  const realGames = gameState.completedGames || [];
+  const realStats = {
+    games: realGames,
+    topEvents: gameState.eventStats || [],
     achievements: [
-      { name: 'Premier sang', description: 'Organisez votre premier jeu', completed: true },
-      { name: 'Massacre', description: '1000 éliminations totales', completed: true, progress: 1247 },
-      { name: 'Empereur', description: 'Organisez 50 jeux', completed: false, progress: 3 },
-      { name: 'Millionaire', description: 'Gagnez $1,000,000', completed: false, progress: 56700 },
-      { name: 'Le Zéro', description: 'Voyez apparaître Le Zéro dans un jeu', completed: false }
+      { 
+        name: 'Premier sang', 
+        description: 'Organisez votre premier jeu', 
+        completed: gameState.gameStats.totalGamesPlayed > 0,
+        progress: gameState.gameStats.totalGamesPlayed 
+      },
+      { 
+        name: 'Massacre', 
+        description: '1000 éliminations totales', 
+        completed: gameState.gameStats.totalKills >= 1000,
+        progress: gameState.gameStats.totalKills 
+      },
+      { 
+        name: 'Empereur', 
+        description: 'Organisez 50 jeux', 
+        completed: gameState.gameStats.totalGamesPlayed >= 50,
+        progress: gameState.gameStats.totalGamesPlayed 
+      },
+      { 
+        name: 'Millionaire', 
+        description: 'Gagnez $1,000,000', 
+        completed: gameState.totalEarnings >= 1000000,
+        progress: gameState.totalEarnings || 0 
+      },
+      { 
+        name: 'Le Zéro', 
+        description: 'Voyez apparaître Le Zéro dans un jeu', 
+        completed: gameState.gameStats.zeroAppearances > 0,
+        progress: gameState.gameStats.zeroAppearances || 0 
+      }
     ]
   };
 
-  const totalEarnings = mockStats.games.reduce((sum, game) => sum + game.earnings, 0);
-  const totalPlayers = mockStats.games.reduce((sum, game) => sum + game.players, 0);
-  const totalSurvivors = mockStats.games.reduce((sum, game) => sum + game.survivors, 0);
+  const totalEarnings = realGames.reduce((sum, game) => sum + (game.earnings || 0), 0);
+  const totalPlayers = realGames.reduce((sum, game) => sum + (game.totalPlayers || 0), 0);
+  const totalSurvivors = realGames.reduce((sum, game) => sum + (game.survivors || 0), 0);
   const survivalRate = totalPlayers > 0 ? (totalSurvivors / totalPlayers * 100).toFixed(1) : 0;
 
   return (
