@@ -289,7 +289,7 @@ const Statistics = ({ gameState }) => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {mockStats.achievements.map((achievement) => (
+                  {realStats.achievements.map((achievement) => (
                     <div 
                       key={achievement.name}
                       className={`p-4 rounded-lg border transition-all ${
@@ -320,7 +320,7 @@ const Statistics = ({ gameState }) => {
                             <div 
                               className="bg-red-500 h-1.5 rounded-full"
                               style={{ 
-                                width: `${Math.min(100, (achievement.progress / (achievement.name === 'Empereur' ? 50 : 1000000)) * 100)}%` 
+                                width: `${Math.min(100, (achievement.progress / (achievement.name === 'Empereur' ? 50 : achievement.name === 'Millionaire' ? 1000000 : 1000)) * 100)}%` 
                               }}
                             ></div>
                           </div>
