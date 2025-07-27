@@ -328,6 +328,21 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
                     </div>
                     
                     <div>
+                      <Label className="text-gray-300">Âge</Label>
+                      <Input
+                        type="number"
+                        min="18"
+                        max="80"
+                        value={player.age}
+                        onChange={(e) => updatePlayerField('age', parseInt(e.target.value) || 18)}
+                        placeholder="Âge du joueur"
+                        className="bg-gray-800 border-gray-600 text-white mt-1"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
                       <Label className="text-gray-300">Genre</Label>
                       <Select value={player.gender} onValueChange={(value) => updatePlayerField('gender', value)}>
                         <SelectTrigger className="bg-gray-800 border-gray-600 text-white mt-1">
@@ -339,9 +354,7 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
 
-                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label className="text-gray-300">Nationalité</Label>
                       <Select value={player.nationality} onValueChange={(value) => updatePlayerField('nationality', value)}>
@@ -357,6 +370,7 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
 
                     <div>
                       <Label className="text-gray-300">Rôle</Label>
