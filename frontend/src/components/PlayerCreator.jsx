@@ -130,38 +130,88 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center space-y-4">
-              {/* Avatar stylisé */}
-              <div className="relative mx-auto w-32 h-32 rounded-full border-4 border-red-500 overflow-hidden">
+              {/* Avatar stylisé amélioré */}
+              <div className="relative mx-auto w-40 h-48 rounded-lg border-4 border-red-500 overflow-hidden bg-gradient-to-b from-gray-800 to-gray-900">
+                {/* Visage */}
                 <div 
-                  className="w-full h-full flex items-center justify-center text-4xl font-bold"
+                  className="w-full h-32 flex items-center justify-center text-2xl font-bold relative"
                   style={{ backgroundColor: player.portrait.skinColor }}
                 >
-                  {player.name ? player.name.charAt(0).toUpperCase() : '?'}
+                  {/* Yeux */}
+                  <div className="absolute top-6 left-1/2 transform -translate-x-1/2 flex gap-3">
+                    <div 
+                      className="w-3 h-2 rounded-full"
+                      style={{ backgroundColor: player.portrait.eyeColor }}
+                      title={player.portrait.eyeShape}
+                    ></div>
+                    <div 
+                      className="w-3 h-2 rounded-full"
+                      style={{ backgroundColor: player.portrait.eyeColor }}
+                    ></div>
+                  </div>
+                  
+                  {/* Nom */}
+                  <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-black text-xs font-bold">
+                    {player.name ? player.name.charAt(0).toUpperCase() : '?'}
+                  </div>
                 </div>
-                <div className="absolute bottom-0 w-full h-8 opacity-80"
-                  style={{ backgroundColor: player.portrait.hairColor }}>
+                
+                {/* Cheveux */}
+                <div 
+                  className="absolute top-0 w-full h-8 opacity-90"
+                  style={{ backgroundColor: player.portrait.hairColor }}
+                  title={player.portrait.hairstyle}
+                >
+                </div>
+                
+                {/* Corps/Uniforme */}
+                <div className="w-full h-16 flex items-center justify-center">
+                  <div className={`w-24 h-12 rounded flex items-center justify-center text-xs text-white font-semibold
+                    ${player.uniform.color === 'Rouge' ? 'bg-red-600' : 
+                      player.uniform.color === 'Bleu' ? 'bg-blue-600' :
+                      player.uniform.color === 'Vert' ? 'bg-green-600' :
+                      player.uniform.color === 'Jaune' ? 'bg-yellow-600' :
+                      player.uniform.color === 'Rose' ? 'bg-pink-600' :
+                      player.uniform.color === 'Violet' ? 'bg-purple-600' :
+                      player.uniform.color === 'Orange' ? 'bg-orange-600' :
+                      player.uniform.color === 'Noir' ? 'bg-black' :
+                      'bg-white text-black'}`}
+                  >
+                    {player.uniform.style}
+                  </div>
                 </div>
               </div>
 
-              {/* Informations du joueur */}
-              <div className="space-y-2">
+              {/* Informations détaillées du joueur */}
+              <div className="space-y-3">
                 <h3 className="text-xl font-bold text-white">
                   {player.name || 'Sans nom'}
                 </h3>
-                <div className="flex justify-center gap-2">
-                  <Badge variant="outline" className="text-gray-300">
+                
+                <div className="grid grid-cols-2 gap-2">
+                  <Badge variant="outline" className="text-gray-300 text-xs">
                     {player.nationality || 'Aucune'}
                   </Badge>
-                  <Badge variant="outline" className="text-gray-300">
+                  <Badge variant="outline" className="text-gray-300 text-xs">
                     {player.gender === 'M' ? 'Homme' : 'Femme'}
                   </Badge>
                 </div>
+                
                 <Badge 
                   variant="outline" 
-                  className="text-red-400 border-red-400"
+                  className="text-red-400 border-red-400 text-sm"
                 >
                   {PLAYER_ROLES[player.role].name}
                 </Badge>
+
+                {/* Détails du portrait */}
+                <div className="bg-gray-800/30 p-2 rounded text-xs">
+                  <div className="grid grid-cols-1 gap-1 text-left">
+                    <div><span className="text-gray-400">Visage:</span> <span className="text-white">{player.portrait.faceShape}</span></div>
+                    <div><span className="text-gray-400">Yeux:</span> <span className="text-white">{player.portrait.eyeShape}</span></div>
+                    <div><span className="text-gray-400">Coiffure:</span> <span className="text-white">{player.portrait.hairstyle}</span></div>
+                  </div>
+                </div>
               </div>
 
               <Separator className="bg-gray-600" />
