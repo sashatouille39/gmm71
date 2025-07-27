@@ -238,6 +238,12 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
                     {player.nationality || 'Aucune'}
                   </Badge>
                   <Badge variant="outline" className="text-gray-300 text-xs">
+                    {player.age} ans
+                  </Badge>
+                </div>
+                
+                <div className="grid grid-cols-1 gap-2">
+                  <Badge variant="outline" className="text-gray-300 text-xs">
                     {player.gender === 'M' ? 'Homme' : 'Femme'}
                   </Badge>
                 </div>
