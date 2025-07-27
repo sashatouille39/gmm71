@@ -125,6 +125,17 @@ export const HAIR_COLORS = [
   "#BA55D3", "#DA70D6", "#EE82EE", "#FF1493", "#FF69B4", "#FFB6C1"
 ];
 
+// Catégories d'épreuves
+export const EVENT_CATEGORIES = {
+  classic: { name: "Classiques", color: "blue", order: 1 },
+  combat: { name: "Combat", color: "red", order: 2 },
+  survival: { name: "Survie", color: "green", order: 3 },
+  intelligence: { name: "Intelligence", color: "purple", order: 4 },
+  agilite: { name: "Agilité", color: "yellow", order: 5 },
+  mixed: { name: "Mixtes", color: "gray", order: 6 },
+  final: { name: "Finales", color: "gold", order: 99 }
+};
+
 // Épreuves du jeu (81 épreuves totales)
 export const GAME_EVENTS = [
   // Épreuves classiques Squid Game (5)
