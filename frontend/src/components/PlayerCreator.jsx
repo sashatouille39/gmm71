@@ -180,20 +180,10 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
                 >
                 </div>
                 
-                {/* Corps/Uniforme */}
+                {/* Corps simplifié */}
                 <div className="w-full h-16 flex items-center justify-center">
-                  <div className={`w-24 h-12 rounded flex items-center justify-center text-xs text-white font-semibold
-                    ${player.uniform.color === 'Rouge' ? 'bg-red-600' : 
-                      player.uniform.color === 'Bleu' ? 'bg-blue-600' :
-                      player.uniform.color === 'Vert' ? 'bg-green-600' :
-                      player.uniform.color === 'Jaune' ? 'bg-yellow-600' :
-                      player.uniform.color === 'Rose' ? 'bg-pink-600' :
-                      player.uniform.color === 'Violet' ? 'bg-purple-600' :
-                      player.uniform.color === 'Orange' ? 'bg-orange-600' :
-                      player.uniform.color === 'Noir' ? 'bg-black' :
-                      'bg-white text-black'}`}
-                  >
-                    {player.uniform.style}
+                  <div className="w-24 h-12 rounded bg-gray-600 flex items-center justify-center text-xs text-white font-semibold">
+                    Joueur
                   </div>
                 </div>
               </div>
