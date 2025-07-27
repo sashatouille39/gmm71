@@ -17,11 +17,24 @@ export const NATIONALITIES = [
   "Australienne", "Canadienne", "Mexicaine", "Turque", "Égyptienne", "Nigériane"
 ];
 
-// Formes de visages
+// Formes de visages (15+)
 export const FACE_SHAPES = [
   "Ovale", "Rond", "Carré", "Rectangulaire", "Triangulaire", "Cœur", 
   "Losange", "Oblong", "Poire", "Hexagonal", "Pentagonal", "Allongé",
-  "Large", "Étroit", "Angular", "Doux"
+  "Large", "Étroit", "Angular", "Doux", "Fin", "Robuste", "Délicat"
+];
+
+// Formes des yeux
+export const EYE_SHAPES = [
+  "Amande", "Rond", "Allongé", "Tombant", "Relevé", "Petit", "Grand",
+  "Bridé", "Écarté", "Rapproché", "En forme de chat", "Monolide", "Encapuchonné"
+];
+
+// Couleurs des yeux
+export const EYE_COLORS = [
+  "#8B4513", "#654321", "#2F4F2F", "#483D8B", "#556B2F", "#000000",
+  "#4169E1", "#006400", "#8B0000", "#2E8B57", "#DAA520", "#9ACD32",
+  "#FF8C00", "#DC143C", "#4B0082", "#B22222", "#228B22", "#FF4500"
 ];
 
 // Couleurs de peau
