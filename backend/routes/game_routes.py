@@ -177,5 +177,29 @@ async def generate_players(count: int = 100):
 
 @router.get("/events/available", response_model=List[dict])
 async def get_available_events():
-    """Récupère la liste des événements disponibles"""
-    return [event.dict() for event in GameService.GAME_EVENTS]
+    """Récupère la liste des 81 événements disponibles avec détails complets"""
+    return [event.dict() for event in EventsService.GAME_EVENTS]
+
+@router.get("/events/statistics")
+async def get_events_statistics():
+    """Récupère les statistiques des épreuves"""
+    return EventsService.get_event_statistics()
+
+@router.get("/events/by-type/{event_type}")
+async def get_events_by_type(event_type: str):
+    """Récupère les épreuves par type (intelligence, force, agilité)"""
+    try:
+        event_type_enum = EventType(event_type)
+        events = EventsService.get_events_by_type(event_type_enum)
+        return [event.dict() for event in events]
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Type d'événement invalide")
+
+@router.get("/events/by-difficulty")
+async def get_events_by_difficulty(min_difficulty: int = 1, max_difficulty: int = 10):
+    """Récupère les épreuves par niveau de difficulté"""
+    if not (1 <= min_difficulty <= 10) or not (1 <= max_difficulty <= 10):
+        raise HTTPException(status_code=400, detail="Difficulté doit être entre 1 et 10")
+    
+    events = EventsService.get_events_by_difficulty(min_difficulty, max_difficulty)
+    return [event.dict() for event in events]
