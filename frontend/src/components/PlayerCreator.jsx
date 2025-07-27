@@ -18,10 +18,7 @@ import {
   HAIR_COLORS,
   EYE_SHAPES,
   EYE_COLORS,
-  PLAYER_ROLES,
-  UNIFORM_STYLES,
-  UNIFORM_COLORS,
-  UNIFORM_PATTERNS
+  PLAYER_ROLES
 } from '../mock/mockData';
 
 const PlayerCreator = ({ gameState, updateGameState }) => {
