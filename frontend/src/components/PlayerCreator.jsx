@@ -37,8 +37,8 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
       skinColor: SKIN_COLORS[0],
       hairstyle: HAIRSTYLES[0],
       hairColor: HAIR_COLORS[0],
-      eyeColor: '#8B4513',
-      eyeShape: 'Amande'
+      eyeColor: EYE_COLORS[0],
+      eyeShape: EYE_SHAPES[0]
     },
     uniform: {
       style: UNIFORM_STYLES[0],
