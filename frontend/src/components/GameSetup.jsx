@@ -19,6 +19,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import { generateRandomPlayer, GAME_EVENTS } from '../mock/mockData';
+import CustomPlayersList from './CustomPlayersList';
 
 const GameSetup = ({ gameState, onStartGame }) => {
   const navigate = useNavigate();
