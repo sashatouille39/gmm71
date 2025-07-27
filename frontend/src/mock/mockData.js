@@ -10,11 +10,26 @@ export const PLAYER_ROLES = {
   zero: { probability: 0.01, name: "Le Zéro", baseStats: "aléatoires 4-10", bonus: ["très manipulateur"], bonusStats: {}, special: true }
 };
 
-// Nationalités cohérentes
+// Nationalités cohérentes (50+ pays)
 export const NATIONALITIES = [
   "Coréenne", "Japonaise", "Chinoise", "Américaine", "Française", "Allemande", 
   "Britannique", "Italienne", "Espagnole", "Russe", "Brésilienne", "Indienne",
-  "Australienne", "Canadienne", "Mexicaine", "Turque", "Égyptienne", "Nigériane"
+  "Australienne", "Canadienne", "Mexicaine", "Turque", "Égyptienne", "Nigériane",
+  "Suédoise", "Norvégienne", "Danoise", "Finlandaise", "Polonaise", "Hollandaise",
+  "Belge", "Suisse", "Autrichienne", "Portugaise", "Grecque", "Tchèque",
+  "Hongroise", "Roumaine", "Bulgare", "Croate", "Serbe", "Slovaque",
+  "Ukrainienne", "Lituanienne", "Lettone", "Estonienne", "Slovène", "Bosniaque",
+  "Argentine", "Chilienne", "Péruvienne", "Colombienne", "Vénézuélienne", "Équatorienne",
+  "Bolivienne", "Paraguayenne", "Uruguayenne", "Thaïlandaise", "Vietnamienne", "Philippienne",
+  "Indonésienne", "Malaisienne", "Singapourienne", "Sud-coréenne", "Bangladaise", "Pakistanaise",
+  "Sri-lankaise", "Népalaise", "Afghane", "Iranienne", "Irakienne", "Syrienne",
+  "Libanaise", "Jordanie", "Israélienne", "Saoudienne", "Émirienne", "Qatarie",
+  "Koweïtienne", "Bahreïnienne", "Omanaise", "Yéménite", "Marocaine", "Algérienne",
+  "Tunisienne", "Libyenne", "Soudanaise", "Éthiopienne", "Kényane", "Tanzanienne",
+  "Ougandaise", "Rwandaise", "Congolaise", "Camerounaise", "Ivoirienne", "Ghanéenne",
+  "Sénégalaise", "Malienne", "Burkinabé", "Nigerienne", "Tchadienne", "Centrafricaine",
+  "Gabonaise", "Équato-guinéenne", "Sud-africaine", "Zimbabwéenne", "Botswanienne", "Namibienne",
+  "Zambienne", "Malawienne", "Mozambicaine", "Malgache", "Mauricienne", "Seychelloise"
 ];
 
 // Formes de visages (15+)
