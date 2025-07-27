@@ -226,8 +226,8 @@ export const GAME_EVENTS = [
   { id: 77, name: "Station spatiale", type: "intelligence", difficulty: 9, description: "Réparez station avant qu'elle tombe sur Terre" },
   { id: 78, name: "Jungle amazonienne", type: "agilité", difficulty: 7, description: "Survivez dans jungle avec prédateurs et tribus" },
   { id: 79, name: "Château fort", type: "force", difficulty: 8, description: "Assiégez château défendu par archers et soldats" },
-  { id: 80, name: "Réacteur à fusion", type: "intelligence", difficulty: 10, description: "Contrôlez fusion nucléaire avant explosion stellaire" },
-  { id: 81, name: "Le Jugement Final", type: "intelligence", difficulty: 10, description: "Épreuve ultime combinant tous les types de défis" }
+  { id: 80, name: "Réacteur à fusion", type: "intelligence", difficulty: 10, category: "final", duration: 900, description: "Contrôlez fusion nucléaire avant explosion stellaire", killRequired: false, maxWinners: 1 },
+  { id: 81, name: "Le Jugement Final", type: "intelligence", difficulty: 10, category: "final", duration: 1200, description: "Épreuve ultime combinant tous les types de défis", killRequired: false, maxWinners: 1 }
 ];
 
 // VIP avec personnalités
