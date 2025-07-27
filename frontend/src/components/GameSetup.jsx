@@ -124,6 +124,10 @@ const GameSetup = ({ gameState, onStartGame }) => {
               <Users className="w-4 h-4 mr-2" />
               Joueurs
             </TabsTrigger>
+            <TabsTrigger value="custom" className="data-[state=active]:bg-red-600">
+              <UserPlus className="w-4 h-4 mr-2" />
+              Personnalisés
+            </TabsTrigger>
             <TabsTrigger value="events" className="data-[state=active]:bg-red-600">
               <Target className="w-4 h-4 mr-2" />
               Épreuves
