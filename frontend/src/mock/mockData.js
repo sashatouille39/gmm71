@@ -110,21 +110,98 @@ export const HAIR_COLORS = [
   "#BA55D3", "#DA70D6", "#EE82EE", "#FF1493", "#FF69B4", "#FFB6C1"
 ];
 
-// Épreuves du jeu
+// Épreuves du jeu (81 épreuves totales)
 export const GAME_EVENTS = [
-  // Épreuves classiques Squid Game
-  { id: 1, name: "Feu rouge, Feu vert", type: "agilité", difficulty: 3, description: "Avancez quand c'est vert, arrêtez-vous au rouge" },
-  { id: 2, name: "Pont de verre", type: "intelligence", difficulty: 8, description: "Choisissez le bon verre pour traverser" },
-  { id: 3, name: "Billes", type: "intelligence", difficulty: 6, description: "Jeu de stratégie avec des billes" },
-  { id: 4, name: "Tir à la corde", type: "force", difficulty: 7, description: "Tirez plus fort que l'équipe adverse" },
-  { id: 5, name: "Gaufres au sucre", type: "agilité", difficulty: 5, description: "Découpez la forme sans la casser" },
+  // Épreuves classiques Squid Game (5)
+  { id: 1, name: "Feu rouge, Feu vert", type: "agilité", difficulty: 3, description: "Avancez quand c'est vert, arrêtez-vous au rouge sinon vous mourrez" },
+  { id: 2, name: "Pont de verre", type: "intelligence", difficulty: 8, description: "Traversez le pont en choisissant les bonnes plaques de verre" },
+  { id: 3, name: "Billes", type: "intelligence", difficulty: 6, description: "Jeu de stratégie par paires, le perdant meurt" },
+  { id: 4, name: "Tir à la corde", type: "force", difficulty: 7, description: "Tirez plus fort que l'équipe adverse ou tombez dans le vide" },
+  { id: 5, name: "Gaufres au sucre", type: "agilité", difficulty: 5, description: "Découpez la forme sans la casser en 10 minutes" },
   
-  // Épreuves originales
-  { id: 6, name: "Labyrinthe mortel", type: "intelligence", difficulty: 6, description: "Trouvez la sortie avant le temps" },
-  { id: 7, name: "Combat de gladiateurs", type: "force", difficulty: 9, description: "Battez-vous pour survivre" },
-  { id: 8, name: "Énigme du sphinx", type: "intelligence", difficulty: 8, description: "Résolvez l'énigme ou mourez" },
-  { id: 9, name: "Course d'obstacles", type: "agilité", difficulty: 7, description: "Premier arrivé, premier servi" },
-  { id: 10, name: "Jeu de la confiance", type: "intelligence", difficulty: 5, description: "Faites confiance ou trahissez" }
+  // Épreuves de combat (15)
+  { id: 6, name: "Combat de gladiateurs", type: "force", difficulty: 9, description: "Battez-vous à mort dans l'arène avec des armes" },
+  { id: 7, name: "Bataille royale", type: "force", difficulty: 10, description: "Dernière personne debout remporte l'épreuve" },
+  { id: 8, name: "Ring de boxe mortel", type: "force", difficulty: 8, description: "Boxe jusqu'à la mort, pas de règles" },
+  { id: 9, name: "Arène des fauves", type: "force", difficulty: 9, description: "Survivez aux animaux sauvages lâchés dans l'arène" },
+  { id: 10, name: "Duel au pistolet", type: "force", difficulty: 7, description: "Duel à l'ancienne, un seul survivant" },
+  { id: 11, name: "Combat au couteau", type: "force", difficulty: 8, description: "Mêlée générale aux couteaux dans l'obscurité" },
+  { id: 12, name: "Fosse aux serpents", type: "force", difficulty: 6, description: "Traversez la fosse remplie de serpents venimeux" },
+  { id: 13, name: "Combat à l'épée", type: "force", difficulty: 8, description: "Escrime mortelle avec épées aiguisées" },
+  { id: 14, name: "Cage de la mort", type: "force", difficulty: 9, description: "Combat en cage, mort du perdant obligatoire" },
+  { id: 15, name: "Roulette russe géante", type: "force", difficulty: 5, description: "Version géante de la roulette russe avec révolver" },
+  { id: 16, name: "Combat de robots", type: "force", difficulty: 8, description: "Combattez des robots de combat programmés pour tuer" },
+  { id: 17, name: "Arène aquatique", type: "force", difficulty: 7, description: "Combat dans un bassin avec requins affamés" },
+  { id: 18, name: "Combat au lance-flammes", type: "force", difficulty: 9, description: "Éliminez vos adversaires avec des lance-flammes" },
+  { id: 19, name: "Bataille de masse", type: "force", difficulty: 10, description: "Guerre totale avec armes médiévales" },
+  { id: 20, name: "Prison de combat", type: "force", difficulty: 8, description: "Combat de prisonniers dans les cellules" },
+  
+  // Épreuves d'agilité (15)
+  { id: 21, name: "Course d'obstacles mortels", type: "agilité", difficulty: 7, description: "Parcours d'obstacles avec pièges mortels" },
+  { id: 22, name: "Parkour de la mort", type: "agilité", difficulty: 8, description: "Parcours urbain avec pièges et snipers" },
+  { id: 23, name: "Labyrinthe tournant", type: "agilité", difficulty: 6, description: "Labyrinthe dont les murs bougent et écrasent" },
+  { id: 24, name: "Saut de la mort", type: "agilité", difficulty: 8, description: "Sautez de plateforme en plateforme au-dessus du vide" },
+  { id: 25, name: "Tunnel rampant", type: "agilité", difficulty: 5, description: "Ramper dans tunnels avec gaz toxique qui monte" },
+  { id: 26, name: "Escalade mortelle", type: "agilité", difficulty: 7, description: "Escaladez la tour pendant qu'elle s'effondre" },
+  { id: 27, name: "Course de voitures", type: "agilité", difficulty: 6, description: "Course-poursuite avec voitures piégées" },
+  { id: 28, name: "Tyrolienne de l'enfer", type: "agilité", difficulty: 7, description: "Traversez sur tyrolienne avec cordes qui se coupent" },
+  { id: 29, name: "Surf sur lave", type: "agilité", difficulty: 9, description: "Surfez sur planches au-dessus de lave en fusion" },
+  { id: 30, name: "Slalom explosif", type: "agilité", difficulty: 6, description: "Slalom entre mines antipersonnel" },
+  { id: 31, name: "Swing de la jungle", type: "agilité", difficulty: 7, description: "Balancez-vous de liane en liane au-dessus de crocodiles" },
+  { id: 32, name: "Fuite dans égouts", type: "agilité", difficulty: 5, description: "Fuyez dans égouts avec eau qui monte" },
+  { id: 33, name: "Trampolines mortels", type: "agilité", difficulty: 6, description: "Sautez de trampoline en trampoline avec pièges" },
+  { id: 34, name: "Course de drones", type: "agilité", difficulty: 8, description: "Évitez les drones tueurs en courant" },
+  { id: 35, name: "Patinage sur glace mortelle", type: "agilité", difficulty: 7, description: "Patinez sur glace qui se brise avec requins dessous" },
+  
+  // Épreuves d'intelligence (15)
+  { id: 36, name: "Énigme du Sphinx mortel", type: "intelligence", difficulty: 8, description: "Résolvez l'énigme ou soyez dévoré par le sphinx mécanique" },
+  { id: 37, name: "Laboratoire chimique", type: "intelligence", difficulty: 7, description: "Créez l'antidote ou mourez empoisonné" },
+  { id: 38, name: "Salle des miroirs", type: "intelligence", difficulty: 6, description: "Trouvez la sortie dans labyrinthe de miroirs avant le gaz" },
+  { id: 39, name: "Puzzle temporel", type: "intelligence", difficulty: 9, description: "Résolvez puzzle 3D avant l'explosion" },
+  { id: 40, name: "Bataille navale géante", type: "intelligence", difficulty: 6, description: "Bataille navale avec vraies explosions sur plateau géant" },
+  { id: 41, name: "Codes secrets", type: "intelligence", difficulty: 8, description: "Cassez les codes avant que les lasers vous découpent" },
+  { id: 42, name: "Échecs de la mort", type: "intelligence", difficulty: 7, description: "Échecs géants, les pièces tuées meurent vraiment" },
+  { id: 43, name: "Désamorçage de bombe", type: "intelligence", difficulty: 9, description: "Désamorcez bombe complexe ou mourez dans l'explosion" },
+  { id: 44, name: "Sudoku mortel", type: "intelligence", difficulty: 6, description: "Résolvez sudoku géant ou soyez électrocuté" },
+  { id: 45, name: "Interrogatoire psychologique", type: "intelligence", difficulty: 5, description: "Répondez aux questions psychologiques ou soyez éliminé" },
+  { id: 46, name: "Calculs de survie", type: "intelligence", difficulty: 8, description: "Calculez trajectoire d'évasion avant impact de missiles" },
+  { id: 47, name: "Mémoire photographique", type: "intelligence", difficulty: 6, description: "Mémorisez séquence complexe ou soyez gazé" },
+  { id: 48, name: "Logique quantique", type: "intelligence", difficulty: 10, description: "Résolvez équations quantiques ou soyez désintégré" },
+  { id: 49, name: "Stratégie militaire", type: "intelligence", difficulty: 8, description: "Dirigez bataille tactique ou mourez avec vos troupes" },
+  { id: 50, name: "Diagnostic médical", type: "intelligence", difficulty: 7, description: "Diagnostiquez maladie mortelle ou mourez du même mal" },
+  
+  // Épreuves mixtes et spéciales (31)
+  { id: 51, name: "Jeu de la confiance", type: "intelligence", difficulty: 5, description: "Faites confiance ou trahissez, mais choisissez bien" },
+  { id: 52, name: "Test de loyauté", type: "intelligence", difficulty: 4, description: "Prouvez votre loyauté en sacrifiant un autre" },
+  { id: 53, name: "Roulette de torture", type: "force", difficulty: 6, description: "Roulette qui détermine votre méthode de torture" },
+  { id: 54, name: "Chambre des horreurs", type: "agilité", difficulty: 7, description: "Traversez chambre remplie de pièges sadiques" },
+  { id: 55, name: "Labyrinthe de glace", type: "intelligence", difficulty: 6, description: "Trouvez sortie avant hypothermie mortelle" },
+  { id: 56, name: "Salle de pression", type: "force", difficulty: 8, description: "Résistez à pression extrême ou soyez écrasé" },
+  { id: 57, name: "Danse macabre", type: "agilité", difficulty: 5, description: "Dansez parfaitement ou soyez exécuté" },
+  { id: 58, name: "Aquarium de la mort", type: "agilité", difficulty: 7, description: "Nagez parmi créatures marines mortelles" },
+  { id: 59, name: "Forêt empoisonnée", type: "intelligence", difficulty: 6, description: "Traversez forêt sans toucher plantes toxiques" },
+  { id: 60, name: "Mine abandonnée", type: "agilité", difficulty: 7, description: "Échappez-vous de mine qui s'effondre" },
+  { id: 61, name: "Casino russe", type: "intelligence", difficulty: 5, description: "Jeux de casino mortels avec vraies conséquences" },
+  { id: 62, name: "Usine chimique", type: "agilité", difficulty: 8, description: "Fuyez usine en explosion avec produits toxiques" },
+  { id: 63, name: "Bibliothèque maudite", type: "intelligence", difficulty: 6, description: "Trouvez livre de vie avant que livres vous tuent" },
+  { id: 64, name: "Cirque de l'horreur", type: "agilité", difficulty: 7, description: "Spectacle de cirque où vous êtes la performance" },
+  { id: 65, name: "Hôpital psychiatrique", type: "intelligence", difficulty: 8, description: "Échappez-vous avant de devenir fou et d'être lobotomisé" },
+  { id: 66, name: "Vaisseau spatial", type: "intelligence", difficulty: 9, description: "Réparez vaisseau avant qu'il s'écrase sur planète" },
+  { id: 67, name: "Cimetière hanté", type: "force", difficulty: 6, description: "Survivez aux morts-vivants qui sortent des tombes" },
+  { id: 68, name: "Bunker nucléaire", type: "intelligence", difficulty: 8, description: "Désactivez réacteur avant explosion nucléaire" },
+  { id: 69, name: "Parc d'attractions", type: "agilité", difficulty: 6, description: "Survivez aux attractions mortelles du parc maudit" },
+  { id: 70, name: "Sous-marin", type: "intelligence", difficulty: 8, description: "Réparez sous-marin qui coule avant noyade" },
+  { id: 71, name: "Désert de sable", type: "force", difficulty: 7, description: "Traversez désert avec tempête de sable et vers géants" },
+  { id: 72, name: "Prison flottante", type: "agilité", difficulty: 7, description: "Échappez-vous de prison sur plateforme pétrolière" },
+  { id: 73, name: "Laboratoire génétique", type: "intelligence", difficulty: 9, description: "Survivez aux mutations génétiques expérimentales" },
+  { id: 74, name: "Glacier mortel", type: "agilité", difficulty: 8, description: "Escaladez glacier avant avalanche mortelle" },
+  { id: 75, name: "Usine robotique", type: "intelligence", difficulty: 8, description: "Programmez robots ou soyez éliminé par eux" },
+  { id: 76, name: "Volcan actif", type: "force", difficulty: 9, description: "Échappez-vous du volcan en éruption" },
+  { id: 77, name: "Station spatiale", type: "intelligence", difficulty: 9, description: "Réparez station avant qu'elle tombe sur Terre" },
+  { id: 78, name: "Jungle amazonienne", type: "agilité", difficulty: 7, description: "Survivez dans jungle avec prédateurs et tribus" },
+  { id: 79, name: "Château fort", type: "force", difficulty: 8, description: "Assiégez château défendu par archers et soldats" },
+  { id: 80, name: "Réacteur à fusion", type: "intelligence", difficulty: 10, description: "Contrôlez fusion nucléaire avant explosion stellaire" },
+  { id: 81, name: "Le Jugement Final", type: "intelligence", difficulty: 10, description: "Épreuve ultime combinant tous les types de défis" }
 ];
 
 // VIP avec personnalités
