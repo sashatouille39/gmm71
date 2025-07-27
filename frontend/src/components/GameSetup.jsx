@@ -279,6 +279,152 @@ const GameSetup = ({ gameState, onStartGame }) => {
             />
           </TabsContent>
 
+          {/* Célébrités possédées */}
+          <TabsContent value="celebrities" className="space-y-6">
+            <Card className="bg-black/50 border-red-500/30">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Crown className="w-5 h-5" />
+                  Célébrités possédées
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {(!gameState.ownedCelebrities || gameState.ownedCelebrities.length === 0) ? (
+                  <div className="text-center py-12 text-gray-400">
+                    <Crown className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p>Aucune célébrité possédée</p>
+                    <p className="text-sm mb-4">Visitez le Salon VIP pour acheter des célébrités</p>
+                    <Button
+                      onClick={() => navigate('/vip-salon')}
+                      className="bg-yellow-600 hover:bg-yellow-700"
+                    >
+                      <Crown className="w-4 h-4 mr-2" />
+                      Aller au Salon VIP
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {MOCK_CELEBRITIES
+                      .filter(celebrity => gameState.ownedCelebrities.includes(celebrity.id))
+                      .map((celebrity) => {
+                        const isSelected = players.some(p => p.celebrityId === celebrity.id);
+                        
+                        return (
+                          <div
+                            key={celebrity.id}
+                            className={`p-4 rounded-lg border transition-all cursor-pointer ${
+                              isSelected
+                                ? 'bg-green-900/20 border-green-500'
+                                : 'bg-gray-800/50 border-gray-600 hover:bg-gray-700/50'
+                            }`}
+                            onClick={() => {
+                              if (!isSelected) {
+                                // Convertir la célébrité en joueur
+                                const celebrityAsPlayer = {
+                                  id: Date.now() + Math.random(),
+                                  number: String(players.length + 1).padStart(3, '0'),
+                                  name: celebrity.name,
+                                  nationality: celebrity.nationality,
+                                  gender: Math.random() > 0.5 ? 'M' : 'F',
+                                  age: 25 + Math.floor(Math.random() * 20),
+                                  role: 'celebrity',
+                                  stats: celebrity.stats,
+                                  portrait: {
+                                    faceShape: 'Ovale',
+                                    skinColor: '#F4B980',
+                                    hairstyle: 'Cheveux courts',
+                                    hairColor: '#2C1B18',
+                                    eyeColor: '#654321',
+                                    eyeShape: 'Amande'
+                                  },
+                                  alive: true,
+                                  kills: 0,
+                                  betrayals: 0,
+                                  survivedEvents: 0,
+                                  totalScore: 0,
+                                  celebrityId: celebrity.id,
+                                  isCelebrity: true,
+                                  category: celebrity.category,
+                                  stars: celebrity.stars,
+                                  wins: celebrity.wins || 0,
+                                  biography: celebrity.biography
+                                };
+                                
+                                setPlayers(prev => [...prev, celebrityAsPlayer]);
+                              }
+                            }}
+                          >
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-12 h-12 bg-gradient-to-br from-yellow-600 to-yellow-800 rounded-full flex items-center justify-center">
+                                <Crown className="w-6 h-6 text-white" />
+                              </div>
+                              <div className="flex-1">
+                                <h3 className="text-white font-medium">{celebrity.name}</h3>
+                                <div className="flex items-center gap-1 mt-1">
+                                  {[...Array(5)].map((_, i) => (
+                                    <Star 
+                                      key={i}
+                                      className={`w-3 h-3 ${
+                                        i < celebrity.stars ? 'text-yellow-400 fill-current' : 'text-gray-600'
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-400">Catégorie:</span>
+                                <span className="text-white">{celebrity.category}</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-400">Nationalité:</span>
+                                <span className="text-white">{celebrity.nationality}</span>
+                              </div>
+                              {celebrity.wins && (
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-gray-400">Victoires:</span>
+                                  <span className="text-yellow-400">{celebrity.wins}</span>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                              <div className="text-center">
+                                <div className="text-blue-400">{celebrity.stats.intelligence}</div>
+                                <div className="text-gray-400">Int</div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-red-400">{celebrity.stats.force}</div>
+                                <div className="text-gray-400">For</div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-green-400">{celebrity.stats.agilité}</div>
+                                <div className="text-gray-400">Agi</div>
+                              </div>
+                            </div>
+
+                            {isSelected && (
+                              <div className="mt-3 text-center">
+                                <Badge className="bg-green-600 text-white">
+                                  Sélectionné pour le jeu
+                                </Badge>
+                              </div>
+                            )}
+
+                            <div className="mt-3 text-xs text-gray-400 italic">
+                              {celebrity.biography}
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Configuration des épreuves */}
           <TabsContent value="events" className="space-y-6">
             <Card className="bg-black/50 border-red-500/30">
