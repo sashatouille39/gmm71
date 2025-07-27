@@ -133,12 +133,14 @@ async def simulate_event(game_id: str):
     game.current_event_index += 1
     
     # Vérifier si la partie est terminée
-    if game.current_event_index >= len(game.events):
+    alive_players = [p for p in game.players if p.alive]
+    
+    # Condition d'arrêt : 1 survivant OU tous les événements terminés
+    if len(alive_players) <= 1 or game.current_event_index >= len(game.events):
         game.completed = True
         game.end_time = datetime.utcnow()
         
         # Déterminer le gagnant
-        alive_players = [p for p in game.players if p.alive]
         if alive_players:
             game.winner = max(alive_players, key=lambda p: p.total_score)
         
