@@ -158,8 +158,8 @@ class GameService:
     
     @classmethod
     def _generate_random_name(cls, nationality: str, gender: str) -> str:
-        """Génère un nom aléatoire selon la nationalité et le genre"""
-        names = {
+        """Génère un nom complet aléatoire selon la nationalité et le genre"""
+        first_names = {
             'Coréenne': {
                 'M': ['Min-jun', 'Seo-jun', 'Do-yoon', 'Si-woo', 'Joon-ho', 'Hyun-woo', 'Jin-woo', 'Sung-min'],
                 'F': ['Seo-yeon', 'Min-seo', 'Ji-woo', 'Ha-eun', 'Soo-jin', 'Ye-jin', 'Su-bin', 'Na-eun']
@@ -182,9 +182,22 @@ class GameService:
             }
         }
         
-        nationality_names = names.get(nationality, names['Française'])
-        gender_names = nationality_names[gender]
-        return random.choice(gender_names)
+        last_names = {
+            'Coréenne': ['Kim', 'Lee', 'Park', 'Choi', 'Jung', 'Kang', 'Cho', 'Yoon', 'Jang', 'Lim', 'Han', 'Oh'],
+            'Japonaise': ['Sato', 'Suzuki', 'Takahashi', 'Tanaka', 'Watanabe', 'Ito', 'Yamamoto', 'Nakamura', 'Kobayashi', 'Kato', 'Yoshida', 'Yamada'],
+            'Française': ['Martin', 'Bernard', 'Thomas', 'Petit', 'Robert', 'Richard', 'Durand', 'Dubois', 'Moreau', 'Laurent', 'Simon', 'Michel'],
+            'Américaine': ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez'],
+            'Chinoise': ['Wang', 'Li', 'Zhang', 'Liu', 'Chen', 'Yang', 'Zhao', 'Huang', 'Zhou', 'Wu', 'Xu', 'Sun']
+        }
+        
+        nationality_first_names = first_names.get(nationality, first_names['Française'])
+        nationality_last_names = last_names.get(nationality, last_names['Française'])
+        
+        gender_first_names = nationality_first_names[gender]
+        first_name = random.choice(gender_first_names)
+        last_name = random.choice(nationality_last_names)
+        
+        return f"{first_name} {last_name}"
     
     @classmethod
     def _generate_portrait(cls, nationality: str) -> PlayerPortrait:
