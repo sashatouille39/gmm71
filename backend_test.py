@@ -2385,6 +2385,12 @@ class BackendTester:
         print("🎯 TESTING NEW FEATURES FROM REVIEW REQUEST")
         print("=" * 80)
         
+        # NEW TESTS FOR ECONOMIC SYSTEM AND VIP FEATURES
+        print("\n🎯 TESTING NEW ECONOMIC SYSTEM AND VIP FEATURES...")
+        self.test_new_economic_system()
+        self.test_vip_routes_new()
+        self.test_vip_earnings_improved()
+        
         # Test 1: Ordre des événements préservé
         self.test_preserve_event_order_true()
         
