@@ -32,12 +32,21 @@ export const useCustomPlayers = () => {
       setCustomPlayers(event.detail);
     };
 
+    // Ajouter un délai pour éviter les conflits de chargement
+    const handleStorageChange = () => {
+      setTimeout(() => {
+        loadFromStorage();
+      }, 100);
+    };
+
     window.addEventListener('customPlayersChanged', handleCustomPlayersChanged);
+    window.addEventListener('storage', handleStorageChange);
     
     return () => {
       window.removeEventListener('customPlayersChanged', handleCustomPlayersChanged);
+      window.removeEventListener('storage', handleStorageChange);
     };
-  }, []);
+  }, [loadFromStorage]);
 
   // Sauvegarder automatiquement (seulement après le chargement initial)
   useEffect(() => {
