@@ -105,6 +105,19 @@ async def create_game(request: GameCreateRequest):
         game_state.updated_at = datetime.utcnow()
         game_states_db[user_id] = game_state
         
+        # NOUVEAU : Assigner automatiquement des VIPs à la partie
+        from routes.vip_routes import active_vips_by_game
+        from services.vip_service import VipService
+        
+        # Récupérer le niveau de salon VIP du joueur (par défaut 1)
+        salon_level = game_state.vip_salon_level
+        capacity_map = {1: 3, 2: 5, 3: 8, 4: 12}
+        vip_capacity = capacity_map.get(salon_level, 3)
+        
+        # Assigner des VIPs avec leurs viewing_fee (200k-3M)
+        game_vips = VipService.get_random_vips(vip_capacity)
+        active_vips_by_game[game.id] = game_vips
+        
         games_db[game.id] = game
         return game
         
