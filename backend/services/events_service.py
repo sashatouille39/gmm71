@@ -512,7 +512,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=34, name="Course de drones", type=EventType.AGILITE, difficulty=8,
+            id=34, name="Course de drones", type=EventType.AGILITE, category=EventCategory.TECHNOLOGIQUE, difficulty=8,
             description="Évitez les drones tueurs en courant",
             decor="Terrain découvert avec essaim de drones armés",
             death_animations=[
@@ -527,7 +527,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=35, name="Patinage sur glace mortelle", type=EventType.AGILITE, difficulty=7,
+            id=35, name="Patinage sur glace mortelle", type=EventType.AGILITE, category=EventCategory.EXTREME, difficulty=7,
             description="Patinez sur glace qui se brise avec requins dessous",
             decor="Patinoire au-dessus d'aquarium à requins",
             death_animations=[
