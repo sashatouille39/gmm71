@@ -302,16 +302,16 @@ async def simulate_event(game_id: str):
             game.earnings = 0
     else:
         # NOUVEAU: Calculer les gains partiels même si le jeu n'est pas terminé
-        # pour que l'utilisateur voie les gains s'accumuler
-        base_vip_fee = 100  # 100$ de base par joueur
-        total_players = len(game.players)
-        deaths_count = len(game.players) - len(alive_players_after)
+        # en utilisant les VRAIS montants VIP (200k-3M chacun)
+        from routes.vip_routes import active_vips_by_game
         
-        # Gains VIP partiels
-        vip_viewing_fees = total_players * base_vip_fee  # Frais de visionnage
-        death_bonus = deaths_count * 50  # Bonus pour les morts dramatiques
-        
-        game.earnings = vip_viewing_fees + death_bonus
+        game_vips = active_vips_by_game.get(game_id, [])
+        if game_vips:
+            # Sommer les viewing_fee réels des VIPs assignés à cette partie
+            game.earnings = sum(vip.viewing_fee for vip in game_vips)
+        else:
+            # Pas de VIPs assignés, aucun gain
+            game.earnings = 0
     
     games_db[game_id] = game
     return {"result": result, "game": game}
