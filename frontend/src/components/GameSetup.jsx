@@ -135,8 +135,8 @@ const GameSetup = ({ gameState, onStartGame }) => {
 
   const calculateTotalCost = () => {
     const baseCost = gameModes[gameMode].cost;
-    const playerCost = Math.floor(playerCount * 10000); // 10k par joueur au lieu de 10
-    const eventCost = selectedEvents.length * 500000; // 500k par épreuve au lieu de 500
+    const playerCost = Math.floor(playerCount * 100); // 100$ par joueur comme demandé
+    const eventCost = selectedEvents.length * 5000; // 5,000$ par épreuve comme demandé
     return baseCost + playerCost + eventCost;
   };
 
