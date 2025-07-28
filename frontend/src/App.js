@@ -144,7 +144,8 @@ function App() {
       });
 
       if (!response.ok) {
-        throw new Error(`Erreur API: ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(errorData.detail || `Erreur API: ${response.status}`);
       }
 
       const game = await response.json();
@@ -154,18 +155,24 @@ function App() {
         id: game.id,
         players: game.players,
         events: game.events,
-        currentEventIndex: game.current_event_index || 0, // CORRECTION: utiliser camelCase pour cohérence frontend
+        currentEventIndex: game.current_event_index || 0,
         start_time: game.start_time,
         completed: game.completed || false,
         winner: game.winner || null,
         earnings: game.earnings || 0,
+        total_cost: game.total_cost || 0,
         event_results: game.event_results || []
       });
+      
+      // IMPORTANT: Recharger le gameState depuis le backend après création
+      // car le backend a automatiquement déduit l'argent
+      await loadGameStateFromBackend();
       
       console.log('Partie créée avec succès:', {
         id: game.id,
         playersCount: game.players.length,
         eventsCount: game.events.length,
+        totalCost: game.total_cost,
         preserveOrder: gameRequest.preserve_event_order
       });
       
@@ -178,9 +185,11 @@ function App() {
         id: `local_${Date.now()}`,
         players,
         events: selectedEvents,
-        currentEventIndex: 0, // CORRECTION: utiliser camelCase pour cohérence
+        currentEventIndex: 0,
         start_time: new Date(),
-        completed: false
+        completed: false,
+        total_cost: 0,
+        earnings: 0
       });
     }
   };
