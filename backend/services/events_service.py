@@ -1,6 +1,6 @@
 import random
 from typing import List
-from models.game_models import GameEvent, EventType
+from models.game_models import GameEvent, EventType, EventCategory
 
 class EventsService:
     """Service gérant les 80+ épreuves du jeu avec décors et animations uniques"""
