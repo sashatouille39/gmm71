@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -16,9 +16,11 @@ import {
   Skull,
   Zap,
   MessageCircle,
-  TrendingUp
+  TrendingUp,
+  RefreshCw
 } from 'lucide-react';
-import { VIP_CHARACTERS, MOCK_CELEBRITIES } from '../mock/mockData';
+import { MOCK_CELEBRITIES } from '../mock/mockData';
+import { vipService } from '../services/vipService';
 
 const VipSalon = ({ gameState, updateGameState }) => {
   const navigate = useNavigate();
