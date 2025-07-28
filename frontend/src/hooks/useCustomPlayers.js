@@ -6,20 +6,16 @@ export const useCustomPlayers = () => {
 
   // Fonction pour charger les données depuis localStorage
   const loadFromStorage = useCallback(() => {
-    console.log('🔍 DEBUG: Loading from localStorage...');
     const saved = localStorage.getItem('gamemaster-custom-players');
-    console.log('🔍 DEBUG: Raw localStorage data:', saved);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        console.log('🔍 DEBUG: Parsed localStorage data:', parsed);
         setCustomPlayers(parsed);
       } catch (error) {
         console.error('Error loading custom players:', error);
         setCustomPlayers([]);
       }
     } else {
-      console.log('🔍 DEBUG: No data found in localStorage');
       setCustomPlayers([]);
     }
   }, []);
