@@ -288,7 +288,7 @@ async def simulate_event(game_id: str):
         
         # Gains VIP partiels
         vip_viewing_fees = total_players * base_vip_fee  # Frais de visionnage
-        death_bonus = deaths_count * 50000  # Bonus pour les morts dramatiques
+        death_bonus = deaths_count * 50  # Bonus pour les morts dramatiques
         
         game.earnings = vip_viewing_fees + death_bonus
     
