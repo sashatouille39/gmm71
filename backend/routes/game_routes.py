@@ -362,13 +362,42 @@ async def list_games():
     return list(games_db.values())
 
 @router.delete("/{game_id}")
-async def delete_game(game_id: str):
-    """Supprime une partie"""
+async def delete_game(game_id: str, user_id: str = "default_user"):
+    """Supprime une partie et rembourse si elle n'est pas terminée"""
     if game_id not in games_db:
         raise HTTPException(status_code=404, detail="Partie non trouvée")
     
-    del games_db[game_id]
-    return {"message": "Partie supprimée"}
+    game = games_db[game_id]
+    
+    # CORRECTION PROBLÈME 3: Remboursement si le jeu n'est pas terminé
+    if not game.completed:
+        # Rembourser l'argent dépensé pour créer la partie
+        from routes.gamestate_routes import game_states_db
+        
+        if user_id not in game_states_db:
+            from models.game_models import GameState
+            game_state = GameState(user_id=user_id)
+            game_states_db[user_id] = game_state
+        else:
+            game_state = game_states_db[user_id]
+        
+        # Rembourser le coût total de la partie
+        refund_amount = game.total_cost
+        game_state.money += refund_amount
+        game_state.updated_at = datetime.utcnow()
+        game_states_db[user_id] = game_state
+        
+        del games_db[game_id]
+        
+        return {
+            "message": "Partie supprimée et argent remboursé", 
+            "refund_amount": refund_amount,
+            "new_total_money": game_state.money
+        }
+    else:
+        # Partie terminée, pas de remboursement
+        del games_db[game_id]
+        return {"message": "Partie terminée supprimée (pas de remboursement)"}
 
 @router.post("/generate-players", response_model=List[Player])
 async def generate_players(count: int = 100):
