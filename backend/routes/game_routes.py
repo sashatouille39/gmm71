@@ -68,9 +68,9 @@ async def create_game(request: GameCreateRequest):
         
         # Calculer le coût total - CORRECTION DES VALEURS ÉCONOMIQUES
         game_modes_cost = {
-            "standard": 2200000,   # 2.2 millions (corrigé)
-            "hardcore": 4500000,   # 4.5 millions (corrigé)
-            "custom": 5000000      # 5 millions (corrigé)
+            "standard": 100000,     # 100k au lieu de 2.2M
+            "hardcore": 500000,     # 500k au lieu de 4.5M
+            "custom": 1000000       # 1M au lieu de 5M
         }
         
         base_cost = game_modes_cost.get(request.game_mode, 2200000)
