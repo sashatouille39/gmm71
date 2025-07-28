@@ -149,7 +149,16 @@ const GameSetup = ({ gameState, onStartGame }) => {
     if (players.length === 0 || selectedEvents.length === 0) return;
     
     const eventsData = availableEvents.filter(event => selectedEvents.includes(event.id));
-    onStartGame(players, eventsData);
+    // Réorganiser les événements selon l'ordre sélectionné
+    const orderedEvents = selectedEvents.map(eventId => 
+      availableEvents.find(event => event.id === eventId)
+    ).filter(Boolean);
+    
+    onStartGame(players, orderedEvents, { 
+      preserveEventOrder, 
+      gameMode,
+      selectedEventIds: selectedEvents 
+    });
     navigate('/game-arena');
   };
 
