@@ -38,25 +38,25 @@ const VipSalon = ({ gameState, updateGameState }) => {
       level: 2, 
       name: 'Salon Confort', 
       capacity: 5, 
-      cost: 15000, 
+      cost: 15000000, // 15 millions
       description: 'Meilleur confort, 5 places VIP',
-      unlocked: gameState.money >= 15000 
+      unlocked: gameState.money >= 15000000
     },
     { 
       level: 3, 
       name: 'Salon Luxe', 
       capacity: 8, 
-      cost: 35000, 
+      cost: 35000000, // 35 millions
       description: 'Salon de luxe avec bar, 8 places VIP',
-      unlocked: gameState.money >= 35000 && gameState.vipSalonLevel >= 2 
+      unlocked: gameState.money >= 35000000 && gameState.vipSalonLevel >= 2 
     },
     { 
       level: 4, 
       name: 'Salon Impérial', 
       capacity: 12, 
-      cost: 75000, 
+      cost: 75000000, // 75 millions
       description: 'Prestige maximum, 12 places VIP',
-      unlocked: gameState.money >= 75000 && gameState.vipSalonLevel >= 3 
+      unlocked: gameState.money >= 75000000 && gameState.vipSalonLevel >= 3 
     }
   ];
 
