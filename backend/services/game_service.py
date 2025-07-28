@@ -374,7 +374,7 @@ class GameService:
 
             'Italienne': ['Rossi', 'Russo', 'Ferrari', 'Esposito', 'Bianchi', 'Romano', 'Colombo', 'Ricci', 'Marino', 'Greco'],
             'Japonaise': ['Sato', 'Suzuki', 'Takahashi', 'Tanaka', 'Watanabe', 'Ito', 'Yamamoto', 'Nakamura', 'Kobayashi', 'Kato', 'Yoshida', 'Yamada'],
-            'Kazakhe': ['Nazarbayev', 'Suleimenov', 'Akhmetov', 'Zhakenov', 'Kassymov', 'Moldashev', 'Bekmuratov', 'Aubakirov', 'Tuleyev', 'Mukanov'],
+
             'Lettone': ['Bērziņš', 'Kalniņš', 'Ozols', 'Krūmiņš', 'Liepa', 'Pētersons', 'Jansons', 'Kļaviņš', 'Zariņš', 'Sproģis'],
             'Lituanienne': ['Kazlauskas', 'Petrauskas', 'Jankauskas', 'Stankevicius', 'Vasiliauskas', 'Zukauskas', 'Butkus', 'Paulauskas', 'Urbonas', 'Rimkus'],
             'Luxembourgeoise': ['Muller', 'Weber', 'Wagner', 'Schmit', 'Hansen', 'Becker', 'Hoffmann', 'Klein', 'Fischer', 'Mayer'],
