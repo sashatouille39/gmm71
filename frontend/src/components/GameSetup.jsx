@@ -581,43 +581,89 @@ const GameSetup = ({ gameState, onStartGame }) => {
                     <p>Chargement des épreuves...</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {availableEvents.map((event) => (
-                      <div
-                        key={event.id}
-                        className={`p-4 rounded-lg cursor-pointer transition-all border ${
-                          selectedEvents.includes(event.id)
-                            ? 'bg-red-600/20 border-red-500'
-                            : 'bg-gray-800/50 border-gray-600 hover:bg-gray-700/50'
-                        }`}
-                        onClick={() => toggleEvent(event.id)}
-                      >
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-white font-medium text-sm">{event.name}</h3>
-                          <Badge
-                            variant={event.type === 'force' ? 'destructive' : event.type === 'agilité' ? 'default' : 'secondary'}
-                            className="text-xs"
-                          >
-                            {event.type}
+                  <div className="space-y-6">
+                    {/* Organiser les événements par catégorie */}
+                    {Object.entries(
+                      availableEvents.reduce((acc, event) => {
+                        const category = event.category || 'autre';
+                        if (!acc[category]) acc[category] = [];
+                        acc[category].push(event);
+                        return acc;
+                      }, {})
+                    ).map(([category, events]) => (
+                      <div key={category} className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-white font-semibold text-lg capitalize flex items-center gap-2">
+                            {category === 'finale' && '👑'}
+                            {category === 'classiques' && '🎯'}
+                            {category === 'combat' && '⚔️'}
+                            {category === 'athletique' && '🏃'}
+                            {category === 'technologique' && '🤖'}
+                            {category === 'psychologique' && '🧠'}
+                            {category === 'survie' && '🏔️'}
+                            {category === 'extreme' && '💀'}
+                            {category}
+                            {category === 'finale' && (
+                              <Badge variant="destructive" className="text-xs">
+                                Se joue toujours en dernier
+                              </Badge>
+                            )}
+                          </h3>
+                          <Badge variant="outline" className="text-gray-400">
+                            {events.length} épreuve{events.length > 1 ? 's' : ''}
                           </Badge>
                         </div>
-                        <p className="text-gray-400 text-xs">{event.description}</p>
                         
-                        {/* Afficher le taux de mortalité corrigé */}
-                        <div className="flex justify-between items-center mt-2">
-                          <div className="flex text-yellow-400">
-                            {[...Array(5)].map((_, i) => (
-                              <span key={i} className={i < event.difficulty ? '★' : '☆'}></span>
-                            ))}
-                          </div>
-                          <div className="text-xs">
-                            <span className="text-green-400">+$500</span>
-                            {event.elimination_rate && (
-                              <span className="text-red-400 ml-2">
-                                {Math.round(event.elimination_rate * 100)}% mortalité
-                              </span>
-                            )}
-                          </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {events.map((event) => (
+                            <div
+                              key={event.id}
+                              className={`p-4 rounded-lg cursor-pointer transition-all border ${
+                                selectedEvents.includes(event.id)
+                                  ? 'bg-red-600/20 border-red-500'
+                                  : category === 'finale'
+                                  ? 'bg-yellow-600/10 border-yellow-500/30 hover:bg-yellow-600/20'
+                                  : 'bg-gray-800/50 border-gray-600 hover:bg-gray-700/50'
+                              }`}
+                              onClick={() => toggleEvent(event.id)}
+                            >
+                              <div className="flex justify-between items-start mb-2">
+                                <h4 className="text-white font-medium text-sm">{event.name}</h4>
+                                <div className="flex flex-col gap-1">
+                                  <Badge
+                                    variant={event.type === 'force' ? 'destructive' : event.type === 'agilité' ? 'default' : 'secondary'}
+                                    className="text-xs"
+                                  >
+                                    {event.type}
+                                  </Badge>
+                                  {event.is_final && (
+                                    <Badge variant="destructive" className="text-xs">
+                                      FINALE
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                              <p className="text-gray-400 text-xs">{event.description}</p>
+                              
+                              {/* Afficher le taux de mortalité corrigé */}
+                              <div className="flex justify-between items-center mt-2">
+                                <div className="flex text-yellow-400">
+                                  {[...Array(5)].map((_, i) => (
+                                    <span key={i} className={i < event.difficulty ? '★' : '☆'}></span>
+                                  ))}
+                                </div>
+                                <div className="text-xs">
+                                  <span className="text-green-400">+$500</span>
+                                  {event.elimination_rate && (
+                                    <span className={`ml-2 ${event.is_final ? 'text-red-500 font-bold' : 'text-red-400'}`}>
+                                      {Math.round(event.elimination_rate * 100)}% mortalité
+                                      {event.is_final && ' → 1 gagnant'}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     ))}
