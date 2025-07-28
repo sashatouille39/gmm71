@@ -45,10 +45,8 @@ export const useCustomPlayers = () => {
     
     localStorage.setItem('gamemaster-custom-players', JSON.stringify(customPlayers));
     
-    // Dispatch un événement custom pour notifier les autres composants
-    window.dispatchEvent(new CustomEvent('customPlayersChanged', { 
-      detail: customPlayers 
-    }));
+    // NE PAS dispatch d'événement automatiquement pour éviter race conditions
+    // Les événements seront dispatché seulement lors d'opérations explicites
   }, [customPlayers, isLoaded]);
 
   const addPlayer = (player) => {
@@ -60,6 +58,12 @@ export const useCustomPlayers = () => {
     };
     setCustomPlayers(prev => {
       const updated = [...prev, newPlayer];
+      // Dispatch l'événement seulement lors d'ajout explicite
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('customPlayersChanged', { 
+          detail: updated 
+        }));
+      }, 0);
       return updated;
     });
     return newPlayer;
