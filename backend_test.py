@@ -1618,6 +1618,168 @@ class BackendTester:
         except Exception as e:
             self.log_result("Mortality Rates Correction", False, f"Error during test: {str(e)}")
 
+    def test_game_termination_issue(self):
+        """Test CRITICAL: Vérifier que le problème du jeu qui se termine immédiatement est résolu"""
+        try:
+            print("\n🎯 TESTING GAME TERMINATION ISSUE - REVIEW REQUEST SPECIFIC TEST")
+            print("=" * 80)
+            print("Testing: Game should NOT end immediately after first event simulation")
+            
+            # Step 1: Create a game with 50 players and 3-4 events as requested
+            game_request = {
+                "player_count": 50,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3, 4],  # 4 events as requested
+                "manual_players": []
+            }
+            
+            print(f"   Step 1: Creating game with 50 players and 4 events...")
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Game Termination Issue", False, 
+                              f"❌ Could not create test game - HTTP {response.status_code}", response.text[:200])
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            initial_players = game_data.get('players', [])
+            initial_events = game_data.get('events', [])
+            initial_current_event_index = game_data.get('current_event_index', 0)
+            initial_completed = game_data.get('completed', False)
+            
+            if not game_id:
+                self.log_result("Game Termination Issue", False, "❌ No game ID returned from creation")
+                return
+            
+            # Step 2: Verify that the game has living players at the start
+            living_players_count = len([p for p in initial_players if p.get('alive', True)])
+            print(f"   Step 2: Initial state - {living_players_count} living players, {len(initial_events)} events")
+            
+            if living_players_count != 50:
+                self.log_result("Game Termination Issue", False, 
+                              f"❌ Expected 50 living players at start, got {living_players_count}")
+                return
+            
+            if len(initial_events) != 4:
+                self.log_result("Game Termination Issue", False, 
+                              f"❌ Expected 4 events, got {len(initial_events)}")
+                return
+            
+            if initial_completed:
+                self.log_result("Game Termination Issue", False, 
+                              f"❌ Game marked as completed at creation (should be false)")
+                return
+            
+            if initial_current_event_index != 0:
+                self.log_result("Game Termination Issue", False, 
+                              f"❌ Initial current_event_index should be 0, got {initial_current_event_index}")
+                return
+            
+            print(f"   ✅ Game created successfully: ID={game_id}, 50 living players, 4 events, not completed")
+            
+            # Step 3: Simulate the first event
+            print(f"   Step 3: Simulating first event...")
+            response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Game Termination Issue", False, 
+                              f"❌ First event simulation failed - HTTP {response.status_code}", response.text[:200])
+                return
+            
+            first_event_data = response.json()
+            first_event_result = first_event_data.get('result', {})
+            first_event_game = first_event_data.get('game', {})
+            
+            # Step 4: Verify the game does NOT end immediately after the first simulation
+            game_completed_after_first = first_event_game.get('completed', False)
+            current_event_index_after_first = first_event_game.get('current_event_index', 0)
+            survivors_after_first = first_event_result.get('survivors', [])
+            eliminated_after_first = first_event_result.get('eliminated', [])
+            
+            survivors_count = len(survivors_after_first)
+            eliminated_count = len(eliminated_after_first)
+            
+            print(f"   Step 4: After first event - {survivors_count} survivors, {eliminated_count} eliminated")
+            print(f"   Game completed: {game_completed_after_first}, current_event_index: {current_event_index_after_first}")
+            
+            # CRITICAL CHECK: Game should NOT be completed after first event (unless only 1 survivor remains)
+            if game_completed_after_first and survivors_count > 1:
+                self.log_result("Game Termination Issue", False, 
+                              f"❌ CRITICAL: Game ended immediately after first event with {survivors_count} survivors (should continue)")
+                return
+            
+            # Step 5: Confirm current_event_index increments correctly
+            if current_event_index_after_first != 1:
+                self.log_result("Game Termination Issue", False, 
+                              f"❌ current_event_index should be 1 after first event, got {current_event_index_after_first}")
+                return
+            
+            # Step 6: Verify player states (some alive, some eliminated)
+            if survivors_count == 0:
+                self.log_result("Game Termination Issue", False, 
+                              f"❌ No survivors after first event (too harsh elimination)")
+                return
+            
+            if eliminated_count == 0:
+                self.log_result("Game Termination Issue", False, 
+                              f"❌ No eliminations after first event (no elimination occurred)")
+                return
+            
+            if survivors_count + eliminated_count != 50:
+                self.log_result("Game Termination Issue", False, 
+                              f"❌ Player count mismatch: {survivors_count} + {eliminated_count} ≠ 50")
+                return
+            
+            # Additional check: If game is completed, it should only be because we have exactly 1 survivor
+            if game_completed_after_first:
+                if survivors_count == 1:
+                    winner = first_event_game.get('winner')
+                    if winner:
+                        self.log_result("Game Termination Issue", True, 
+                                      f"✅ Game correctly ended with 1 survivor (winner set): {winner.get('name', 'Unknown')}")
+                        return
+                    else:
+                        self.log_result("Game Termination Issue", False, 
+                                      f"❌ Game ended with 1 survivor but no winner set")
+                        return
+                else:
+                    self.log_result("Game Termination Issue", False, 
+                                  f"❌ Game completed with {survivors_count} survivors (should only complete with 1)")
+                    return
+            
+            # SUCCESS: Game continues after first event with multiple survivors
+            self.log_result("Game Termination Issue", True, 
+                          f"✅ PROBLEM RESOLVED: Game continues after first event. "
+                          f"Survivors: {survivors_count}, Eliminated: {eliminated_count}, "
+                          f"Event index: {current_event_index_after_first}, Completed: {game_completed_after_first}")
+            
+            # Optional: Test second event to further confirm the fix
+            if not game_completed_after_first and survivors_count > 1:
+                print(f"   Bonus: Testing second event to further confirm fix...")
+                response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if response.status_code == 200:
+                    second_event_data = response.json()
+                    second_event_game = second_event_data.get('game', {})
+                    second_event_result = second_event_data.get('result', {})
+                    
+                    survivors_after_second = len(second_event_result.get('survivors', []))
+                    current_event_index_after_second = second_event_game.get('current_event_index', 0)
+                    
+                    print(f"   After second event: {survivors_after_second} survivors, event index: {current_event_index_after_second}")
+                    
+                    if current_event_index_after_second == 2:
+                        print(f"   ✅ Event index correctly incremented to 2 after second event")
+                    else:
+                        print(f"   ⚠️  Event index after second event: {current_event_index_after_second} (expected 2)")
+                
+        except Exception as e:
+            self.log_result("Game Termination Issue", False, f"❌ Error during test: {str(e)}")
+
     def run_all_tests(self):
         """Run all backend tests"""
         print(f"🚀 Starting Backend Tests for Game Master Manager")
