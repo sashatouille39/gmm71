@@ -735,7 +735,7 @@ const generateEyeShape = () => {
 
 // État initial du jeu
 export const INITIAL_GAME_STATE = {
-  money: 50000,
+  money: 1000000, // 1 million comme demandé
   vipSalonLevel: 1,
   unlockedUniforms: [],
   unlockedPatterns: [],
