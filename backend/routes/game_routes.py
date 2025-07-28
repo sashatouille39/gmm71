@@ -74,8 +74,8 @@ async def create_game(request: GameCreateRequest):
         }
         
         base_cost = game_modes_cost.get(request.game_mode, 2200000)
-        player_cost = len(players) * 100000  # 100k par joueur (corrigé de 10k)
-        event_cost = len(organized_events) * 5000000  # 5M par épreuve (corrigé de 500k)
+        player_cost = len(players) * 100  # 100$ par joueur comme demandé
+        event_cost = len(organized_events) * 5000  # 5,000$ par épreuve comme demandé
         total_cost = base_cost + player_cost + event_cost
         
         # Créer la partie
