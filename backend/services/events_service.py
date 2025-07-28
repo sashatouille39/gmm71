@@ -1303,6 +1303,7 @@ class EventsService:
         """Retourne les statistiques des épreuves"""
         total_events = len(cls.GAME_EVENTS)
         by_type = {}
+        by_category = {}
         by_difficulty = {}
         
         for event in cls.GAME_EVENTS:
@@ -1310,6 +1311,11 @@ class EventsService:
             if event.type not in by_type:
                 by_type[event.type] = 0
             by_type[event.type] += 1
+            
+            # Par catégorie
+            if event.category not in by_category:
+                by_category[event.category] = 0
+            by_category[event.category] += 1
             
             # Par difficulté
             if event.difficulty not in by_difficulty:
@@ -1319,6 +1325,8 @@ class EventsService:
         return {
             "total_events": total_events,
             "by_type": by_type,
+            "by_category": by_category,
             "by_difficulty": by_difficulty,
-            "average_elimination_rate": sum(e.elimination_rate for e in cls.GAME_EVENTS) / total_events
+            "average_elimination_rate": sum(e.elimination_rate for e in cls.GAME_EVENTS) / total_events,
+            "final_events_count": len(cls.get_final_events())
         }
