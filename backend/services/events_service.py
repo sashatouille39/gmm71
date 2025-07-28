@@ -224,7 +224,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=15, name="Roulette russe géante", type=EventType.FORCE, difficulty=5,
+            id=15, name="Roulette russe géante", type=EventType.FORCE, category=EventCategory.PSYCHOLOGIQUE, difficulty=5,
             description="Version géante de la roulette russe avec révolver",
             decor="Grande roue de la fortune avec revolvers géants",
             death_animations=[
@@ -239,7 +239,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=16, name="Combat de robots", type=EventType.FORCE, difficulty=8,
+            id=16, name="Combat de robots", type=EventType.FORCE, category=EventCategory.TECHNOLOGIQUE, difficulty=8,
             description="Combattez des robots de combat programmés pour tuer",
             decor="Laboratoire futuriste avec robots de guerre",
             death_animations=[
