@@ -233,6 +233,100 @@ const Statistics = ({ gameState }) => {
             </Card>
           </TabsContent>
 
+          {/* Statistiques des célébrités */}
+          <TabsContent value="celebrities" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="bg-black/50 border-yellow-500/30">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Crown className="w-5 h-5 text-yellow-400" />
+                    Statistiques générales
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {celebrityStats ? (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-gray-800/30 p-3 rounded-lg text-center">
+                          <div className="text-2xl font-bold text-yellow-400">{celebrityStats.total_celebrities}</div>
+                          <div className="text-xs text-gray-400">Célébrités totales</div>
+                        </div>
+                        <div className="bg-gray-800/30 p-3 rounded-lg text-center">
+                          <div className="text-2xl font-bold text-green-400">{celebrityStats.owned_celebrities}</div>
+                          <div className="text-xs text-gray-400">Possédées</div>
+                        </div>
+                      </div>
+                      <div className="bg-gray-800/30 p-3 rounded-lg text-center">
+                        <div className="text-2xl font-bold text-orange-400">{celebrityStats.total_wins}</div>
+                        <div className="text-xs text-gray-400">Victoires totales</div>
+                      </div>
+                      <div className="bg-gray-800/30 p-3 rounded-lg text-center">
+                        <div className="text-lg font-bold text-blue-400">{celebrityStats.average_wins.toFixed(2)}</div>
+                        <div className="text-xs text-gray-400">Victoires moyennes</div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-400">
+                      <Crown className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p>Chargement des données...</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="bg-black/50 border-yellow-500/30">
+                <CardHeader>
+                  <CardTitle className="text-white">Répartition par catégorie</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {celebrityStats && celebrityStats.by_category ? (
+                    <div className="space-y-3">
+                      {Object.entries(celebrityStats.by_category).map(([category, count]) => (
+                        <div key={category} className="flex justify-between items-center p-2 bg-gray-800/20 rounded">
+                          <span className="text-gray-300 capitalize">{category}</span>
+                          <Badge variant="outline" className="text-yellow-400 border-yellow-400">
+                            {count}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-400">
+                      <p>Aucune donnée de catégorie</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="bg-black/50 border-yellow-500/30 lg:col-span-2">
+                <CardHeader>
+                  <CardTitle className="text-white">Répartition par niveau d'étoiles</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {celebrityStats && celebrityStats.by_stars ? (
+                    <div className="grid grid-cols-4 gap-4">
+                      {Object.entries(celebrityStats.by_stars).map(([stars, count]) => (
+                        <div key={stars} className="bg-gray-800/30 p-4 rounded-lg text-center">
+                          <div className="flex justify-center mb-2">
+                            {[...Array(parseInt(stars))].map((_, i) => (
+                              <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                            ))}
+                          </div>
+                          <div className="text-xl font-bold text-white">{count}</div>
+                          <div className="text-xs text-gray-400">{stars} étoiles</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-400">
+                      <p>Aucune donnée d'étoiles</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
           {/* Statistiques des épreuves */}
           <TabsContent value="events" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
