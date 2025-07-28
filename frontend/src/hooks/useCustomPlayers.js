@@ -63,7 +63,17 @@ export const useCustomPlayers = () => {
       ...player,
       id: Date.now().toString(),
       createdAt: new Date().toISOString(),
-      isCustom: true
+      isCustom: true,
+      alive: true, // CRITICAL: S'assurer que le joueur est vivant
+      kills: 0,
+      betrayals: 0,
+      survivedEvents: 0,
+      totalScore: 0,
+      uniform: player.uniform || {
+        style: 'Standard',
+        color: '#00FF00', // Vert pour distinguer les joueurs personnalisés
+        pattern: 'Uni'
+      }
     };
     setCustomPlayers(prev => {
       const updated = [...prev, newPlayer];
