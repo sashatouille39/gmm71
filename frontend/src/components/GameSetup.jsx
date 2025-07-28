@@ -35,9 +35,9 @@ const GameSetup = ({ gameState, onStartGame }) => {
   const [preserveEventOrder, setPreserveEventOrder] = useState(true); // Nouvel état pour préserver l'ordre
 
   const gameModes = {
-    standard: { name: 'Standard', cost: 1000, description: 'Jeu classique avec épreuves variées' },
-    hardcore: { name: 'Hardcore', cost: 2500, description: 'Épreuves plus difficiles, moins de survivants' },
-    custom: { name: 'Personnalisé', cost: 1500, description: 'Choisissez vos propres épreuves' }
+    standard: { name: 'Standard', cost: 1000000, description: 'Jeu classique avec épreuves variées' },
+    hardcore: { name: 'Hardcore', cost: 2500000, description: 'Épreuves plus difficiles, moins de survivants' },
+    custom: { name: 'Personnalisé', cost: 1500000, description: 'Choisissez vos propres épreuves' }
   };
 
   // Charger les épreuves depuis l'API backend
