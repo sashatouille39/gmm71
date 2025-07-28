@@ -415,12 +415,23 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState }) 
                   {alivePlayers.length === 1 ? (
                     <div className="mb-6">
                       <p className="text-xl text-white mb-2">Nous avons un gagnant !</p>
-                      <div className="text-lg text-yellow-400 font-bold">
+                      <div className="text-lg text-yellow-400 font-bold flex items-center justify-center gap-2">
+                        {alivePlayers[0].isCelebrity && (
+                          <span className="text-yellow-500">👑</span>
+                        )}
                         🏆 {alivePlayers[0].name} (#{alivePlayers[0].number})
+                        {alivePlayers[0].isCelebrity && (
+                          <span className="text-xs bg-yellow-600 px-2 py-1 rounded-full">CÉLÉBRITÉ</span>
+                        )}
                       </div>
                       <p className="text-sm text-gray-400 mt-2">
                         Score final: {alivePlayers[0].totalScore} points
                       </p>
+                      {alivePlayers[0].isCelebrity && (
+                        <p className="text-sm text-yellow-400 mt-1">
+                          Une victoire supplémentaire ajoutée à cette célébrité !
+                        </p>
+                      )}
                     </div>
                   ) : alivePlayers.length === 0 ? (
                     <div className="mb-6">
@@ -431,6 +442,19 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState }) 
                     <div className="mb-6">
                       <p className="text-xl text-white mb-2">Partie terminée</p>
                       <p className="text-sm text-gray-400">{alivePlayers.length} survivants restants</p>
+                      {/* Afficher les célébrités survivantes */}
+                      {alivePlayers.filter(p => p.isCelebrity).length > 0 && (
+                        <div className="mt-3 p-3 bg-yellow-900/20 rounded-lg border border-yellow-500/30">
+                          <p className="text-yellow-400 text-sm font-medium mb-2">Célébrités survivantes :</p>
+                          <div className="space-y-1">
+                            {alivePlayers.filter(p => p.isCelebrity).map(celeb => (
+                              <div key={celeb.id} className="text-xs text-yellow-300 flex items-center gap-2">
+                                👑 {celeb.name} - {celeb.totalScore} points
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                   
