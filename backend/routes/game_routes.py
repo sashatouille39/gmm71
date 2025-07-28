@@ -85,6 +85,26 @@ async def create_game(request: GameCreateRequest):
             total_cost=total_cost
         )
         
+        # CORRECTION PROBLÈME 1: Déduire l'argent du gamestate après création
+        from routes.gamestate_routes import game_states_db
+        user_id = "default_user"  # ID utilisateur par défaut
+        
+        if user_id not in game_states_db:
+            from models.game_models import GameState
+            game_state = GameState(user_id=user_id)
+            game_states_db[user_id] = game_state
+        else:
+            game_state = game_states_db[user_id]
+        
+        # Vérifier si l'utilisateur a assez d'argent
+        if game_state.money < total_cost:
+            raise HTTPException(status_code=400, detail=f"Fonds insuffisants. Coût: {total_cost}$, Disponible: {game_state.money}$")
+        
+        # Déduire l'argent
+        game_state.money -= total_cost
+        game_state.updated_at = datetime.utcnow()
+        game_states_db[user_id] = game_state
+        
         games_db[game.id] = game
         return game
         
