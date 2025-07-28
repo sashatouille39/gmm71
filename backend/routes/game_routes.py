@@ -315,6 +315,47 @@ async def simulate_event(game_id: str):
     games_db[game_id] = game
     return {"result": result, "game": game}
 
+@router.post("/{game_id}/collect-vip-earnings")
+async def collect_vip_earnings(game_id: str, user_id: str = "default_user"):
+    """NOUVEAU : Collecte les gains VIP d'une partie terminée et les ajoute au gamestate"""
+    if game_id not in games_db:
+        raise HTTPException(status_code=404, detail="Partie non trouvée")
+    
+    game = games_db[game_id]
+    
+    if not game.completed:
+        raise HTTPException(status_code=400, detail="La partie n'est pas terminée, impossible de collecter les gains")
+    
+    if game.earnings <= 0:
+        raise HTTPException(status_code=400, detail="Aucun gain à collecter pour cette partie")
+    
+    # CORRECTION PROBLÈME 2: Ajouter les gains VIP au gamestate
+    from routes.gamestate_routes import game_states_db
+    
+    if user_id not in game_states_db:
+        from models.game_models import GameState
+        game_state = GameState(user_id=user_id)
+        game_states_db[user_id] = game_state
+    else:
+        game_state = game_states_db[user_id]
+    
+    # Ajouter les gains au portefeuille du joueur
+    earnings_to_collect = game.earnings
+    game_state.money += earnings_to_collect
+    game_state.game_stats.total_earnings += earnings_to_collect
+    game_state.updated_at = datetime.utcnow()
+    game_states_db[user_id] = game_state
+    
+    # Marquer les gains comme collectés pour éviter la double collecte
+    game.earnings = 0
+    games_db[game_id] = game
+    
+    return {
+        "message": f"Gains VIP collectés: {earnings_to_collect}$",
+        "earnings_collected": earnings_to_collect,
+        "new_total_money": game_state.money
+    }
+
 @router.get("/", response_model=List[Game])
 async def list_games():
     """Liste toutes les parties"""
