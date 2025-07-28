@@ -24,6 +24,7 @@ export const useCustomPlayers = () => {
 
   // Sauvegarder automatiquement
   useEffect(() => {
+    console.log('🔍 DEBUG: Saving to localStorage:', customPlayers);
     localStorage.setItem('gamemaster-custom-players', JSON.stringify(customPlayers));
   }, [customPlayers]);
 
