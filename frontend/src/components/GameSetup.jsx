@@ -294,8 +294,47 @@ const GameSetup = ({ gameState, onStartGame }) => {
           <TabsContent value="custom" className="space-y-6">
             <CustomPlayersList 
               onSelectPlayer={(player) => {
-                // Ajouter le joueur à la liste des joueurs sélectionnés
-                setPlayers(prev => [...prev, { ...player, id: Date.now() + Math.random() }]);
+                // Ajouter le joueur à la liste des joueurs sélectionnés avec les propriétés requises
+                const formattedPlayer = {
+                  ...player,
+                  id: Date.now() + Math.random(), // Nouvel ID pour éviter les doublons
+                  number: String(players.length + 1).padStart(3, '0'),
+                  alive: true, // CRITICAL: S'assurer que le joueur est vivant au début
+                  kills: 0,
+                  betrayals: 0,
+                  survivedEvents: 0,
+                  totalScore: 0,
+                  isCustom: true, // Marquer comme joueur personnalisé
+                  uniform: player.uniform || {
+                    style: 'Standard',
+                    color: '#00FF00', // Vert par défaut pour les distinguer
+                    pattern: 'Uni'
+                  }
+                };
+                
+                setPlayers(prev => {
+                  const newPlayers = [...prev, formattedPlayer];
+                  
+                  // Feedback visuel - notification temporaire
+                  const notification = document.createElement('div');
+                  notification.innerHTML = `
+                    <div class="fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center gap-2">
+                      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                      </svg>
+                      <span>Joueur "${player.name}" ajouté à la partie !</span>
+                    </div>
+                  `;
+                  document.body.appendChild(notification.firstElementChild);
+                  
+                  // Supprimer la notification après 3 secondes
+                  setTimeout(() => {
+                    const notif = document.querySelector('.fixed.top-4.right-4');
+                    if (notif) notif.remove();
+                  }, 3000);
+                  
+                  return newPlayers;
+                });
               }}
               onCreateNew={() => navigate('/player-creator')}
               selectedPlayers={players.filter(p => p.isCustom)}
