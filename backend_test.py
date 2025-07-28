@@ -2075,6 +2075,395 @@ class BackendTester:
         except Exception as e:
             self.log_result("Game Termination Issue", False, f"❌ Error during test: {str(e)}")
 
+    def test_new_economic_system(self):
+        """Test NEW: Système économique mis à jour selon la review request"""
+        try:
+            print("\n🎯 TESTING NEW ECONOMIC SYSTEM - REVIEW REQUEST")
+            print("=" * 80)
+            
+            # Test 1: Vérifier l'argent initial (50 millions au lieu de 50k)
+            print("   Test 1: Checking initial money (50 million instead of 50k)...")
+            
+            response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+            if response.status_code == 200:
+                gamestate = response.json()
+                initial_money = gamestate.get('money', 0)
+                
+                if initial_money == 50000000:  # 50 millions
+                    self.log_result("Economic System - Initial Money", True, 
+                                  f"✅ Initial money correct: {initial_money:,} (50 million)")
+                else:
+                    self.log_result("Economic System - Initial Money", False, 
+                                  f"❌ Expected 50,000,000, got {initial_money:,}")
+            else:
+                self.log_result("Economic System - Initial Money", False, 
+                              f"Could not get gamestate - HTTP {response.status_code}")
+            
+            # Test 2: Vérifier les coûts des jeux (1M standard, 2.5M hardcore, 1.5M personnalisé)
+            print("   Test 2: Checking game costs (1M standard, 2.5M hardcore, 1.5M custom)...")
+            
+            # Test standard game cost
+            standard_game_request = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=standard_game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data = response.json()
+                total_cost = game_data.get('total_cost', 0)
+                
+                # Expected: 1M (base) + 20*10k (players) + 2*500k (events) = 1M + 200k + 1M = 2.2M
+                expected_cost = 1000000 + (20 * 10000) + (2 * 500000)  # 2,200,000
+                
+                if total_cost == expected_cost:
+                    self.log_result("Economic System - Standard Game Cost", True, 
+                                  f"✅ Standard game cost correct: {total_cost:,}")
+                else:
+                    self.log_result("Economic System - Standard Game Cost", False, 
+                                  f"❌ Expected {expected_cost:,}, got {total_cost:,}")
+            else:
+                self.log_result("Economic System - Standard Game Cost", False, 
+                              f"Could not create standard game - HTTP {response.status_code}")
+            
+            # Test hardcore game cost
+            hardcore_game_request = {
+                "player_count": 50,
+                "game_mode": "hardcore", 
+                "selected_events": [1, 2, 3],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=hardcore_game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data = response.json()
+                total_cost = game_data.get('total_cost', 0)
+                
+                # Expected: 2.5M (base) + 50*10k (players) + 3*500k (events) = 2.5M + 500k + 1.5M = 4.5M
+                expected_cost = 2500000 + (50 * 10000) + (3 * 500000)  # 4,500,000
+                
+                if total_cost == expected_cost:
+                    self.log_result("Economic System - Hardcore Game Cost", True, 
+                                  f"✅ Hardcore game cost correct: {total_cost:,}")
+                else:
+                    self.log_result("Economic System - Hardcore Game Cost", False, 
+                                  f"❌ Expected {expected_cost:,}, got {total_cost:,}")
+            else:
+                self.log_result("Economic System - Hardcore Game Cost", False, 
+                              f"Could not create hardcore game - HTTP {response.status_code}")
+            
+            # Test custom game cost
+            custom_game_request = {
+                "player_count": 100,
+                "game_mode": "custom",
+                "selected_events": [1, 2, 3, 4, 5],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=custom_game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data = response.json()
+                total_cost = game_data.get('total_cost', 0)
+                
+                # Expected: 1.5M (base) + 100*10k (players) + 5*500k (events) = 1.5M + 1M + 2.5M = 5M
+                expected_cost = 1500000 + (100 * 10000) + (5 * 500000)  # 5,000,000
+                
+                if total_cost == expected_cost:
+                    self.log_result("Economic System - Custom Game Cost", True, 
+                                  f"✅ Custom game cost correct: {total_cost:,}")
+                else:
+                    self.log_result("Economic System - Custom Game Cost", False, 
+                                  f"❌ Expected {expected_cost:,}, got {total_cost:,}")
+            else:
+                self.log_result("Economic System - Custom Game Cost", False, 
+                              f"Could not create custom game - HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Economic System Tests", False, f"Error during test: {str(e)}")
+
+    def test_vip_routes_new(self):
+        """Test NEW: Nouvelles routes VIP selon la review request"""
+        try:
+            print("\n🎯 TESTING NEW VIP ROUTES - REVIEW REQUEST")
+            print("=" * 80)
+            
+            # Test 1: GET /api/vips/salon/{salon_level} pour récupérer VIPs par niveau
+            print("   Test 1: Testing GET /api/vips/salon/{salon_level}...")
+            
+            for salon_level in [1, 2, 3, 4]:
+                response = requests.get(f"{API_BASE}/vips/salon/{salon_level}", timeout=5)
+                
+                if response.status_code == 200:
+                    vips = response.json()
+                    expected_capacity = {1: 3, 2: 5, 3: 8, 4: 12}[salon_level]
+                    
+                    if len(vips) == expected_capacity:
+                        # Vérifier que les VIPs ont des masques d'animaux/insectes uniques
+                        masks = [vip.get('mask', '') for vip in vips]
+                        unique_masks = len(set(masks))
+                        
+                        if unique_masks == len(masks):
+                            self.log_result(f"VIP Routes - Salon Level {salon_level}", True, 
+                                          f"✅ {len(vips)} VIPs with unique masks: {masks}")
+                        else:
+                            self.log_result(f"VIP Routes - Salon Level {salon_level}", False, 
+                                          f"❌ Duplicate masks found: {masks}")
+                    else:
+                        self.log_result(f"VIP Routes - Salon Level {salon_level}", False, 
+                                      f"❌ Expected {expected_capacity} VIPs, got {len(vips)}")
+                else:
+                    self.log_result(f"VIP Routes - Salon Level {salon_level}", False, 
+                                  f"HTTP {response.status_code}")
+            
+            # Test 2: GET /api/vips/all pour tous les VIPs (50 disponibles)
+            print("   Test 2: Testing GET /api/vips/all (should have 50 VIPs)...")
+            
+            response = requests.get(f"{API_BASE}/vips/all", timeout=5)
+            
+            if response.status_code == 200:
+                all_vips = response.json()
+                
+                if len(all_vips) == 50:
+                    # Vérifier que tous ont des masques d'animaux/insectes uniques
+                    masks = [vip.get('mask', '') for vip in all_vips]
+                    unique_masks = len(set(masks))
+                    
+                    if unique_masks == 50:
+                        # Vérifier quelques masques spécifiques d'animaux/insectes
+                        expected_animal_masks = ['loup', 'renard', 'ours', 'chat', 'lion', 'tigre', 'aigle', 'corbeau', 'serpent', 'mante', 'scorpion', 'araignee']
+                        found_animal_masks = [mask for mask in masks if mask in expected_animal_masks]
+                        
+                        if len(found_animal_masks) >= 10:
+                            self.log_result("VIP Routes - All VIPs", True, 
+                                          f"✅ 50 VIPs with unique animal/insect masks, found: {found_animal_masks[:10]}...")
+                        else:
+                            self.log_result("VIP Routes - All VIPs", False, 
+                                          f"❌ Not enough animal/insect masks found: {found_animal_masks}")
+                    else:
+                        self.log_result("VIP Routes - All VIPs", False, 
+                                      f"❌ Expected 50 unique masks, got {unique_masks}")
+                else:
+                    self.log_result("VIP Routes - All VIPs", False, 
+                                  f"❌ Expected 50 VIPs, got {len(all_vips)}")
+            else:
+                self.log_result("VIP Routes - All VIPs", False, 
+                              f"HTTP {response.status_code}")
+            
+            # Test 3: Créer une partie pour tester les routes spécifiques au jeu
+            print("   Test 3: Creating game for VIP game-specific routes...")
+            
+            game_request = {
+                "player_count": 30,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data = response.json()
+                game_id = game_data.get('id')
+                
+                if game_id:
+                    # Test 4: GET /api/vips/game/{game_id} pour VIPs spécifiques à une partie
+                    print("   Test 4: Testing GET /api/vips/game/{game_id}...")
+                    
+                    response = requests.get(f"{API_BASE}/vips/game/{game_id}?salon_level=2", timeout=5)
+                    
+                    if response.status_code == 200:
+                        game_vips = response.json()
+                        
+                        if len(game_vips) == 5:  # Salon level 2 = 5 VIPs
+                            # Vérifier que les VIPs ont des frais de visionnage
+                            viewing_fees = [vip.get('viewing_fee', 0) for vip in game_vips]
+                            valid_fees = [fee for fee in viewing_fees if 500000 <= fee <= 4000000]  # Entre 500k et 4M
+                            
+                            if len(valid_fees) == len(viewing_fees):
+                                self.log_result("VIP Routes - Game VIPs", True, 
+                                              f"✅ Game VIPs with viewing fees: {viewing_fees}")
+                            else:
+                                self.log_result("VIP Routes - Game VIPs", False, 
+                                              f"❌ Invalid viewing fees: {viewing_fees}")
+                        else:
+                            self.log_result("VIP Routes - Game VIPs", False, 
+                                          f"❌ Expected 5 VIPs for salon level 2, got {len(game_vips)}")
+                    else:
+                        self.log_result("VIP Routes - Game VIPs", False, 
+                                      f"HTTP {response.status_code}")
+                    
+                    # Test 5: POST /api/vips/game/{game_id}/refresh pour rafraîchir les VIPs
+                    print("   Test 5: Testing POST /api/vips/game/{game_id}/refresh...")
+                    
+                    response = requests.post(f"{API_BASE}/vips/game/{game_id}/refresh?salon_level=3", timeout=5)
+                    
+                    if response.status_code == 200:
+                        refresh_data = response.json()
+                        
+                        if 'message' in refresh_data and 'vips' in refresh_data:
+                            refreshed_vips = refresh_data['vips']
+                            
+                            if len(refreshed_vips) == 8:  # Salon level 3 = 8 VIPs
+                                self.log_result("VIP Routes - Refresh VIPs", True, 
+                                              f"✅ VIPs refreshed successfully: {len(refreshed_vips)} new VIPs")
+                            else:
+                                self.log_result("VIP Routes - Refresh VIPs", False, 
+                                              f"❌ Expected 8 VIPs for salon level 3, got {len(refreshed_vips)}")
+                        else:
+                            self.log_result("VIP Routes - Refresh VIPs", False, 
+                                          f"❌ Invalid response structure: {refresh_data}")
+                    else:
+                        self.log_result("VIP Routes - Refresh VIPs", False, 
+                                      f"HTTP {response.status_code}")
+                    
+                    # Test 6: Tester les gains VIP améliorés
+                    print("   Test 6: Testing VIP earnings calculation...")
+                    
+                    response = requests.get(f"{API_BASE}/vips/earnings/{game_id}", timeout=5)
+                    
+                    if response.status_code == 200:
+                        earnings_data = response.json()
+                        
+                        required_fields = ['game_id', 'total_vip_earnings', 'vip_count', 'average_fee']
+                        missing_fields = [field for field in required_fields if field not in earnings_data]
+                        
+                        if not missing_fields:
+                            total_earnings = earnings_data['total_vip_earnings']
+                            vip_count = earnings_data['vip_count']
+                            average_fee = earnings_data['average_fee']
+                            
+                            # Vérifier que les gains sont réalistes (basés sur les frais de visionnage)
+                            if total_earnings > 0 and vip_count > 0 and average_fee > 0:
+                                self.log_result("VIP Routes - Earnings Calculation", True, 
+                                              f"✅ VIP earnings: {total_earnings:,} total, {vip_count} VIPs, {average_fee:,} avg fee")
+                            else:
+                                self.log_result("VIP Routes - Earnings Calculation", False, 
+                                              f"❌ Invalid earnings data: {earnings_data}")
+                        else:
+                            self.log_result("VIP Routes - Earnings Calculation", False, 
+                                          f"❌ Missing fields: {missing_fields}")
+                    else:
+                        self.log_result("VIP Routes - Earnings Calculation", False, 
+                                      f"HTTP {response.status_code}")
+                        
+                else:
+                    self.log_result("VIP Routes - Game Creation", False, "No game ID returned")
+            else:
+                self.log_result("VIP Routes - Game Creation", False, 
+                              f"Could not create game - HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("VIP Routes Tests", False, f"Error during test: {str(e)}")
+
+    def test_vip_earnings_improved(self):
+        """Test NEW: Gains VIP améliorés selon la review request"""
+        try:
+            print("\n🎯 TESTING IMPROVED VIP EARNINGS - REVIEW REQUEST")
+            print("=" * 80)
+            
+            # Créer une partie avec des joueurs pour tester les gains VIP
+            print("   Creating game with players to test VIP earnings...")
+            
+            game_request = {
+                "player_count": 50,  # 50 joueurs pour tester les frais de visionnage
+                "game_mode": "standard",
+                "selected_events": [1, 2],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data = response.json()
+                game_id = game_data.get('id')
+                
+                if game_id:
+                    # Simuler un événement pour générer des gains
+                    print("   Simulating event to generate VIP earnings...")
+                    
+                    response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                    
+                    if response.status_code == 200:
+                        event_data = response.json()
+                        game_state = event_data.get('game', {})
+                        
+                        # Test 1: Vérifier que les gains incluent les frais de visionnage VIP (100k par joueur)
+                        earnings = game_state.get('earnings', 0)
+                        expected_vip_fees = 50 * 100000  # 50 joueurs * 100k = 5M
+                        
+                        if earnings >= expected_vip_fees:
+                            self.log_result("VIP Earnings - Viewing Fees", True, 
+                                          f"✅ VIP viewing fees included: {earnings:,} earnings (≥{expected_vip_fees:,} expected)")
+                        else:
+                            self.log_result("VIP Earnings - Viewing Fees", False, 
+                                          f"❌ VIP viewing fees too low: {earnings:,} < {expected_vip_fees:,}")
+                        
+                        # Test 2: Vérifier les gains détaillés via l'API VIP earnings
+                        response = requests.get(f"{API_BASE}/vips/earnings/{game_id}", timeout=5)
+                        
+                        if response.status_code == 200:
+                            vip_earnings_data = response.json()
+                            
+                            total_vip_earnings = vip_earnings_data.get('total_vip_earnings', 0)
+                            vip_count = vip_earnings_data.get('vip_count', 0)
+                            average_fee = vip_earnings_data.get('average_fee', 0)
+                            
+                            # Test 3: Vérifier que les VIPs paient des montants réalistes
+                            if 500000 <= average_fee <= 4000000:  # Entre 500k et 4M par VIP
+                                self.log_result("VIP Earnings - Realistic Amounts", True, 
+                                              f"✅ VIPs pay realistic amounts: {average_fee:,} average fee")
+                            else:
+                                self.log_result("VIP Earnings - Realistic Amounts", False, 
+                                              f"❌ VIP fees unrealistic: {average_fee:,} average fee")
+                            
+                            # Test 4: Vérifier la cohérence des calculs
+                            if vip_count > 0 and total_vip_earnings > 0:
+                                calculated_average = total_vip_earnings // vip_count
+                                
+                                if abs(calculated_average - average_fee) <= 1:  # Tolérance pour division entière
+                                    self.log_result("VIP Earnings - Calculation Consistency", True, 
+                                                  f"✅ Earnings calculation consistent: {total_vip_earnings:,} / {vip_count} = {calculated_average:,}")
+                                else:
+                                    self.log_result("VIP Earnings - Calculation Consistency", False, 
+                                                  f"❌ Calculation mismatch: {calculated_average:,} vs {average_fee:,}")
+                            else:
+                                self.log_result("VIP Earnings - Calculation Consistency", False, 
+                                              f"❌ Invalid VIP data: {vip_count} VIPs, {total_vip_earnings:,} earnings")
+                        else:
+                            self.log_result("VIP Earnings - API Response", False, 
+                                          f"Could not get VIP earnings - HTTP {response.status_code}")
+                    else:
+                        self.log_result("VIP Earnings - Event Simulation", False, 
+                                      f"Could not simulate event - HTTP {response.status_code}")
+                else:
+                    self.log_result("VIP Earnings - Game Creation", False, "No game ID returned")
+            else:
+                self.log_result("VIP Earnings - Game Creation", False, 
+                              f"Could not create game - HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("VIP Earnings Tests", False, f"Error during test: {str(e)}")
+
     def test_preserve_event_order_true(self):
         """Test 1: Création de partie avec preserve_event_order=true - ordre préservé"""
         try:
