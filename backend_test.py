@@ -2365,6 +2365,8 @@ class BackendTester:
 
     def run_all_tests(self):
         """Run all backend tests"""
+    def run_all_tests(self):
+        """Run all backend tests"""
         print(f"🚀 Starting Backend Tests for Game Master Manager")
         print(f"📍 Backend URL: {BACKEND_URL}")
         print(f"📍 API Base: {API_BASE}")
@@ -2377,6 +2379,23 @@ class BackendTester:
         
         # Test 2: Basic routes
         self.test_basic_routes()
+        
+        # ===== NOUVEAUX TESTS SELON REVIEW REQUEST =====
+        print("\n" + "=" * 80)
+        print("🎯 TESTING NEW FEATURES FROM REVIEW REQUEST")
+        print("=" * 80)
+        
+        # Test 1: Ordre des événements préservé
+        self.test_preserve_event_order_true()
+        
+        # Test 2: Finales automatiquement à la fin
+        self.test_preserve_event_order_false_finale_at_end()
+        
+        # Test 3: Route de classement final
+        self.test_final_ranking_route()
+        
+        # Test 4: Validation du nouveau champ
+        self.test_preserve_event_order_field_validation()
         
         # PRIORITY TEST: Mortality rates correction (as per review request)
         print("\n🎯 PRIORITY TEST: Testing mortality rates correction as per review request...")
