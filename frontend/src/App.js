@@ -28,7 +28,7 @@ function App() {
     setGameState(prev => ({ ...prev, ...updates }));
   };
 
-  const startNewGame = async (players, selectedEvents) => {
+  const startNewGame = async (players, selectedEvents, gameOptions = {}) => {
     try {
       // Créer la partie via l'API backend
       const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
@@ -53,8 +53,9 @@ function App() {
             pattern: 'Uni'
           }
         })),
-        selected_events: selectedEvents.map(event => event.id),
-        game_mode: 'standard'
+        selected_events: gameOptions.selectedEventIds || selectedEvents.map(event => event.id),
+        game_mode: gameOptions.gameMode || 'standard',
+        preserve_event_order: gameOptions.preserveEventOrder !== undefined ? gameOptions.preserveEventOrder : true
       };
 
       const response = await fetch(`${backendUrl}/api/games/create`, {
@@ -87,7 +88,8 @@ function App() {
       console.log('Partie créée avec succès:', {
         id: game.id,
         playersCount: game.players.length,
-        eventsCount: game.events.length
+        eventsCount: game.events.length,
+        preserveOrder: gameRequest.preserve_event_order
       });
       
     } catch (error) {
