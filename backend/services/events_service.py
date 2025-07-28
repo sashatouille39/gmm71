@@ -833,7 +833,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=55, name="Labyrinthe de glace", type=EventType.INTELLIGENCE, difficulty=6,
+            id=55, name="Labyrinthe de glace", type=EventType.INTELLIGENCE, category=EventCategory.SURVIE, difficulty=6,
             description="Trouvez sortie avant hypothermie mortelle",
             decor="Labyrinthe dans chambre froide industrielle",
             death_animations=[
