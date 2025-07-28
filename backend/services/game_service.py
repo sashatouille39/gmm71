@@ -278,10 +278,7 @@ class GameService:
                 'F': ['Sakura', 'Yuki', 'Ai', 'Rei', 'Mana', 'Yui', 'Hina', 'Emi']
             },
 
-            'Lettone': {
-                'M': ['Jānis', 'Pēteris', 'Andris', 'Juris', 'Māris', 'Aivars', 'Valdis', 'Edgars'],
-                'F': ['Anna', 'Marija', 'Ieva', 'Linda', 'Kristīne', 'Inese', 'Ilze', 'Dace']
-            },
+
             'Lituanienne': {
                 'M': ['Jonas', 'Antanas', 'Vytautas', 'Petras', 'Algirdas', 'Kęstutis', 'Mindaugas', 'Rimantas'],
                 'F': ['Ona', 'Marija', 'Elena', 'Janina', 'Irena', 'Nijolė', 'Danutė', 'Aldona']
