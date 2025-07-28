@@ -105,6 +105,63 @@
 ## user_problem_statement: "j'ai besoin que tu règles quelques problèmes sur le jeu, déjà quand on paye pour faire les jeux notre argent ne se dépense pas et les vips ne paient pas la somme qu'ils doivent payer à la fin des jeux quand on retourne au menu ( c'est marqué ce qu'il doivent payer dans le salon vip ). Attention, si on quitte avant d'avoir un gagnant notre argent doit être remboursé."
 
 ## backend:
+  - task: "Correction système de paiement"
+    implemented: true
+    working: false
+    file: "routes/game_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "PROBLÈME IDENTIFIÉ : L'argent ne se dépense pas lors de la création de partie. Le total_cost est calculé mais jamais déduit du gamestate."
+        - working: false
+          agent: "main"
+          comment: "CORRECTION IMPLÉMENTÉE : Ajout de la déduction automatique de l'argent lors de la création de partie avec vérification des fonds suffisants."
+
+  - task: "Correction gains VIP"
+    implemented: true
+    working: false
+    file: "routes/game_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "PROBLÈME IDENTIFIÉ : Les VIPs ne paient pas à la fin des jeux. Les gains sont calculés mais jamais ajoutés au portefeuille du joueur."
+        - working: false
+          agent: "main"
+          comment: "CORRECTION IMPLÉMENTÉE : Ajout d'une route /collect-vip-earnings pour collecter les gains VIP et les ajouter au gamestate."
+
+  - task: "Système de remboursement"
+    implemented: true
+    working: false
+    file: "routes/game_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "PROBLÈME IDENTIFIÉ : Pas de remboursement quand on quitte avant d'avoir un gagnant."
+        - working: false
+          agent: "main"
+          comment: "CORRECTION IMPLÉMENTÉE : Modification de la route DELETE pour rembourser automatiquement si la partie n'est pas terminée."
+
+  - task: "Route statut gains VIP"
+    implemented: true
+    working: false
+    file: "routes/game_routes.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "NOUVELLE FONCTIONNALITÉ : Ajout d'une route pour vérifier le statut des gains VIP disponibles à collecter."
+
   - task: "Système économique mis à jour"
     implemented: true
     working: true
