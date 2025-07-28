@@ -369,6 +369,12 @@ class BackendTester:
             if extra_nationalities:
                 messages.append(f"⚠️  Unexpected nationalities: {list(extra_nationalities)}")
             
+            # Verify we have exactly 43 nationalities
+            total_nationalities_available = len(expected_nationalities)
+            if total_nationalities_available != 43:
+                success = False
+                messages.append(f"❌ Expected exactly 43 nationalities, but found {total_nationalities_available} in expected list")
+            
             # Success metrics
             authentic_percentage = (authentic_names_count / len(players)) * 100
             nationality_coverage = len(found_nationalities)
@@ -378,14 +384,14 @@ class BackendTester:
                               f"✅ NATIONALITY NAMES CORRECTION SUCCESSFUL: "
                               f"{authentic_percentage:.1f}% proper name format, "
                               f"{nationality_coverage} nationalities found, "
-                              f"All nationalities have dedicated name lists")
+                              f"All 43 nationalities have dedicated name lists")
                 
                 # Log detailed results
                 print(f"   📊 DETAILED RESULTS:")
                 print(f"   - Total players tested: {len(players)}")
                 print(f"   - Proper name format: {authentic_names_count}/{len(players)} ({authentic_percentage:.1f}%)")
-                print(f"   - Nationalities found: {nationality_coverage}/49")
-                print(f"   - All nationalities have dedicated name lists (no fallback needed)")
+                print(f"   - Nationalities found: {nationality_coverage}/43")
+                print(f"   - All 43 nationalities have dedicated name lists (no fallback needed)")
                 
                 print(f"   🔍 SAMPLE NATIONALITY TESTS:")
                 for nat, result in nationality_test_results.items():
