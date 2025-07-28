@@ -630,11 +630,18 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState }) 
                       Retour au menu
                     </Button>
                     <Button
+                      onClick={() => navigate(`/final-ranking/${currentGame.id}`)}
+                      className="bg-yellow-600 hover:bg-yellow-700"
+                    >
+                      <Trophy className="w-4 h-4 mr-2" />
+                      Classement complet
+                    </Button>
+                    <Button
                       onClick={() => navigate('/statistics')}
                       className="bg-red-600 hover:bg-red-700"
                     >
-                      <Trophy className="w-4 h-4 mr-2" />
-                      Voir les statistiques
+                      <Target className="w-4 h-4 mr-2" />
+                      Statistiques
                     </Button>
                   </div>
                 </div>
