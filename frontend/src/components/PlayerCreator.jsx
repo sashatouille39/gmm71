@@ -40,6 +40,11 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
       hairColor: HAIR_COLORS[0],
       eyeColor: EYE_COLORS[0],
       eyeShape: EYE_SHAPES[0]
+    },
+    uniform: {
+      style: 'Standard',
+      color: '#00FF00', // Vert pour les joueurs personnalisés
+      pattern: 'Uni'
     }
   });
 
