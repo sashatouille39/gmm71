@@ -5,7 +5,7 @@ from models.game_models import VipCharacter, VipBet
 import uuid
 from datetime import datetime
 
-router = APIRouter()
+router = APIRouter(prefix="/api")  # Ajouter le préfixe /api
 
 # Stockage temporaire des VIPs actifs par jeu (remplacer par base de données plus tard)
 active_vips_by_game: Dict[str, List[VipCharacter]] = {}
