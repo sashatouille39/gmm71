@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export const useCustomPlayers = () => {
   const [customPlayers, setCustomPlayers] = useState([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Charger les joueurs depuis le localStorage
   useEffect(() => {
@@ -20,13 +21,21 @@ export const useCustomPlayers = () => {
     } else {
       console.log('🔍 DEBUG: No data found in localStorage');
     }
+    setIsLoaded(true);
   }, []);
 
-  // Sauvegarder automatiquement
+  // Sauvegarder automatiquement (seulement après le chargement initial)
   useEffect(() => {
+    if (!isLoaded) return; // Ne pas sauvegarder pendant le chargement initial
+    
     console.log('🔍 DEBUG: Saving to localStorage:', customPlayers);
     localStorage.setItem('gamemaster-custom-players', JSON.stringify(customPlayers));
-  }, [customPlayers]);
+    
+    // Dispatch un événement custom pour notifier les autres composants
+    window.dispatchEvent(new CustomEvent('customPlayersChanged', { 
+      detail: customPlayers 
+    }));
+  }, [customPlayers, isLoaded]);
 
   const addPlayer = (player) => {
     console.log('🔍 DEBUG: Adding player:', player);
