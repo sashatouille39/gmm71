@@ -43,7 +43,6 @@ export const useCustomPlayers = () => {
   useEffect(() => {
     if (!isLoaded) return; // Ne pas sauvegarder pendant le chargement initial
     
-    console.log('🔍 DEBUG: Saving to localStorage:', customPlayers);
     localStorage.setItem('gamemaster-custom-players', JSON.stringify(customPlayers));
     
     // Dispatch un événement custom pour notifier les autres composants
@@ -53,17 +52,14 @@ export const useCustomPlayers = () => {
   }, [customPlayers, isLoaded]);
 
   const addPlayer = (player) => {
-    console.log('🔍 DEBUG: Adding player:', player);
     const newPlayer = {
       ...player,
       id: Date.now().toString(),
       createdAt: new Date().toISOString(),
       isCustom: true
     };
-    console.log('🔍 DEBUG: New player with ID:', newPlayer);
     setCustomPlayers(prev => {
       const updated = [...prev, newPlayer];
-      console.log('🔍 DEBUG: Updated customPlayers list:', updated);
       return updated;
     });
     return newPlayer;
