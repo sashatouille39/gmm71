@@ -277,10 +277,7 @@ class GameService:
                 'M': ['Hiroshi', 'Takeshi', 'Akira', 'Yuki', 'Daiki', 'Haruto', 'Sota', 'Ren'],
                 'F': ['Sakura', 'Yuki', 'Ai', 'Rei', 'Mana', 'Yui', 'Hina', 'Emi']
             },
-            'Kazakhe': {
-                'M': ['Askar', 'Nurzhan', 'Dauren', 'Arman', 'Serik', 'Baurzhan', 'Erlan', 'Marat'],
-                'F': ['Aida', 'Aigerim', 'Zhanna', 'Madina', 'Gulnara', 'Saule', 'Aliya', 'Nazira']
-            },
+
             'Lettone': {
                 'M': ['Jānis', 'Pēteris', 'Andris', 'Juris', 'Māris', 'Aivars', 'Valdis', 'Edgars'],
                 'F': ['Anna', 'Marija', 'Ieva', 'Linda', 'Kristīne', 'Inese', 'Ilze', 'Dace']
