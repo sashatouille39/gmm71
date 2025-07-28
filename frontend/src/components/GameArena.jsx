@@ -66,16 +66,23 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState }) 
       
       const { result, game } = await response.json();
       
+      // Fonction pour adapter un joueur du format backend vers frontend
+      const adaptPlayer = (player) => ({
+        ...player,
+        totalScore: player.total_score || 0, // Convertir snake_case vers camelCase
+        survivedEvents: player.survived_events || 0 // Convertir snake_case vers camelCase
+      });
+      
       // Adapter le format de jeu pour le frontend avec conversion complète des champs
       const adaptedGame = {
         id: game.id,
-        players: game.players, // Les joueurs avec leurs scores et statuts
+        players: game.players.map(adaptPlayer), // CRITIQUE: adapter tous les joueurs
         events: game.events,
         currentEventIndex: game.current_event_index || 0, // CORRECTION: convertir snake_case vers camelCase
         completed: game.completed || false, // CRITIQUE: s'assurer que completed est préservé
         start_time: game.start_time,
         end_time: game.end_time,
-        winner: game.winner, // CRITIQUE: préserver le gagnant
+        winner: game.winner ? adaptPlayer(game.winner) : null, // CRITIQUE: adapter le gagnant aussi
         total_cost: game.total_cost || 0,
         earnings: game.earnings || 0,
         event_results: game.event_results || []
