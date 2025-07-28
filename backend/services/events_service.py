@@ -1226,7 +1226,7 @@ class EventsService:
         # ÉPREUVE FINALE UNIQUE
         # ================================
         GameEvent(
-            id=81, name="Le Jugement Final", type=EventType.INTELLIGENCE, difficulty=10,
+            id=81, name="Le Jugement Final", type=EventType.INTELLIGENCE, category=EventCategory.FINALE, difficulty=10,
             description="Épreuve ultime combinant tous les types de défis",
             decor="Arène multidimensionnelle avec tous les environnements précédents",
             death_animations=[
@@ -1236,8 +1236,10 @@ class EventsService:
                 "Transcendance mortelle vers autre dimension"
             ],
             survival_time_min=1800, survival_time_max=3600,
-            elimination_rate=0.7,  # Exception: Épreuve finale
-            special_mechanics=["Tous les défis combinés", "Épreuve ultime"]
+            elimination_rate=0.99,  # Finale: Élimine tous sauf 1
+            special_mechanics=["Tous les défis combinés", "Épreuve ultime"],
+            is_final=True,
+            min_players_for_final=4  # Se déclenche avec 2-4 joueurs
         )
     ]
     
