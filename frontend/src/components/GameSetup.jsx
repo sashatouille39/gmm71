@@ -271,6 +271,7 @@ const GameSetup = ({ gameState, onStartGame }) => {
 
           {/* Joueurs personnalisés */}
           <TabsContent value="custom" className="space-y-6">
+            <DebugCustomPlayers />
             <CustomPlayersList 
               onSelectPlayer={(player) => {
                 // Ajouter le joueur à la liste des joueurs sélectionnés
