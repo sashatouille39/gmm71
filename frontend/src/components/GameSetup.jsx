@@ -569,38 +569,54 @@ const GameSetup = ({ gameState, onStartGame }) => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {GAME_EVENTS.map((event) => (
-                    <div
-                      key={event.id}
-                      className={`p-4 rounded-lg cursor-pointer transition-all border ${
-                        selectedEvents.includes(event.id)
-                          ? 'bg-red-600/20 border-red-500'
-                          : 'bg-gray-800/50 border-gray-600 hover:bg-gray-700/50'
-                      }`}
-                      onClick={() => toggleEvent(event.id)}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="text-white font-medium text-sm">{event.name}</h3>
-                        <Badge
-                          variant={event.type === 'force' ? 'destructive' : event.type === 'agilité' ? 'default' : 'secondary'}
-                          className="text-xs"
-                        >
-                          {event.type}
-                        </Badge>
-                      </div>
-                      <p className="text-gray-400 text-xs">{event.description}</p>
-                      <div className="flex justify-between items-center mt-2">
-                        <div className="flex text-yellow-400">
-                          {[...Array(5)].map((_, i) => (
-                            <span key={i} className={i < event.difficulty ? '★' : '☆'}></span>
-                          ))}
+                {isLoadingEvents ? (
+                  <div className="text-center py-12 text-gray-400">
+                    <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p>Chargement des épreuves...</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {availableEvents.map((event) => (
+                      <div
+                        key={event.id}
+                        className={`p-4 rounded-lg cursor-pointer transition-all border ${
+                          selectedEvents.includes(event.id)
+                            ? 'bg-red-600/20 border-red-500'
+                            : 'bg-gray-800/50 border-gray-600 hover:bg-gray-700/50'
+                        }`}
+                        onClick={() => toggleEvent(event.id)}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="text-white font-medium text-sm">{event.name}</h3>
+                          <Badge
+                            variant={event.type === 'force' ? 'destructive' : event.type === 'agilité' ? 'default' : 'secondary'}
+                            className="text-xs"
+                          >
+                            {event.type}
+                          </Badge>
                         </div>
-                        <div className="text-xs text-green-400">+$500</div>
+                        <p className="text-gray-400 text-xs">{event.description}</p>
+                        
+                        {/* Afficher le taux de mortalité corrigé */}
+                        <div className="flex justify-between items-center mt-2">
+                          <div className="flex text-yellow-400">
+                            {[...Array(5)].map((_, i) => (
+                              <span key={i} className={i < event.difficulty ? '★' : '☆'}></span>
+                            ))}
+                          </div>
+                          <div className="text-xs">
+                            <span className="text-green-400">+$500</span>
+                            {event.elimination_rate && (
+                              <span className="text-red-400 ml-2">
+                                {Math.round(event.elimination_rate * 100)}% mortalité
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
