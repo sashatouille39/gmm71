@@ -41,7 +41,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=3, name="Billes", type=EventType.INTELLIGENCE, difficulty=6,
+            id=3, name="Billes", type=EventType.INTELLIGENCE, category=EventCategory.CLASSIQUES, difficulty=6,
             description="Jeu de stratégie par paires, le perdant meurt",
             decor="Petites arènes individuelles sous surveillance",
             death_animations=[
@@ -56,7 +56,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=4, name="Tir à la corde", type=EventType.FORCE, difficulty=7,
+            id=4, name="Tir à la corde", type=EventType.FORCE, category=EventCategory.CLASSIQUES, difficulty=7,
             description="Tirez plus fort que l'équipe adverse ou tombez dans le vide",
             decor="Plateforme suspendue avec cordes au-dessus d'un gouffre",
             death_animations=[
@@ -71,7 +71,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=5, name="Gaufres au sucre", type=EventType.AGILITE, difficulty=5,
+            id=5, name="Gaufres au sucre", type=EventType.AGILITE, category=EventCategory.CLASSIQUES, difficulty=5,
             description="Découpez la forme sans la casser en 10 minutes",
             decor="Salle de classe sinistre avec bureaux et aiguilles",
             death_animations=[
