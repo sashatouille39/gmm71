@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -13,7 +13,9 @@ import {
   TrendingUp,
   Award,
   Clock,
-  Zap
+  Zap,
+  Crown,
+  Star
 } from 'lucide-react';
 
 const Statistics = ({ gameState }) => {
