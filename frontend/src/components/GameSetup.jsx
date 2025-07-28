@@ -268,18 +268,40 @@ const GameSetup = ({ gameState, onStartGame }) => {
                       {players.map((player) => (
                         <div
                           key={player.id}
-                          className="bg-gray-800/50 border border-gray-600 rounded-lg p-3 text-center hover:bg-gray-700/50 transition-colors"
+                          className={`border rounded-lg p-3 text-center hover:bg-gray-700/50 transition-colors ${
+                            player.isCustom 
+                              ? 'bg-blue-800/30 border-blue-500' 
+                              : player.isCelebrity
+                                ? 'bg-yellow-800/30 border-yellow-500'
+                                : 'bg-gray-800/50 border-gray-600'
+                          }`}
                         >
-                          <div className="w-12 h-12 bg-red-600 rounded-full mx-auto mb-2 flex items-center justify-center text-white font-bold">
-                            {player.number}
+                          <div className={`w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center text-white font-bold ${
+                            player.isCustom 
+                              ? 'bg-blue-600' 
+                              : player.isCelebrity
+                                ? 'bg-yellow-600'
+                                : 'bg-red-600'
+                          }`}>
+                            {player.isCustom ? '👤' : player.isCelebrity ? '👑' : player.number}
                           </div>
-                          <div className="text-white text-sm font-medium truncate">{player.name}</div>
+                          <div className="text-white text-sm font-medium truncate flex items-center justify-center gap-1">
+                            {player.name}
+                            {player.isCustom && <span className="text-blue-400">✨</span>}
+                            {player.isCelebrity && <span className="text-yellow-400">👑</span>}
+                          </div>
                           <div className="text-xs text-gray-400">{player.nationality}</div>
                           <Badge
                             variant="outline"
-                            className="text-xs mt-1 border-red-400 text-red-400"
+                            className={`text-xs mt-1 ${
+                              player.isCustom 
+                                ? 'border-blue-400 text-blue-400'
+                                : player.isCelebrity
+                                  ? 'border-yellow-400 text-yellow-400'
+                                  : 'border-red-400 text-red-400'
+                            }`}
                           >
-                            {player.role}
+                            {player.isCustom ? 'Personnalisé' : player.isCelebrity ? 'Célébrité' : player.role}
                           </Badge>
                         </div>
                       ))}
