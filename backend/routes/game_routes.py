@@ -126,7 +126,7 @@ async def simulate_event(game_id: str):
         
         # Calculer les gains - CORRECTION DES GAINS VIP
         # Les VIPs paient des frais de visionnage variables selon leur statut
-        base_vip_fee = 100000  # 100k de base par joueur
+        base_vip_fee = 100  # 100$ de base par joueur
         total_players = len(game.players)
         
         # Calculer les gains VIP réels basés sur les VIPs présents
