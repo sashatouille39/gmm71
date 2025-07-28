@@ -249,6 +249,42 @@
           agent: "testing"
           comment: "✅ GESTION DES FINALES PARFAITEMENT IMPLÉMENTÉE! Tests exhaustifs selon la review request: 1) **Épreuve finale unique**: ✅ CONFIRMÉ - 'Le Jugement Final' (ID 81) marquée is_final=True avec elimination_rate=0.99 et min_players_for_final=4. 2) **Organisation automatique**: ✅ CONFIRMÉ - EventsService.organize_events_for_game() réorganise automatiquement les événements avec finales à la fin, même si sélectionnées au milieu. 3) **Logique spéciale 2-4 joueurs**: ✅ CONFIRMÉ - Finales se déclenchent seulement avec 2-4 joueurs, sont reportées s'il y a trop de joueurs (>4). 4) **Garantie 1 survivant**: ✅ CONFIRMÉ - Finales avec elimination_rate=0.99 garantissent qu'il ne reste qu'1 seul survivant. 5) **Intégration routes**: ✅ CONFIRMÉ - Routes /api/games/create et /api/games/{id}/simulate-event gèrent parfaitement la logique des finales. Backend tests: 41/43 passed (95.3% success rate). Le système de gestion des finales fonctionne exactement selon les spécifications de la review request."
 
+  - task: "Ordre des événements préservé"
+    implemented: true
+    working: true
+    file: "models/game_models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ ORDRE DES ÉVÉNEMENTS PRÉSERVÉ PARFAITEMENT IMPLÉMENTÉ! Test 1 de la review request validé: 1) **Nouveau champ preserve_event_order**: ✅ CONFIRMÉ - Champ ajouté au modèle GameCreateRequest avec valeur par défaut True. 2) **Logique preserve_order=true**: ✅ CONFIRMÉ - Ordre spécifique [10, 5, 15, 20] parfaitement respecté dans la partie créée. 3) **Fonction organize_events_for_game()**: ✅ CONFIRMÉ - Paramètre preserve_order respecte exactement l'ordre choisi par l'utilisateur quand True. 4) **Validation du champ**: ✅ CONFIRMÉ - Accepte true/false, rejette valeurs invalides avec erreur 422. Backend tests: 7/7 passed (100% success rate). La fonctionnalité d'ordre préservé fonctionne exactement selon les spécifications de la review request."
+
+  - task: "Finales automatiquement à la fin"
+    implemented: true
+    working: true
+    file: "services/events_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ FINALES AUTOMATIQUEMENT À LA FIN PARFAITEMENT IMPLÉMENTÉES! Test 2 de la review request validé: 1) **Logique preserve_order=false**: ✅ CONFIRMÉ - Finale (ID 81) placée au milieu [10, 81, 15, 20] est automatiquement déplacée à la fin [10, 15, 20, 81]. 2) **Fonction organize_events_for_game()**: ✅ CONFIRMÉ - Sépare correctement les finales des événements réguliers et les place à la fin. 3) **Détection des finales**: ✅ CONFIRMÉ - Utilise le champ is_final pour identifier les épreuves finales. 4) **Ordre final correct**: ✅ CONFIRMÉ - Événements réguliers suivis des finales dans l'ordre approprié. Backend tests: 7/7 passed (100% success rate). La fonctionnalité de placement automatique des finales fonctionne exactement selon les spécifications de la review request."
+
+  - task: "Route de classement final"
+    implemented: true
+    working: true
+    file: "routes/game_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ ROUTE DE CLASSEMENT FINAL PARFAITEMENT IMPLÉMENTÉE! Test 3 de la review request validé: 1) **Route GET /api/games/{game_id}/final-ranking**: ✅ CONFIRMÉ - Route fonctionnelle retournant classement complet. 2) **Classement trié**: ✅ CONFIRMÉ - 20 joueurs triés par score décroissant (total_score, survived_events, -betrayals). 3) **Structure complète**: ✅ CONFIRMÉ - Réponse inclut game_id, completed, winner, total_players, ranking avec positions. 4) **Données joueur complètes**: ✅ CONFIRMÉ - Chaque entrée contient player info, stats de jeu, et player_stats. 5) **Winner correct**: ✅ CONFIRMÉ - Winner correspond au joueur en première position du classement. Backend tests: 7/7 passed (100% success rate). La route de classement final fonctionne exactement selon les spécifications de la review request."
+
 ## frontend:
   - task: "Modèles de données de base"
     implemented: true
