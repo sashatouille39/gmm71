@@ -147,6 +147,10 @@ const Statistics = ({ gameState }) => {
               <Trophy className="w-4 h-4 mr-2" />
               Historique des jeux
             </TabsTrigger>
+            <TabsTrigger value="celebrities" className="data-[state=active]:bg-red-600">
+              <Crown className="w-4 h-4 mr-2" />
+              Célébrités
+            </TabsTrigger>
             <TabsTrigger value="events" className="data-[state=active]:bg-red-600">
               <Target className="w-4 h-4 mr-2" />
               Épreuves
