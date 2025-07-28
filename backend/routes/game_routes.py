@@ -315,3 +315,69 @@ async def get_events_by_difficulty(min_difficulty: int = 1, max_difficulty: int 
     
     events = EventsService.get_events_by_difficulty(min_difficulty, max_difficulty)
     return [event.dict() for event in events]
+
+@router.get("/{game_id}/final-ranking")
+async def get_final_ranking(game_id: str):
+    """Récupère le classement final complet d'une partie terminée"""
+    if game_id not in games_db:
+        raise HTTPException(status_code=404, detail="Partie non trouvée")
+    
+    game = games_db[game_id]
+    
+    if not game.completed:
+        raise HTTPException(status_code=400, detail="La partie n'est pas encore terminée")
+    
+    # Trier tous les joueurs par score décroissant, puis par événements survécus
+    all_players_ranking = sorted(
+        game.players,
+        key=lambda p: (p.total_score, p.survived_events, -p.betrayals),
+        reverse=True
+    )
+    
+    # Créer le classement avec positions
+    ranking = []
+    for position, player in enumerate(all_players_ranking, 1):
+        ranking.append({
+            "position": position,
+            "player": {
+                "id": player.id,
+                "name": player.name,
+                "number": player.number,
+                "nationality": player.nationality,
+                "role": player.role,
+                "alive": player.alive,
+                "is_celebrity": getattr(player, 'isCelebrity', False),
+                "celebrity_id": getattr(player, 'celebrityId', None)
+            },
+            "stats": {
+                "total_score": player.total_score,
+                "survived_events": player.survived_events,
+                "kills": player.kills,
+                "betrayals": player.betrayals
+            },
+            "player_stats": {
+                "intelligence": player.stats.intelligence,
+                "force": player.stats.force,
+                "agilité": player.stats.agilité
+            }
+        })
+    
+    return {
+        "game_id": game_id,
+        "completed": game.completed,
+        "winner": {
+            "id": game.winner.id,
+            "name": game.winner.name,
+            "number": game.winner.number
+        } if game.winner else None,
+        "total_players": len(game.players),
+        "total_events": len(game.events),
+        "events_completed": game.current_event_index,
+        "ranking": ranking,
+        "game_stats": {
+            "start_time": game.start_time,
+            "end_time": game.end_time,
+            "total_cost": game.total_cost,
+            "earnings": game.earnings
+        }
+    }
