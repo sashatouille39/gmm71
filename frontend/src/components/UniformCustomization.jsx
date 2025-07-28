@@ -22,18 +22,18 @@ const UniformCustomization = ({ gameState, updateGameState }) => {
   // Prix et conditions de déblocage
   const uniformPricing = {
     colors: {
-      basic: { price: 500, unlocked: true },
-      premium: { price: 2000, unlocked: gameState.money >= 10000 },
-      legendary: { price: 5000, unlocked: gameState.gameStats.totalKills >= 500 }
+      basic: { price: 50000, unlocked: true },
+      premium: { price: 200000, unlocked: gameState.money >= 10000 },
+      legendary: { price: 500000, unlocked: gameState.gameStats.totalKills >= 500 }
     },
     patterns: {
-      basic: { price: 800, unlocked: true },
-      special: { price: 3000, unlocked: gameState.gameStats.totalGamesPlayed >= 10 },
-      exclusive: { price: 10000, unlocked: gameState.gameStats.totalKills >= 200 }
+      basic: { price: 80000, unlocked: true },
+      special: { price: 300000, unlocked: gameState.gameStats.totalGamesPlayed >= 10 },
+      exclusive: { price: 1000000, unlocked: gameState.gameStats.totalKills >= 200 }
     },
     styles: {
-      basic: { price: 1200, unlocked: true },
-      designer: { price: 4000, unlocked: gameState.vipSalonLevel >= 3 }
+      basic: { price: 120000, unlocked: true },
+      designer: { price: 400000, unlocked: gameState.vipSalonLevel >= 3 }
     }
   };
 
