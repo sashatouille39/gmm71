@@ -156,6 +156,12 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
       // Mettre à jour l'état du jeu avec les résultats du backend
       setCurrentGame(adaptedGame);
       
+      // NOUVEAU: Si le jeu est terminé, collecter automatiquement les gains VIP
+      if (adaptedGame.completed) {
+        console.log('🎉 Jeu terminé ! Collecte automatique des gains VIP...');
+        await collectVipEarningsAutomatically(currentGame.id);
+      }
+      
       // Mettre à jour les stats des célébrités si nécessaire
       if (result.survivors) {
         for (const survivorData of result.survivors) {
