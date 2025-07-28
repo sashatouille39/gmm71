@@ -729,7 +729,7 @@ class BackendTester:
         self.test_generate_players()
         
         # Test 5: CRITICAL - Nationality names correction (NEW COMPREHENSIVE TEST)
-        print("\n🎯 Testing CRITICAL fix: Nationality names correction for all 49 nationalities...")
+        print("\n🎯 Testing CRITICAL fix: Nationality names correction for all 43 nationalities...")
         self.test_nationality_names_correction()
         
         # Test 6: Skin color consistency with nationalities
