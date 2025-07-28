@@ -173,7 +173,22 @@ const CustomPlayersList = ({ onSelectPlayer, onCreateNew, selectedPlayers = [] }
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => onSelectPlayer(player)}
+                      onClick={() => {
+                        onSelectPlayer(player);
+                        
+                        // Feedback visuel immédiat
+                        const button = document.activeElement;
+                        if (button) {
+                          button.textContent = 'Ajouté !';
+                          button.classList.add('text-green-400', 'hover:text-green-300');
+                          button.classList.remove('text-blue-400', 'hover:text-blue-300');
+                          
+                          setTimeout(() => {
+                            button.textContent = 'Sélectionné';
+                            button.disabled = true;
+                          }, 1000);
+                        }
+                      }}
                       className="text-blue-400 hover:text-blue-300"
                       disabled={isSelected(player.id)}
                     >
