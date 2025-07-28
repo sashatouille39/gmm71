@@ -70,13 +70,29 @@ export const useCustomPlayers = () => {
   };
 
   const removePlayer = (playerId) => {
-    setCustomPlayers(prev => prev.filter(p => p.id !== playerId));
+    setCustomPlayers(prev => {
+      const updated = prev.filter(p => p.id !== playerId);
+      // Dispatch l'événement lors de suppression explicite
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('customPlayersChanged', { 
+          detail: updated 
+        }));
+      }, 0);
+      return updated;
+    });
   };
 
   const updatePlayer = (playerId, updates) => {
-    setCustomPlayers(prev => 
-      prev.map(p => p.id === playerId ? { ...p, ...updates } : p)
-    );
+    setCustomPlayers(prev => {
+      const updated = prev.map(p => p.id === playerId ? { ...p, ...updates } : p);
+      // Dispatch l'événement lors de mise à jour explicite
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('customPlayersChanged', { 
+          detail: updated 
+        }));
+      }, 0);
+      return updated;
+    });
   };
 
   const getPlayerById = (playerId) => {
