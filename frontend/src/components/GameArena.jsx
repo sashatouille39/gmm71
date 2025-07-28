@@ -61,10 +61,19 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState }) 
       
       const { result, game } = await response.json();
       
-      // Adapter le format de jeu pour le frontend
+      // Adapter le format de jeu pour le frontend avec conversion complète des champs
       const adaptedGame = {
-        ...game,
-        currentEventIndex: game.current_event_index || 0 // CORRECTION: convertir snake_case vers camelCase
+        id: game.id,
+        players: game.players, // Les joueurs avec leurs scores et statuts
+        events: game.events,
+        currentEventIndex: game.current_event_index || 0, // CORRECTION: convertir snake_case vers camelCase
+        completed: game.completed || false, // CRITIQUE: s'assurer que completed est préservé
+        start_time: game.start_time,
+        end_time: game.end_time,
+        winner: game.winner, // CRITIQUE: préserver le gagnant
+        total_cost: game.total_cost || 0,
+        earnings: game.earnings || 0,
+        event_results: game.event_results || []
       };
       
       // Mettre à jour l'état du jeu avec les résultats du backend
