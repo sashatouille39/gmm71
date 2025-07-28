@@ -19,9 +19,16 @@ import { PLAYER_ROLES } from '../mock/mockData';
 const CustomPlayersList = ({ onSelectPlayer, onCreateNew, selectedPlayers = [] }) => {
   const { customPlayers, removePlayer, duplicatePlayer } = useCustomPlayers();
   console.log('🔍 DEBUG CustomPlayersList: customPlayers:', customPlayers);
+  console.log('🔍 DEBUG CustomPlayersList: customPlayers.length:', customPlayers.length);
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [showDetails, setShowDetails] = useState({});
+
+  // Force re-render when customPlayers changes
+  useEffect(() => {
+    console.log('🔍 DEBUG useEffect: customPlayers changed:', customPlayers);
+  }, [customPlayers]);
 
   // Filtrer les joueurs
   const filteredPlayers = customPlayers.filter(player => {
