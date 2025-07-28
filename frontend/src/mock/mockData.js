@@ -287,7 +287,7 @@ export const MOCK_CELEBRITIES = [
     name: "Viktor Kozlov",
     category: "Ancien vainqueur",
     stars: 5,
-    price: 50000,
+    price: 50000000, // 50 millions
     nationality: "Russe",
     wins: 3,
     stats: { intelligence: 9, force: 8, agilité: 10 },
@@ -298,7 +298,7 @@ export const MOCK_CELEBRITIES = [
     name: "Luna Hartwell",
     category: "Ancienne vainqueur",
     stars: 5,
-    price: 45000,
+    price: 45000000, // 45 millions
     nationality: "Britannique",
     wins: 2,
     stats: { intelligence: 10, force: 6, agilité: 9 },
@@ -311,7 +311,7 @@ export const MOCK_CELEBRITIES = [
     name: "Marco Rossini",
     category: "Sportif",
     stars: 4,
-    price: 25000,
+    price: 25000000, // 25 millions
     nationality: "Italienne",
     stats: { intelligence: 6, force: 9, agilité: 10 },
     biography: "Champion olympique de décathlon."
@@ -321,7 +321,7 @@ export const MOCK_CELEBRITIES = [
     name: "Dr. Sarah Chen",
     category: "Scientifique",
     stars: 4,
-    price: 22000,
+    price: 22000000, // 22 millions
     nationality: "Chinoise",
     stats: { intelligence: 10, force: 4, agilité: 6 },
     biography: "Prix Nobel de physique, génie reconnu mondialement."
@@ -333,7 +333,7 @@ export const MOCK_CELEBRITIES = [
     name: "Jake Morrison",
     category: "Acteur",
     stars: 3,
-    price: 15000,
+    price: 15000000, // 15 millions
     nationality: "Américaine",
     stats: { intelligence: 7, force: 6, agilité: 7 },
     biography: "Star de cinéma action, cascadeur expérimenté."
@@ -343,7 +343,7 @@ export const MOCK_CELEBRITIES = [
     name: "Isabella Santos",
     category: "Chanteuse",
     stars: 3,
-    price: 12000,
+    price: 12000000, // 12 millions
     nationality: "Brésilienne",
     stats: { intelligence: 8, force: 5, agilité: 8 },
     biography: "Diva internationale, voix d'or du Brésil."
@@ -355,7 +355,7 @@ export const MOCK_CELEBRITIES = [
     name: "Tommy Fletcher",
     category: "Influenceur",
     stars: 2,
-    price: 8000,
+    price: 8000000, // 8 millions
     nationality: "Australienne",
     stats: { intelligence: 6, force: 5, agilité: 6 },
     biography: "Influenceur populaire, 50M de followers."
@@ -365,7 +365,7 @@ export const MOCK_CELEBRITIES = [
     name: "Marie Dubois",
     category: "Chef",
     stars: 2,
-    price: 6000,
+    price: 6000000, // 6 millions
     nationality: "Française",
     stats: { intelligence: 7, force: 4, agilité: 5 },
     biography: "Chef étoilée, reine de la gastronomie française."
