@@ -121,6 +121,38 @@ async def record_celebrity_victory(celebrity_id: str):
         "stats": celebrity.stats
     }
 
+@router.put("/{celebrity_id}/participation")
+async def record_celebrity_participation(celebrity_id: str, participation_data: dict):
+    """Enregistre la participation d'une célébrité à un jeu"""
+    celebrity = next((c for c in celebrities_db if c.id == celebrity_id), None)
+    if not celebrity:
+        raise HTTPException(status_code=404, detail="Célébrité non trouvée")
+    
+    # Enregistrer la participation même si elle n'a pas gagné
+    # Cela peut inclure amélioration mineure des stats selon les performances
+    survived_events = participation_data.get('survived_events', 0)
+    total_score = participation_data.get('total_score', 0)
+    
+    # Amélioration mineure des stats en fonction des performances
+    if survived_events >= 3:  # Si elle a survécu à au moins 3 épreuves
+        if total_score > 100:  # Bon score
+            # Améliorer légèrement les stats
+            if celebrity.stats.intelligence < 10:
+                celebrity.stats.intelligence += 1
+            elif celebrity.stats.force < 10:
+                celebrity.stats.force += 1
+            elif celebrity.stats.agilite < 10:
+                celebrity.stats.agilite += 1
+    
+    return {
+        "message": f"Participation enregistrée pour {celebrity.name}",
+        "performance": {
+            "survived_events": survived_events,
+            "total_score": total_score
+        },
+        "updated_stats": celebrity.stats
+    }
+
 @router.get("/stats/summary")
 async def get_celebrities_stats():
     """Récupère des statistiques sur les célébrités"""
