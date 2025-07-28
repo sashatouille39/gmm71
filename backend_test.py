@@ -2970,33 +2970,52 @@ class BackendTester:
             self.log_result("New Economic System French Request", False, f"Error during test: {str(e)}")
 
     def run_all_tests(self):
-        """Run all backend tests"""
-    def run_all_tests(self):
-        """Run all backend tests"""
-        print(f"🚀 Starting Backend Tests for Game Master Manager")
-        print(f"📍 Backend URL: {BACKEND_URL}")
-        print(f"📍 API Base: {API_BASE}")
-        print("=" * 60)
-        
-        # Test 1: Server startup
-        if not self.test_server_startup():
-            print("\n❌ Server not accessible - stopping tests")
-            return self.generate_summary()
-        
-        # Test 2: Basic routes
-        self.test_basic_routes()
-        
-        # ===== NOUVEAUX TESTS SELON REVIEW REQUEST =====
-        print("\n" + "=" * 80)
-        print("🎯 TESTING NEW FEATURES FROM REVIEW REQUEST")
+        """Exécute tous les tests backend"""
+        print(f"🚀 DÉMARRAGE DES TESTS BACKEND - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"Backend URL: {BACKEND_URL}")
+        print(f"API Base: {API_BASE}")
         print("=" * 80)
         
-        # NEW TESTS FOR ECONOMIC SYSTEM AND VIP FEATURES
-        print("\n🇫🇷 TESTING NEW ECONOMIC SYSTEM AND VIP FEATURES - FRENCH REQUEST...")
-        self.test_new_economic_system_french_request()
-        self.test_new_economic_system()
-        self.test_vip_routes_new()
-        self.test_vip_earnings_improved()
+        # Tests de base
+        if not self.test_server_startup():
+            print("❌ Serveur non accessible, arrêt des tests")
+            return
+        
+        # TEST PRIORITAIRE: Corrections économiques françaises
+        self.test_economic_system_french_corrections()
+        
+        self.test_basic_routes()
+        self.test_game_events_available()
+        self.test_generate_players()
+        
+        # Test de création de partie et simulation
+        game_id = self.test_create_game()
+        if game_id:
+            self.test_simulate_event(game_id)
+        
+        self.test_pydantic_models()
+        
+        # Tests spécialisés
+        self.test_nationality_names_correction()
+        self.test_skin_color_nationality_consistency()
+        self.test_name_diversity_same_nationality()
+        self.test_one_survivor_condition()
+        
+        # Tests des nouvelles fonctionnalités célébrités
+        self.test_celebrity_participation_route()
+        self.test_celebrity_victory_route()
+        self.test_celebrity_stats_summary_route()
+        self.test_celebrity_owned_list_route()
+        self.test_celebrity_stats_improvement_rules()
+        
+        # Test critique de la logique de fin de jeu
+        self.test_game_end_logic_and_scoring()
+        
+        # Vérification des logs
+        self.check_backend_logs()
+        
+        # Résumé final
+        self.print_final_summary()
         
         # Test 1: Ordre des événements préservé
         self.test_preserve_event_order_true()
