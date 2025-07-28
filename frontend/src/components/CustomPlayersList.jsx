@@ -122,6 +122,13 @@ const CustomPlayersList = ({ onSelectPlayer, onCreateNew, selectedPlayers = [] }
         </Button>
 
         {/* Liste des joueurs */}
+        <div className="bg-yellow-500/10 border border-yellow-500 p-4 rounded mb-4">
+          <p className="text-yellow-400 font-bold">DEBUG: customPlayers.length = {customPlayers.length}</p>
+          <p className="text-yellow-400">DEBUG: filteredPlayers.length = {filteredPlayers.length}</p>
+          <p className="text-yellow-400">DEBUG: searchTerm = "{searchTerm}"</p>
+          <p className="text-yellow-400">DEBUG: filterRole = "{filterRole}"</p>
+        </div>
+        
         {filteredPlayers.length === 0 ? (
           <div className="text-center py-8 text-gray-400">
             {customPlayers.length === 0 ? (
