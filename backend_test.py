@@ -2992,7 +2992,8 @@ class BackendTester:
         print("=" * 80)
         
         # NEW TESTS FOR ECONOMIC SYSTEM AND VIP FEATURES
-        print("\n🎯 TESTING NEW ECONOMIC SYSTEM AND VIP FEATURES...")
+        print("\n🇫🇷 TESTING NEW ECONOMIC SYSTEM AND VIP FEATURES - FRENCH REQUEST...")
+        self.test_new_economic_system_french_request()
         self.test_new_economic_system()
         self.test_vip_routes_new()
         self.test_vip_earnings_improved()
