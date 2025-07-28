@@ -18,6 +18,7 @@ import { PLAYER_ROLES } from '../mock/mockData';
 
 const CustomPlayersList = ({ onSelectPlayer, onCreateNew, selectedPlayers = [] }) => {
   const { customPlayers, removePlayer, duplicatePlayer } = useCustomPlayers();
+  console.log('🔍 DEBUG CustomPlayersList: customPlayers:', customPlayers);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [showDetails, setShowDetails] = useState({});
