@@ -516,11 +516,15 @@ class GameService:
                 total_participants=0
             )
         
-        # Calculer le nombre exact de survivants selon le taux d'élimination configuré
-        target_survivors = int(len(alive_players) * (1 - event.elimination_rate))
-        
-        # S'assurer qu'il y a au moins 1 survivant
-        target_survivors = max(1, target_survivors)
+        # Logique spéciale pour les épreuves finales
+        if event.is_final:
+            # Les finales garantissent un seul survivant
+            target_survivors = 1
+        else:
+            # Calculer le nombre exact de survivants selon le taux d'élimination configuré
+            target_survivors = int(len(alive_players) * (1 - event.elimination_rate))
+            # S'assurer qu'il y a au moins 1 survivant
+            target_survivors = max(1, target_survivors)
         
         # Calculer un score de survie pour chaque joueur (stats + rôle + aléatoire)
         player_scores = []
