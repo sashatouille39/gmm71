@@ -510,11 +510,11 @@ class GameService:
         # Calcul préliminaire pour s'assurer du respect des taux de mortalité
         target_survivors = len(alive_players) * (1 - event.elimination_rate)
         
-        # Pour les épreuves normales: 40-60% de survivants (40-60% de mortalité)
+        # Pour les épreuves normales: 40-60% de mortalité (60-40% de survivants)
         # Pour les épreuves spéciales: respecter le taux configuré
         if event.name not in ["Le Jugement Final", "Bataille royale"]:
-            min_survivors = max(1, int(len(alive_players) * 0.40))  # Minimum 40% de survivants
-            max_survivors = int(len(alive_players) * 0.60)  # Maximum 60% de survivants
+            min_survivors = max(1, int(len(alive_players) * 0.40))  # Minimum 40% de survivants (60% mortalité)
+            max_survivors = int(len(alive_players) * 0.60)  # Maximum 60% de survivants (40% mortalité)
             target_survivors = max(min_survivors, min(max_survivors, target_survivors))
         else:
             # Pour les épreuves spéciales, respecter exactement le taux configuré
