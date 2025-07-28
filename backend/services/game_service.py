@@ -392,7 +392,7 @@ class GameService:
             'Tchèque': ['Novák', 'Svoboda', 'Novotný', 'Dvořák', 'Černý', 'Procházka', 'Krejčí', 'Hájek', 'Kratochvíl', 'Horák'],
             'Thaïlandaise': ['Chanthavy', 'Siriporn', 'Somboon', 'Chanpen', 'Kamon', 'Narongsak', 'Prasert', 'Suwan', 'Thawatchai', 'Wichai'],
             'Turque': ['Yılmaz', 'Kaya', 'Demir', 'Şahin', 'Çelik', 'Yıldız', 'Yıldırım', 'Öztürk', 'Aydin', 'Özkan'],
-            'Ukrainienne': ['Petrenko', 'Kovalenko', 'Bondarenko', 'Tkachenko', 'Kovalchuk', 'Kravchenko', 'Shevchenko', 'Polishchuk', 'Lysenko', 'Savchenko'],
+
             'Américaine': ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez']
         }
         
