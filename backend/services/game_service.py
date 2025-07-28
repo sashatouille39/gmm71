@@ -428,14 +428,74 @@ class GameService:
     def _generate_portrait(cls, nationality: str) -> PlayerPortrait:
         """Génère un portrait cohérent avec la nationalité"""
         skin_color_ranges = {
+            # Asie de l'Est
+            'Chinoise': (2, 10),
             'Coréenne': (0, 8),
             'Japonaise': (0, 8),
-            'Chinoise': (2, 10),
-            'Française': (0, 5),
-            'Allemande': (0, 5),
+            
+            # Europe du Nord
             'Britannique': (0, 5),
+            'Danoise': (0, 4),
+            'Finlandaise': (0, 4),
+            'Irlandaise': (0, 5),
+            'Islandaise': (0, 3),
+            'Norvégienne': (0, 4),
+            'Suédoise': (0, 4),
+            
+            # Europe de l'Ouest
+            'Allemande': (0, 5),
+            'Autrichienne': (0, 5),
+            'Belge': (0, 5),
+            'Française': (0, 5),
+            'Luxembourgeoise': (0, 5),
+            'Néerlandaise': (0, 5),
+            'Suisse': (0, 5),
+            
+            # Europe du Sud
+            'Espagnole': (2, 8),
+            'Grecque': (3, 9),
+            'Italienne': (2, 8),
+            'Portugaise': (2, 8),
+            
+            # Europe de l'Est
+            'Bulgare': (1, 7),
+            'Croate': (1, 7),
+            'Estonienne': (0, 4),
+            'Hongroise': (1, 7),
+            'Lettone': (0, 4),
+            'Lituanienne': (0, 4),
+            'Polonaise': (0, 6),
+            'Roumaine': (1, 7),
+            'Russe': (0, 6),
+            'Tchèque': (0, 6),
+            'Ukrainienne': (0, 6),
+            
+            # Moyen-Orient
+            'Afghane': (6, 16),
+            'Iranienne': (5, 15),
+            'Israélienne': (3, 12),
+            'Turque': (4, 12),
+            
+            # Afrique du Nord
+            'Égyptienne': (8, 18),
+            'Marocaine': (6, 16),
+            
+            # Afrique sub-saharienne
             'Nigériane': (15, 24),
+            
+            # Asie du Sud et du Sud-Est
             'Indienne': (8, 18),
+            'Indonésienne': (6, 16),
+            'Thaïlandaise': (4, 14),
+            'Kazakhe': (3, 11),
+            
+            # Amériques
+            'Américaine': (0, 15),
+            'Argentine': (2, 10),
+            'Australienne': (0, 8),
+            'Brésilienne': (4, 20),
+            'Canadienne': (0, 12),
+            'Mexicaine': (6, 16),
         }
         
         skin_range = skin_color_ranges.get(nationality, (0, 15))
