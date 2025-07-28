@@ -245,12 +245,13 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState }) 
 
   const getRoleBonusForEvent = (player, event) => {
     switch (player.role) {
-      case 'intelligent': return event.type === 'intelligence' ? 0.2 : 0.1;
-      case 'brute': return event.type === 'force' ? 0.2 : 0.1;
-      case 'sportif': return event.type === 'agilité' ? 0.2 : 0.1;
-      case 'zero': return 0.15; // Bonus universel
-      case 'peureux': return -0.1;
-      default: return 0;
+      case 'intelligent': return event.type === 'intelligence' ? 0.15 : 0.05;
+      case 'brute': return event.type === 'force' ? 0.15 : 0.05;
+      case 'sportif': return event.type === 'agilité' ? 0.15 : 0.05;
+      case 'zero': return 0.20; // Bonus universel - Le Zéro est exceptionnel
+      case 'peureux': return -0.05; // Moins de pénalité
+      case 'celebrity': return 0.08; // Bonus modéré pour les célébrités
+      default: return 0.02; // Petit bonus pour les joueurs normaux
     }
   };
 
