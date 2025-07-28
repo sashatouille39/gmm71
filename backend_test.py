@@ -732,16 +732,16 @@ class BackendTester:
         # Test 7: Name diversity within same nationality
         self.test_name_diversity_same_nationality()
         
-        # Test 6: Game creation
+        # Test 8: Game creation
         game_id = self.test_create_game()
         
-        # Test 7: Event simulation
+        # Test 9: Event simulation
         self.test_simulate_event(game_id)
         
-        # Test 8: Model validation
+        # Test 10: Model validation
         self.test_pydantic_models()
         
-        # Test 9: CRITICAL - One survivor condition
+        # Test 11: CRITICAL - One survivor condition
         print("\n🎯 Testing CRITICAL fix: 1 survivor condition...")
         self.test_one_survivor_condition()
         
