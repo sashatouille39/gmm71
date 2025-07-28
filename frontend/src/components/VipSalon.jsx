@@ -26,6 +26,52 @@ const VipSalon = ({ gameState, updateGameState }) => {
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState('salon');
   const [selectedCelebrity, setSelectedCelebrity] = useState(null);
+  const [currentVips, setCurrentVips] = useState([]);
+  const [loadingVips, setLoadingVips] = useState(false);
+  const [allVips, setAllVips] = useState([]);
+
+  // Charger les VIPs lors du montage du composant
+  useEffect(() => {
+    loadSalonVips();
+    loadAllVips();
+  }, [gameState.vipSalonLevel]);
+
+  const loadSalonVips = async () => {
+    try {
+      setLoadingVips(true);
+      const vips = await vipService.getSalonVips(gameState.vipSalonLevel);
+      setCurrentVips(vips);
+    } catch (error) {
+      console.error('Erreur lors du chargement des VIPs:', error);
+      // En cas d'erreur, utiliser des VIPs par défaut
+      setCurrentVips([]);
+    } finally {
+      setLoadingVips(false);
+    }
+  };
+
+  const loadAllVips = async () => {
+    try {
+      const vips = await vipService.getAllVips();
+      setAllVips(vips);
+    } catch (error) {
+      console.error('Erreur lors du chargement de tous les VIPs:', error);
+    }
+  };
+
+  const refreshVips = async () => {
+    try {
+      setLoadingVips(true);
+      // Générer un ID de partie temporaire pour rafraîchir les VIPs
+      const tempGameId = `salon_${Date.now()}`;
+      const result = await vipService.refreshGameVips(tempGameId, gameState.vipSalonLevel);
+      setCurrentVips(result.vips);
+    } catch (error) {
+      console.error('Erreur lors du rafraîchissement des VIPs:', error);
+    } finally {
+      setLoadingVips(false);
+    }
+  };
 
   const salonUpgrades = [
     { 
