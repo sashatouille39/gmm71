@@ -144,7 +144,7 @@ class EventsService:
                 "Mordu par un serpent venimeux géant"
             ],
             survival_time_min=120, survival_time_max=300,
-            elimination_rate=0.7,
+            elimination_rate=0.58,
             special_mechanics=["Animaux sauvages", "Survie pure"]
         ),
         
@@ -279,7 +279,7 @@ class EventsService:
                 "Peau fondue par les flammes"
             ],
             survival_time_min=90, survival_time_max=240,
-            elimination_rate=0.7,
+            elimination_rate=0.5,
             special_mechanics=["Armes à feu", "Environnement inflammable"]
         ),
         
@@ -294,7 +294,7 @@ class EventsService:
                 "Piétiné par la cavalerie lourde"
             ],
             survival_time_min=300, survival_time_max=900,
-            elimination_rate=0.8,
+            elimination_rate=0.52,
             special_mechanics=["Bataille massive", "Armes médiévales"]
         ),
         
@@ -447,7 +447,7 @@ class EventsService:
                 "Inhalation de gaz toxiques volcaniques"
             ],
             survival_time_min=120, survival_time_max=240,
-            elimination_rate=0.7,
+            elimination_rate=0.48,
             special_mechanics=["Lave en fusion", "Équilibre extrême"]
         ),
         
@@ -600,7 +600,7 @@ class EventsService:
                 "Onde de choc, hémorragie interne"
             ],
             survival_time_min=600, survival_time_max=1200,
-            elimination_rate=0.7,
+            elimination_rate=0.48,
             special_mechanics=["Puzzle 3D", "Bombe à retardement"]
         ),
         
@@ -660,7 +660,7 @@ class EventsService:
                 "Onde de choc, pulvérisation"
             ],
             survival_time_min=180, survival_time_max=600,
-            elimination_rate=0.8,
+            elimination_rate=0.52,
             special_mechanics=["Désamorçage", "Bombe complexe"]
         ),
         
@@ -705,7 +705,7 @@ class EventsService:
                 "Explosion en chaîne, carbonisation"
             ],
             survival_time_min=120, survival_time_max=300,
-            elimination_rate=0.7,
+            elimination_rate=0.52,
             special_mechanics=["Calculs balistiques", "Missiles réels"]
         ),
         
@@ -735,7 +735,7 @@ class EventsService:
                 "Radiation quantique, mutation mortelle"
             ],
             survival_time_min=600, survival_time_max=1800,
-            elimination_rate=0.8,
+            elimination_rate=0.52,
             special_mechanics=["Physique quantique", "Science avancée"]
         ),
         
@@ -948,7 +948,7 @@ class EventsService:
                 "Asphyxié par fumées mortelles"
             ],
             survival_time_min=180, survival_time_max=420,
-            elimination_rate=0.7,
+            elimination_rate=0.6,
             special_mechanics=["Explosion industrielle", "Produits chimiques"]
         ),
         
@@ -993,7 +993,7 @@ class EventsService:
                 "Overdose de médicaments psychiatriques"
             ],
             survival_time_min=600, survival_time_max=1800,
-            elimination_rate=0.7,
+            elimination_rate=0.5,
             special_mechanics=["Santé mentale", "Folie progressive"]
         ),
         
@@ -1008,7 +1008,7 @@ class EventsService:
                 "Explosion de réacteur nucléaire"
             ],
             survival_time_min=300, survival_time_max=900,
-            elimination_rate=0.8,
+            elimination_rate=0.6,
             special_mechanics=["Technologie spatiale", "Réparations complexes"]
         ),
         
@@ -1038,7 +1038,7 @@ class EventsService:
                 "Asphyxie par vapeur radioactive"
             ],
             survival_time_min=180, survival_time_max=600,
-            elimination_rate=0.9,
+            elimination_rate=0.52,
             special_mechanics=["Énergie nucléaire", "Radiation mortelle"]
         ),
         
@@ -1068,7 +1068,7 @@ class EventsService:
                 "Explosion de torpille, démembrement"
             ],
             survival_time_min=240, survival_time_max=720,
-            elimination_rate=0.7,
+            elimination_rate=0.45,
             special_mechanics=["Milieu sous-marin", "Réparations techniques"]
         ),
         
@@ -1113,7 +1113,7 @@ class EventsService:
                 "Transformation mortelle en monstre"
             ],
             survival_time_min=300, survival_time_max=900,
-            elimination_rate=0.8,
+            elimination_rate=0.48,
             special_mechanics=["Mutations génétiques", "Créatures expérimentales"]
         ),
         
@@ -1128,7 +1128,7 @@ class EventsService:
                 "Écrasé par bloc de glace"
             ],
             survival_time_min=240, survival_time_max=720,
-            elimination_rate=0.7,
+            elimination_rate=0.5,
             special_mechanics=["Haute altitude", "Conditions extrêmes"]
         ),
         
@@ -1143,7 +1143,7 @@ class EventsService:
                 "Électrocuté par robot défaillant"
             ],
             survival_time_min=300, survival_time_max=900,
-            elimination_rate=0.7,
+            elimination_rate=0.6,
             special_mechanics=["Programmation robotique", "IA hostile"]
         ),
         
@@ -1158,7 +1158,7 @@ class EventsService:
                 "Chute dans lac de lave"
             ],
             survival_time_min=180, survival_time_max=480,
-            elimination_rate=0.8,
+            elimination_rate=0.6,
             special_mechanics=["Éruption volcanique", "Lave en fusion"]
         ),
         
@@ -1173,7 +1173,7 @@ class EventsService:
                 "Impact au sol, vaporisation"
             ],
             survival_time_min=240, survival_time_max=720,
-            elimination_rate=0.9,
+            elimination_rate=0.6,
             special_mechanics=["Technologie spatiale", "Apesanteur"]
         ),
         
@@ -1203,7 +1203,7 @@ class EventsService:
                 "Empalé sur pieux de défense"
             ],
             survival_time_min=600, survival_time_max=1800,
-            elimination_rate=0.7,
+            elimination_rate=0.48,
             special_mechanics=["Siège médiéval", "Guerre de château"]
         ),
         
@@ -1218,7 +1218,7 @@ class EventsService:
                 "Mini-supernova, annihilation"
             ],
             survival_time_min=120, survival_time_max=480,
-            elimination_rate=0.95,
+            elimination_rate=0.5,
             special_mechanics=["Fusion nucléaire", "Science extrême"]
         ),
         
@@ -1236,7 +1236,7 @@ class EventsService:
                 "Transcendance mortelle vers autre dimension"
             ],
             survival_time_min=1800, survival_time_max=3600,
-            elimination_rate=0.99,
+            elimination_rate=0.7  # Exception: Épreuve finale,
             special_mechanics=["Tous les défis combinés", "Épreuve ultime"]
         )
     ]
