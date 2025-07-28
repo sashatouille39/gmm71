@@ -39,20 +39,42 @@ const GameSetup = ({ gameState, onStartGame }) => {
 
   const generatePlayers = async () => {
     setIsGenerating(true);
-    const newPlayers = [];
     
-    // Simulation du temps de génération pour l'effet visuel
-    for (let i = 1; i <= playerCount; i++) {
-      newPlayers.push(generateRandomPlayer(i));
+    try {
+      // Appel de l'API backend pour générer les joueurs avec des noms authentiques
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      const response = await fetch(`${backendUrl}/api/games/generate-players`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ count: playerCount })
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la génération des joueurs');
+      }
+
+      const newPlayers = await response.json();
       
-      // Mise à jour progressive pour l'animation
-      if (i % 20 === 0) {
-        setPlayers([...newPlayers]);
+      // Simulation du temps de génération pour l'effet visuel
+      for (let i = 0; i < newPlayers.length; i += 20) {
+        const batch = newPlayers.slice(0, i + 20);
+        setPlayers([...batch]);
         await new Promise(resolve => setTimeout(resolve, 100));
       }
+      
+      setPlayers(newPlayers);
+    } catch (error) {
+      console.error('Erreur lors de la génération des joueurs:', error);
+      // Fallback vers la génération frontend en cas d'erreur
+      const newPlayers = [];
+      for (let i = 1; i <= playerCount; i++) {
+        newPlayers.push(generateRandomPlayer(i));
+      }
+      setPlayers(newPlayers);
     }
     
-    setPlayers(newPlayers);
     setIsGenerating(false);
   };
 
