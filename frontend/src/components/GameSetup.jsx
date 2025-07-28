@@ -20,7 +20,7 @@ import {
   Crown,
   Star
 } from 'lucide-react';
-import { generateRandomPlayer, GAME_EVENTS, MOCK_CELEBRITIES, EVENT_CATEGORIES } from '../mock/mockData';
+import { generateRandomPlayer, MOCK_CELEBRITIES, EVENT_CATEGORIES } from '../mock/mockData';
 import CustomPlayersList from './CustomPlayersList';
 
 const GameSetup = ({ gameState, onStartGame }) => {
@@ -30,6 +30,8 @@ const GameSetup = ({ gameState, onStartGame }) => {
   const [selectedEvents, setSelectedEvents] = useState([]);
   const [gameMode, setGameMode] = useState('standard');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [availableEvents, setAvailableEvents] = useState([]);
+  const [isLoadingEvents, setIsLoadingEvents] = useState(true);
 
   const gameModes = {
     standard: { name: 'Standard', cost: 1000, description: 'Jeu classique avec épreuves variées' },
