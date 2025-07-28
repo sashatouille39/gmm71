@@ -193,9 +193,15 @@ async def simulate_event(game_id: str):
                 game.completed = True
                 game.end_time = datetime.utcnow()
                 game.winner = max(alive_players_before, key=lambda p: p.total_score) if alive_players_before else None
-                vip_viewing_fees = len(game.players) * 100  # 100$ par joueur pour les VIPs
-                bonus_earnings = (len(game.players) - len(alive_players_before)) * 50  # 50$ par mort
-                game.earnings = vip_viewing_fees + bonus_earnings
+                
+                # Calculer les gains réels des VIPs
+                from routes.vip_routes import active_vips_by_game
+                game_vips = active_vips_by_game.get(game_id, [])
+                if game_vips:
+                    game.earnings = sum(vip.viewing_fee for vip in game_vips)
+                else:
+                    game.earnings = 0
+                    
                 games_db[game_id] = game
                 
                 return {
