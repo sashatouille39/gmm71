@@ -3,7 +3,7 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 from models.game_models import (
     Player, PlayerRole, PlayerStats, PlayerPortrait, PlayerUniform,
-    Game, GameEvent, EventResult, Celebrity, VipCharacter, EventType
+    Game, GameEvent, EventResult, Celebrity, VipCharacter, EventType, EventCategory
 )
 from services.events_service import EventsService
 
