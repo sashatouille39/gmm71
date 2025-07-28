@@ -1257,6 +1257,33 @@ class EventsService:
         return [event for event in cls.GAME_EVENTS if event.type == event_type]
     
     @classmethod
+    def get_events_by_category(cls, category: EventCategory) -> List[GameEvent]:
+        """Récupère toutes les épreuves d'une catégorie donnée"""
+        return [event for event in cls.GAME_EVENTS if event.category == category]
+    
+    @classmethod
+    def get_final_events(cls) -> List[GameEvent]:
+        """Récupère toutes les épreuves finales"""
+        return [event for event in cls.GAME_EVENTS if event.is_final]
+    
+    @classmethod
+    def get_non_final_events(cls) -> List[GameEvent]:
+        """Récupère toutes les épreuves non-finales"""
+        return [event for event in cls.GAME_EVENTS if not event.is_final]
+    
+    @classmethod
+    def organize_events_for_game(cls, selected_event_ids: List[int]) -> List[GameEvent]:
+        """Organise les événements sélectionnés avec les finales à la fin"""
+        selected_events = [cls.get_event_by_id(event_id) for event_id in selected_event_ids]
+        
+        # Séparer les finales des autres épreuves
+        final_events = [event for event in selected_events if event.is_final]
+        regular_events = [event for event in selected_events if not event.is_final]
+        
+        # Retourner les épreuves régulières suivies des finales
+        return regular_events + final_events
+    
+    @classmethod
     def get_events_by_difficulty(cls, min_difficulty: int, max_difficulty: int) -> List[GameEvent]:
         """Récupère les épreuves dans une fourchette de difficulté"""
         return [
