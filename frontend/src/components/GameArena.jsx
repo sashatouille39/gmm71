@@ -68,8 +68,19 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState }) 
             });
           }
           
-          // Mettre à jour les stats générales de la célébrité
-          // (ici on pourrait ajouter plus de logique pour mettre à jour les stats)
+          // Enregistrer la participation générale de la célébrité
+          await fetch(`${backendUrl}/api/celebrities/${player.celebrityId}/participation`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              survived_events: player.survivedEvents || 0,
+              total_score: player.totalScore || 0,
+              alive: player.alive || false
+            })
+          });
+          
         } catch (error) {
           console.error('Erreur lors de la mise à jour des stats de célébrité:', error);
         }
