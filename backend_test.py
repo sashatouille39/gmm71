@@ -2145,6 +2145,10 @@ class BackendTester:
         # Test 16: Celebrity stats improvement rules
         self.test_celebrity_stats_improvement_rules()
         
+        # PRIORITY TEST: Game end logic and scoring system (as per review request)
+        print("\n🎯 PRIORITY TEST: Testing game end logic and scoring system as per review request...")
+        self.test_game_end_logic_and_scoring()
+        
         # NEW TESTS FOR FINALS SYSTEM (as per review request)
         print("\n🎯 Testing NEW FINALS SYSTEM - REVIEW REQUEST...")
         
