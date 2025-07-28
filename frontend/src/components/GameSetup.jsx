@@ -147,7 +147,7 @@ const GameSetup = ({ gameState, onStartGame }) => {
     if (!canAfford()) return;
     if (players.length === 0 || selectedEvents.length === 0) return;
     
-    const eventsData = GAME_EVENTS.filter(event => selectedEvents.includes(event.id));
+    const eventsData = availableEvents.filter(event => selectedEvents.includes(event.id));
     onStartGame(players, eventsData);
     navigate('/game-arena');
   };
