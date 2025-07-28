@@ -15,10 +15,9 @@ class GameService:
         "Brésilienne", "Britannique", "Bulgare", "Canadienne", "Chinoise", "Coréenne", 
         "Croate", "Danoise", "Égyptienne", "Espagnole", "Estonienne", "Finlandaise", 
         "Française", "Grecque", "Hongroise", "Indienne", "Indonésienne", "Iranienne", 
-        "Irlandaise", "Islandaise", "Israélienne", "Italienne", "Japonaise", "Kazakhe", 
-        "Lettone", "Lituanienne", "Luxembourgeoise", "Marocaine", "Mexicaine", "Néerlandaise", 
-        "Nigériane", "Norvégienne", "Polonaise", "Portugaise", "Roumaine", "Russe", 
-        "Suédoise", "Suisse", "Tchèque", "Thaïlandaise", "Turque", "Ukrainienne", "Américaine"
+        "Irlandaise", "Islandaise", "Italienne", "Japonaise", "Marocaine", "Mexicaine", 
+        "Néerlandaise", "Nigériane", "Norvégienne", "Polonaise", "Portugaise", "Roumaine", 
+        "Russe", "Suédoise", "Suisse", "Tchèque", "Thaïlandaise", "Turque", "Américaine"
     ]
     
     FACE_SHAPES = [
