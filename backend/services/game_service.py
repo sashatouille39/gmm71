@@ -11,9 +11,14 @@ class GameService:
     
     # Données statiques pour la génération
     NATIONALITIES = [
-        "Coréenne", "Japonaise", "Chinoise", "Américaine", "Française", "Allemande", 
-        "Britannique", "Italienne", "Espagnole", "Russe", "Brésilienne", "Indienne",
-        "Australienne", "Canadienne", "Mexicaine", "Turque", "Égyptienne", "Nigériane"
+        "Afghane", "Allemande", "Argentine", "Australienne", "Autrichienne", "Belge", 
+        "Brésilienne", "Britannique", "Bulgare", "Canadienne", "Chinoise", "Coréenne", 
+        "Croate", "Danoise", "Égyptienne", "Espagnole", "Estonienne", "Finlandaise", 
+        "Française", "Grecque", "Hongroise", "Indienne", "Indonésienne", "Iranienne", 
+        "Irlandaise", "Islandaise", "Israélienne", "Italienne", "Japonaise", "Kazakhe", 
+        "Lettone", "Lituanienne", "Luxembourgeoise", "Marocaine", "Mexicaine", "Néerlandaise", 
+        "Nigériane", "Norvégienne", "Polonaise", "Portugaise", "Roumaine", "Russe", 
+        "Suédoise", "Suisse", "Tchèque", "Thaïlandaise", "Turque", "Ukrainienne", "Américaine"
     ]
     
     FACE_SHAPES = [
