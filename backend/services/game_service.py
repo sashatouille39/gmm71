@@ -444,7 +444,7 @@ class GameService:
             'Estonienne': (0, 4),
             'Hongroise': (1, 7),
 
-            'Lituanienne': (0, 4),
+
             'Polonaise': (0, 6),
             'Roumaine': (1, 7),
             'Russe': (0, 6),
