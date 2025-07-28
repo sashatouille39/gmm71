@@ -510,8 +510,18 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState }) 
                           {player.number}
                         </div>
                         <div>
-                          <div className="text-white text-sm font-medium">{player.name}</div>
-                          <div className="text-xs text-gray-400">{player.nationality}</div>
+                          <div className="text-white text-sm font-medium flex items-center gap-2">
+                            {player.name}
+                            {player.isCelebrity && (
+                              <span className="text-yellow-400 text-xs">👑</span>
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-400 flex items-center gap-1">
+                            {player.nationality}
+                            {player.isCelebrity && (
+                              <span className="text-yellow-500 bg-yellow-900/30 px-1 rounded text-xs">STAR</span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <div className="text-right">
