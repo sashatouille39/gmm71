@@ -613,10 +613,7 @@
 
 ## test_plan:
   current_focus:
-    - "Correction système de paiement"
-    - "Correction gains VIP"
-    - "Système de remboursement"
-    - "Route statut gains VIP"
+    - "Intégration MongoDB"
   stuck_tasks:
     - "Intégration MongoDB"
   test_all: false
