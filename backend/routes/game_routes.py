@@ -66,11 +66,16 @@ async def create_game(request: GameCreateRequest):
         if not organized_events:
             raise HTTPException(status_code=400, detail="Aucun événement sélectionné")
         
-        # Calculer le coût
-        game_modes_cost = {"standard": 1000, "hardcore": 2500, "custom": 1500}
-        base_cost = game_modes_cost.get(request.game_mode, 1000)
-        player_cost = len(players) * 10
-        event_cost = len(organized_events) * 500
+        # Calculer le coût total
+        game_modes_cost = {
+            "standard": 1000000,  # 1 million
+            "hardcore": 2500000,  # 2.5 millions 
+            "custom": 1500000     # 1.5 millions
+        }
+        
+        base_cost = game_modes_cost.get(request.game_mode, 1000000)
+        player_cost = len(players) * 10000  # 10k par joueur
+        event_cost = len(organized_events) * 500000  # 500k par épreuve
         total_cost = base_cost + player_cost + event_cost
         
         # Créer la partie
