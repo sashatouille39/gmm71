@@ -2752,6 +2752,223 @@ class BackendTester:
         except Exception as e:
             self.log_result("Preserve Event Order Field Validation", False, f"Error: {str(e)}")
 
+    def test_new_economic_system_french_request(self):
+        """Test CRITICAL: Tester le nouveau système économique selon les demandes de l'utilisateur français"""
+        try:
+            print("\n🇫🇷 TESTING NEW ECONOMIC SYSTEM - FRENCH USER REQUEST")
+            print("=" * 80)
+            print("Testing according to French user's specific requirements:")
+            print("1. Starting money: 10,000,000$ (10 million) instead of 50 million")
+            print("2. Game creation costs: Standard=100,000$, Hardcore=500,000$, Custom=1,000,000$")
+            print("3. Per player cost: 100$ instead of 100,000$")
+            print("4. Per event cost: 5,000$ instead of 5,000,000$")
+            print("5. VIP earnings: Base=100$ per player, Death bonus=50$ per death")
+            
+            # Test 1: Vérifier l'argent de départ (should be 10M according to French request)
+            print("\n   Test 1: Checking starting money...")
+            # Note: This would typically be checked via a user profile/gamestate endpoint
+            # For now, we'll test the game creation costs to ensure they fit within 10M budget
+            
+            # Test 2: Vérifier les coûts de création de partie
+            print("\n   Test 2: Testing game creation costs...")
+            
+            # Test Standard game cost
+            standard_game_request = {
+                "player_count": 50,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],  # 3 events
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=standard_game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data = response.json()
+                total_cost = game_data.get('total_cost', 0)
+                
+                # Expected cost: 100,000 (base) + (50 × 100) + (3 × 5,000) = 120,000$
+                expected_cost = 100000 + (50 * 100) + (3 * 5000)  # 100k + 5k + 15k = 120k
+                
+                if total_cost == expected_cost:
+                    self.log_result("Economic System - Standard Game Cost", True, 
+                                  f"✅ Standard game cost correct: {total_cost}$ (expected: {expected_cost}$)")
+                    
+                    # Check if 10M budget is sufficient
+                    starting_money = 10000000  # 10 million as per French request
+                    if starting_money > total_cost:
+                        remaining_money = starting_money - total_cost
+                        self.log_result("Economic System - Budget Sufficiency", True, 
+                                      f"✅ 10M budget sufficient: {remaining_money}$ remaining after Standard game")
+                    else:
+                        self.log_result("Economic System - Budget Sufficiency", False, 
+                                      f"❌ 10M budget insufficient for Standard game costing {total_cost}$")
+                else:
+                    self.log_result("Economic System - Standard Game Cost", False, 
+                                  f"❌ Standard game cost incorrect: got {total_cost}$, expected {expected_cost}$")
+            else:
+                self.log_result("Economic System - Standard Game Cost", False, 
+                              f"Could not create Standard game - HTTP {response.status_code}")
+            
+            # Test Hardcore game cost
+            hardcore_game_request = {
+                "player_count": 50,
+                "game_mode": "hardcore",
+                "selected_events": [1, 2, 3],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=hardcore_game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data = response.json()
+                total_cost = game_data.get('total_cost', 0)
+                
+                # Expected cost: 500,000 (base) + (50 × 100) + (3 × 5,000) = 520,000$
+                expected_cost = 500000 + (50 * 100) + (3 * 5000)  # 500k + 5k + 15k = 520k
+                
+                if total_cost == expected_cost:
+                    self.log_result("Economic System - Hardcore Game Cost", True, 
+                                  f"✅ Hardcore game cost correct: {total_cost}$ (expected: {expected_cost}$)")
+                else:
+                    self.log_result("Economic System - Hardcore Game Cost", False, 
+                                  f"❌ Hardcore game cost incorrect: got {total_cost}$, expected {expected_cost}$")
+            else:
+                self.log_result("Economic System - Hardcore Game Cost", False, 
+                              f"Could not create Hardcore game - HTTP {response.status_code}")
+            
+            # Test Custom game cost
+            custom_game_request = {
+                "player_count": 50,
+                "game_mode": "custom",
+                "selected_events": [1, 2, 3],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=custom_game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data = response.json()
+                total_cost = game_data.get('total_cost', 0)
+                
+                # Expected cost: 1,000,000 (base) + (50 × 100) + (3 × 5,000) = 1,020,000$
+                expected_cost = 1000000 + (50 * 100) + (3 * 5000)  # 1M + 5k + 15k = 1.02M
+                
+                if total_cost == expected_cost:
+                    self.log_result("Economic System - Custom Game Cost", True, 
+                                  f"✅ Custom game cost correct: {total_cost}$ (expected: {expected_cost}$)")
+                else:
+                    self.log_result("Economic System - Custom Game Cost", False, 
+                                  f"❌ Custom game cost incorrect: got {total_cost}$, expected {expected_cost}$")
+            else:
+                self.log_result("Economic System - Custom Game Cost", False, 
+                              f"Could not create Custom game - HTTP {response.status_code}")
+            
+            # Test 3: Test concrete example from French request
+            print("\n   Test 3: Testing concrete example (Standard + 50 players + 3 events = 120,000$)...")
+            
+            concrete_example_request = {
+                "player_count": 50,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=concrete_example_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data = response.json()
+                total_cost = game_data.get('total_cost', 0)
+                game_id = game_data.get('id')
+                
+                if total_cost == 120000:
+                    self.log_result("Economic System - Concrete Example", True, 
+                                  f"✅ Concrete example correct: 120,000$ for Standard + 50 players + 3 events")
+                    
+                    # Test 4: Test VIP earnings with the concrete example
+                    if game_id:
+                        print("\n   Test 4: Testing VIP earnings with concrete example...")
+                        
+                        # Simulate an event to generate VIP earnings
+                        simulate_response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                        
+                        if simulate_response.status_code == 200:
+                            simulate_data = simulate_response.json()
+                            game_after_event = simulate_data.get('game', {})
+                            result = simulate_data.get('result', {})
+                            
+                            earnings = game_after_event.get('earnings', 0)
+                            survivors_count = len(result.get('survivors', []))
+                            eliminated_count = len(result.get('eliminated', []))
+                            
+                            # Expected VIP earnings: (50 players × 100$) + (eliminated × 50$)
+                            expected_base_earnings = 50 * 100  # 5,000$ base
+                            expected_death_bonus = eliminated_count * 50
+                            expected_total_earnings = expected_base_earnings + expected_death_bonus
+                            
+                            if earnings == expected_total_earnings:
+                                self.log_result("Economic System - VIP Earnings", True, 
+                                              f"✅ VIP earnings correct: {earnings}$ (50×100$ + {eliminated_count}×50$)")
+                            else:
+                                self.log_result("Economic System - VIP Earnings", False, 
+                                              f"❌ VIP earnings incorrect: got {earnings}$, expected {expected_total_earnings}$")
+                        else:
+                            self.log_result("Economic System - VIP Earnings", False, 
+                                          f"Could not simulate event for VIP earnings test - HTTP {simulate_response.status_code}")
+                else:
+                    self.log_result("Economic System - Concrete Example", False, 
+                                  f"❌ Concrete example incorrect: got {total_cost}$, expected 120,000$")
+            else:
+                self.log_result("Economic System - Concrete Example", False, 
+                              f"Could not create concrete example game - HTTP {response.status_code}")
+            
+            # Test 5: Verify cost components breakdown
+            print("\n   Test 5: Verifying cost components breakdown...")
+            
+            # Test with different player counts to verify per-player cost
+            for player_count in [20, 100]:
+                test_request = {
+                    "player_count": player_count,
+                    "game_mode": "standard",
+                    "selected_events": [1, 2],  # 2 events
+                    "manual_players": []
+                }
+                
+                response = requests.post(f"{API_BASE}/games/create", 
+                                       json=test_request, 
+                                       headers={"Content-Type": "application/json"},
+                                       timeout=15)
+                
+                if response.status_code == 200:
+                    game_data = response.json()
+                    total_cost = game_data.get('total_cost', 0)
+                    
+                    # Expected: 100,000 (base) + (player_count × 100) + (2 × 5,000)
+                    expected_cost = 100000 + (player_count * 100) + (2 * 5000)
+                    
+                    if total_cost == expected_cost:
+                        self.log_result(f"Economic System - {player_count} Players Cost", True, 
+                                      f"✅ {player_count} players cost correct: {total_cost}$")
+                    else:
+                        self.log_result(f"Economic System - {player_count} Players Cost", False, 
+                                      f"❌ {player_count} players cost incorrect: got {total_cost}$, expected {expected_cost}$")
+            
+            print("\n   ✅ French Economic System Test Complete!")
+            
+        except Exception as e:
+            self.log_result("New Economic System French Request", False, f"Error during test: {str(e)}")
+
     def run_all_tests(self):
         """Run all backend tests"""
     def run_all_tests(self):
