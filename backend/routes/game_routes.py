@@ -57,8 +57,11 @@ async def create_game(request: GameCreateRequest):
             player = GameService.generate_random_player(player_id)
             players.append(player)
         
-        # Sélectionner et organiser les événements (finales à la fin)
-        organized_events = EventsService.organize_events_for_game(request.selected_events)
+        # Sélectionner et organiser les événements selon les préférences utilisateur
+        organized_events = EventsService.organize_events_for_game(
+            request.selected_events, 
+            preserve_order=request.preserve_event_order
+        )
         
         if not organized_events:
             raise HTTPException(status_code=400, detail="Aucun événement sélectionné")
