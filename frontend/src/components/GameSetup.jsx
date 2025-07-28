@@ -638,7 +638,18 @@ const GameSetup = ({ gameState, onStartGame }) => {
                               onClick={() => toggleEvent(event.id)}
                             >
                               <div className="flex justify-between items-start mb-2">
-                                <h4 className="text-white font-medium text-sm">{event.name}</h4>
+                                <div className="flex items-center gap-2">
+                                  <h4 className="text-white font-medium text-sm">{event.name}</h4>
+                                  {/* Indicateur d'ordre */}
+                                  {selectedEvents.includes(event.id) && (
+                                    <Badge 
+                                      variant="outline" 
+                                      className="text-blue-400 border-blue-400 text-xs"
+                                    >
+                                      #{selectedEvents.indexOf(event.id) + 1}
+                                    </Badge>
+                                  )}
+                                </div>
                                 <div className="flex flex-col gap-1">
                                   <Badge
                                     variant={event.type === 'force' ? 'destructive' : event.type === 'agilité' ? 'default' : 'secondary'}
