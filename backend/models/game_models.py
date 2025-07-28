@@ -157,6 +157,7 @@ class GameCreateRequest(BaseModel):
     game_mode: str = "standard"
     selected_events: List[int]
     manual_players: List[PlayerCreateRequest] = []
+    preserve_event_order: bool = True  # Nouveau champ pour préserver l'ordre choisi
 
 class GameStateUpdate(BaseModel):
     money: Optional[int] = None
