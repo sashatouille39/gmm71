@@ -99,7 +99,7 @@ class EventsService:
                 "Transpercé par un trident"
             ],
             survival_time_min=60, survival_time_max=300,
-            elimination_rate=0.7,
+            elimination_rate=0.55,
             special_mechanics=["Armes diverses", "Combat 1vs1"]
         ),
         
