@@ -585,6 +585,43 @@ const GameSetup = ({ gameState, onStartGame }) => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
+                {/* Option de préservation d'ordre */}
+                <div className="mb-6 p-4 bg-gray-800/30 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-white font-medium text-sm">Ordre des épreuves</h3>
+                      <p className="text-gray-400 text-xs mt-1">
+                        {preserveEventOrder 
+                          ? "Les épreuves se dérouleront dans l'ordre que vous les sélectionnez"
+                          : "Les épreuves finales seront automatiquement placées à la fin"
+                        }
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setPreserveEventOrder(true)}
+                        className={`px-3 py-1 text-xs rounded transition-all ${
+                          preserveEventOrder
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                        }`}
+                      >
+                        Mon ordre
+                      </button>
+                      <button
+                        onClick={() => setPreserveEventOrder(false)}
+                        className={`px-3 py-1 text-xs rounded transition-all ${
+                          !preserveEventOrder
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                        }`}
+                      >
+                        Finales à la fin
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
                 {isLoadingEvents ? (
                   <div className="text-center py-12 text-gray-400">
                     <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
