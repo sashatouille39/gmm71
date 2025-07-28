@@ -17,6 +17,16 @@ class EventType(str, Enum):
     FORCE = "force"
     AGILITE = "agilité"
 
+class EventCategory(str, Enum):
+    CLASSIQUES = "classiques"
+    COMBAT = "combat"
+    SURVIE = "survie"
+    PSYCHOLOGIQUE = "psychologique"
+    ATHLETIQUE = "athletique"
+    TECHNOLOGIQUE = "technologique"
+    EXTREME = "extreme"
+    FINALE = "finale"
+
 class PlayerStats(BaseModel):
     intelligence: int = Field(..., ge=0, le=10)
     force: int = Field(..., ge=0, le=10)
