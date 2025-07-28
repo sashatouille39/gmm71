@@ -29,7 +29,6 @@ export const useCustomPlayers = () => {
   // Écouter les changements d'autres instances du hook
   useEffect(() => {
     const handleCustomPlayersChanged = (event) => {
-      console.log('🔍 DEBUG: Received customPlayersChanged event:', event.detail);
       setCustomPlayers(event.detail);
     };
 
