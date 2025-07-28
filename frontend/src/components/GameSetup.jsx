@@ -32,6 +32,7 @@ const GameSetup = ({ gameState, onStartGame }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [availableEvents, setAvailableEvents] = useState([]);
   const [isLoadingEvents, setIsLoadingEvents] = useState(true);
+  const [preserveEventOrder, setPreserveEventOrder] = useState(true); // Nouvel état pour préserver l'ordre
 
   const gameModes = {
     standard: { name: 'Standard', cost: 1000, description: 'Jeu classique avec épreuves variées' },
