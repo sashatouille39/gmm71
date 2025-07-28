@@ -94,15 +94,49 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState }) 
     const kills = {};
     const betrayals = {};
 
-    // Simulation des résultats basés sur les stats et le hasard
-    currentGame.players.forEach(player => {
-      if (!player.alive) return;
+    // Calcul plus équilibré du taux de survie global selon la difficulté de l'épreuve
+    const baseSurvivalRate = Math.max(0.3, 1 - (currentEvent.difficulty * 0.08)); // 30% minimum, diminue avec difficulté
+    const alivePlayersCount = currentGame.players.filter(p => p.alive).length;
+    
+    // Garantir qu'au moins 20% des joueurs survivent (minimum 5 joueurs)
+    const minSurvivors = Math.max(5, Math.floor(alivePlayersCount * 0.2));
+    let actualSurvivors = 0;
 
-      const statBonus = getStatBonusForEvent(player, currentEvent);
-      const roleBonus = getRoleBonusForEvent(player, currentEvent);
-      const surviveChance = Math.min(0.9, 0.3 + (statBonus * 0.06) + roleBonus);
+    // Première passe : calcul des chances de survie pour chaque joueur
+    const playersWithChances = currentGame.players
+      .filter(p => p.alive)
+      .map(player => {
+        const statBonus = getStatBonusForEvent(player, currentEvent);
+        const roleBonus = getRoleBonusForEvent(player, currentEvent);
+        
+        // Formule améliorée : base plus élevée, bonus plus significatifs
+        let surviveChance = baseSurvivalRate + (statBonus * 0.04) + roleBonus + (Math.random() * 0.1);
+        surviveChance = Math.min(0.95, Math.max(0.15, surviveChance)); // Entre 15% et 95%
+        
+        return {
+          player,
+          surviveChance
+        };
+      })
+      .sort((a, b) => b.surviveChance - a.surviveChance); // Trier par chance de survie décroissante
+
+    // Simulation des résultats avec garantie de survivants minimum
+    playersWithChances.forEach(({ player, surviveChance }, index) => {
+      let survives = Math.random() < surviveChance;
       
-      if (Math.random() < surviveChance) {
+      // Forcer la survie si on n'a pas assez de survivants et qu'on est dans le top
+      if (!survives && actualSurvivors < minSurvivors && index < minSurvivors) {
+        survives = true;
+      }
+      
+      // Empêcher trop de survivants (maximum 80%)
+      const maxSurvivors = Math.floor(alivePlayersCount * 0.8);
+      if (survives && actualSurvivors >= maxSurvivors) {
+        survives = false;
+      }
+
+      if (survives) {
+        actualSurvivors++;
         // Survie
         const timeRemaining = Math.floor(120 * Math.random()); // Temps restant fictif
         const eventKills = Math.floor(Math.random() * 3);
@@ -131,6 +165,14 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState }) 
           cause: getRandomDeathCause(currentEvent)
         });
       }
+    });
+
+    console.log(`🎯 Épreuve ${currentEvent.name}:`, {
+      participants: alivePlayersCount,
+      survivors: actualSurvivors,
+      eliminated: eliminated.length,
+      survivalRate: `${((actualSurvivors / alivePlayersCount) * 100).toFixed(1)}%`,
+      difficulty: currentEvent.difficulty
     });
 
     // Mise à jour du jeu
