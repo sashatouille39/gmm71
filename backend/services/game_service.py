@@ -279,10 +279,7 @@ class GameService:
             },
 
 
-            'Lituanienne': {
-                'M': ['Jonas', 'Antanas', 'Vytautas', 'Petras', 'Algirdas', 'Kęstutis', 'Mindaugas', 'Rimantas'],
-                'F': ['Ona', 'Marija', 'Elena', 'Janina', 'Irena', 'Nijolė', 'Danutė', 'Aldona']
-            },
+
             'Luxembourgeoise': {
                 'M': ['Jean', 'Pierre', 'Marc', 'Alain', 'Claude', 'Michel', 'André', 'François'],
                 'F': ['Marie', 'Anne', 'Monique', 'Josée', 'Christiane', 'Nicole', 'Martine', 'Françoise']
