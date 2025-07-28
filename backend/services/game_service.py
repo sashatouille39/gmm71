@@ -468,7 +468,7 @@ class GameService:
             'Indienne': (8, 18),
             'Indonésienne': (6, 16),
             'Thaïlandaise': (4, 14),
-            'Kazakhe': (3, 11),
+
             
             # Amériques
             'Américaine': (0, 15),
