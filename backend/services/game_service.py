@@ -371,7 +371,7 @@ class GameService:
             'Iranienne': ['Hosseini', 'Ahmadi', 'Mohammadi', 'Rezaei', 'Moradi', 'Mousavi', 'Karimi', 'Rahimi', 'Bagheri', 'Hashemi'],
             'Irlandaise': ["O'Brien", "O'Sullivan", 'Murphy', "O'Connor", 'Kelly', 'Ryan', "O'Neill", 'Walsh', 'McCarthy', 'Gallagher'],
             'Islandaise': ['Jónsson', 'Sigurdsson', 'Guðmundsson', 'Einarsson', 'Gunnarsson', 'Ólafsson', 'Kristjánsson', 'Magnússon', 'Stefánsson', 'Þórsson'],
-            'Israélienne': ['Cohen', 'Levy', 'Miller', 'Goldberg', 'Goldstein', 'Rosen', 'Katz', 'Friedman', 'Klein', 'Green'],
+
             'Italienne': ['Rossi', 'Russo', 'Ferrari', 'Esposito', 'Bianchi', 'Romano', 'Colombo', 'Ricci', 'Marino', 'Greco'],
             'Japonaise': ['Sato', 'Suzuki', 'Takahashi', 'Tanaka', 'Watanabe', 'Ito', 'Yamamoto', 'Nakamura', 'Kobayashi', 'Kato', 'Yoshida', 'Yamada'],
             'Kazakhe': ['Nazarbayev', 'Suleimenov', 'Akhmetov', 'Zhakenov', 'Kassymov', 'Moldashev', 'Bekmuratov', 'Aubakirov', 'Tuleyev', 'Mukanov'],
