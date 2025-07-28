@@ -377,7 +377,7 @@ class GameService:
 
 
 
-            'Luxembourgeoise': ['Muller', 'Weber', 'Wagner', 'Schmit', 'Hansen', 'Becker', 'Hoffmann', 'Klein', 'Fischer', 'Mayer'],
+
             'Marocaine': ['Alami', 'Bennani', 'El Idrissi', 'Fassi', 'Tazi', 'Benali', 'Berrada', 'Chakir', 'Lamrani', 'Oudghiri'],
             'Mexicaine': ['González', 'García', 'Martínez', 'López', 'Hernández', 'Pérez', 'Rodríguez', 'Sánchez', 'Ramírez', 'Cruz'],
             'Néerlandaise': ['De Jong', 'Jansen', 'De Vries', 'Van den Berg', 'Van Dijk', 'Bakker', 'Janssen', 'Visser', 'Smit', 'Meijer'],
