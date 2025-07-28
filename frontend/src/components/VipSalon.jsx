@@ -22,6 +22,67 @@ import {
 import { MOCK_CELEBRITIES } from '../mock/mockData';
 import { vipService } from '../services/vipService';
 
+// Fonction pour obtenir l'emoji correspondant au masque animal
+const getAnimalEmoji = (mask) => {
+  const emojiMap = {
+    'loup': '🐺', 'renard': '🦊', 'ours': '🐻', 'chat': '🐱', 'elephant': '🐘',
+    'lion': '🦁', 'tigre': '🐅', 'singe': '🐵', 'aigle': '🦅', 'corbeau': '🐦‍⬛',
+    'chouette': '🦉', 'vautour': '🦅', 'paon': '🦚', 'flamant': '🦩', 'serpent': '🐍',
+    'crocodile': '🐊', 'iguane': '🦎', 'tortue': '🐢', 'mante': '🦗', 'scorpion': '🦂',
+    'araignee': '🕷️', 'scarabee': '🪲', 'libellule': '🦋', 'papillon': '🦋', 'requin': '🦈',
+    'pieuvre': '🐙', 'homard': '🦞', 'hippocampe': '🦄', 'dragon': '🐉', 'phenix': '🔥',
+    'chauve-souris': '🦇', 'pangolin': '🦔', 'cameleon': '🦎', 'pingouin': '🐧', 'ours-polaire': '🐻‍❄️',
+    'narval': '🦄', 'toucan': '🦜', 'jaguar': '🐆', 'capibara': '🐹', 'raie-manta': '🐠',
+    'poisson-lune': '🐟', 'anguille': '🐍', 'trilobite': '🦀', 'ammonite': '🐚',
+    'kraken': '🐙', 'licorne': '🦄', 'griffon': '🦅', 'sphinx': '🐱'
+  };
+  return emojiMap[mask] || '🎭';
+};
+
+// Fonction pour obtenir la couleur selon la personnalité
+const getPersonalityColor = (personality) => {
+  const colorMap = {
+    'dominateur': 'text-red-400 border-red-400',
+    'manipulateur': 'text-purple-400 border-purple-400',
+    'violent': 'text-red-600 border-red-600',
+    'énigmatique': 'text-indigo-400 border-indigo-400',
+    'philosophe': 'text-blue-400 border-blue-400',
+    'royal': 'text-yellow-400 border-yellow-400',
+    'chasseur': 'text-orange-400 border-orange-400',
+    'fou': 'text-pink-400 border-pink-400',
+    'observateur': 'text-cyan-400 border-cyan-400',
+    'oracle': 'text-purple-600 border-purple-600',
+    'mystique': 'text-indigo-600 border-indigo-600',
+    'nécrophage': 'text-gray-400 border-gray-400',
+    'narcissique': 'text-pink-600 border-pink-600',
+    'excentrique': 'text-magenta-400 border-magenta-400',
+    'traître': 'text-green-600 border-green-600',
+    'primitif': 'text-brown-400 border-brown-400',
+    'méditatif': 'text-green-400 border-green-400',
+    'sage': 'text-blue-600 border-blue-600',
+    'predateur': 'text-red-500 border-red-500',
+    'vengeur': 'text-orange-600 border-orange-600',
+    'envoûteur': 'text-violet-400 border-violet-400',
+    'mélancolique': 'text-gray-500 border-gray-500',
+    'brutal': 'text-red-700 border-red-700',
+    'impérial': 'text-gold-400 border-gold-400',
+    'cyclique': 'text-teal-400 border-teal-400',
+    'vampirique': 'text-red-800 border-red-800',
+    'défensif': 'text-gray-600 border-gray-600',
+    'snob': 'text-blue-300 border-blue-300',
+    'survivant': 'text-white border-white',
+    'licorne': 'text-rainbow border-rainbow',
+    'gracieux': 'text-cyan-300 border-cyan-300',
+    'bizarre': 'text-lime-400 border-lime-400',
+    'énergique': 'text-yellow-500 border-yellow-500',
+    'ancien': 'text-brown-600 border-brown-600',
+    'léviathan': 'text-blue-800 border-blue-800',
+    'corrompu': 'text-black border-black',
+    'devinettes': 'text-amber-400 border-amber-400'
+  };
+  return colorMap[personality] || 'text-gray-400 border-gray-400';
+};
+
 const VipSalon = ({ gameState, updateGameState }) => {
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState('salon');
