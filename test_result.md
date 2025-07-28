@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-## user_problem_statement: "Continuer le développement du jeu Game Master Manager, un simulateur de Squid Game complexe. Le joueur incarne l'organisateur et peut créer des parties avec 20-1000 joueurs. Ajouter les fonctionnalités manquantes : 80+ épreuves avec animations gore, personnalisation complète des joueurs (15+ formes visages, 25+ couleurs peau, 80+ coiffures), mode spectateur immersif, salon VIP évolutif, boutique 1000+ célébrités, économie interne, système de paris VIP, musée des morts, IA avancée, sauvegarde MongoDB. Interface modulaire avec menu : Jouer/Statistiques/Uniformes/Salon VIP/Paramètres."
+## user_problem_statement: "Continuer le développement du jeu Game Master Manager, un simulateur de Squid Game complexe. Le joueur incarne l'organisateur et peut créer des parties avec 20-1000 joueurs. Ajouter les fonctionnalités manquantes : 80+ épreuves avec animations gore, personnalisation complète des joueurs (15+ formes visages, 25+ couleurs peau, 80+ coiffures), mode spectateur immersif, salon VIP évolutif, boutique 1000+ célébrités, économie interne, système de paris VIP, musée des morts, IA avancée, sauvegarde MongoDB. Interface modulaire avec menu : Jouer/Statistiques/Uniformes/Salon VIP/Paramètres. PROBLÈME RÉSOLU: Le taux de mortalité était trop élevé (80-99%), maintenant corrigé à 40-60% avec exceptions (Battle Royale 65%, Jugement Final 70%)."
 
 ## backend:
   - task: "Modèles de données de base"
