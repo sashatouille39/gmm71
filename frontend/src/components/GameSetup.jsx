@@ -778,7 +778,7 @@ const GameSetup = ({ gameState, onStartGame }) => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Coût par épreuve:</span>
-                        <span className="text-green-400">$500</span>
+                        <span className="text-green-400">$5,000</span>
                       </div>
                       <Separator className="bg-gray-600" />
                       <div className="flex justify-between font-medium">
