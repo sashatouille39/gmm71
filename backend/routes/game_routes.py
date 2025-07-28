@@ -119,8 +119,9 @@ async def simulate_event(game_id: str):
         if alive_players_before:
             game.winner = max(alive_players_before, key=lambda p: p.total_score)
         
-        # Calculer les gains
-        game.earnings = 10000 + (len(game.players) - len(alive_players_before)) * 100
+        # Calculer les gains - les VIPs paient pour regarder
+        vip_viewing_fees = len(game.players) * 100000  # 100k par joueur pour les VIPs
+        game.earnings = vip_viewing_fees + (len(game.players) - len(alive_players_before)) * 50000  # 50k par mort
         
         games_db[game_id] = game
         
