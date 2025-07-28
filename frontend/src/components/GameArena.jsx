@@ -25,6 +25,7 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState }) 
   const [eventResults, setEventResults] = useState([]);
   const [spectatorMode, setSpectatorMode] = useState(false);
   const [eventProgress, setEventProgress] = useState(0);
+  const [animationPhase, setAnimationPhase] = useState('idle');
 
   useEffect(() => {
     if (currentGame && currentGame.events.length > 0) {
