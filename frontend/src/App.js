@@ -162,6 +162,9 @@ function App() {
               updateGameState={updateGameState}
             />
           } />
+          <Route path="/final-ranking/:gameId" element={
+            <FinalRanking />
+          } />
         </Routes>
       </BrowserRouter>
     </div>
