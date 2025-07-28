@@ -428,7 +428,7 @@ class GameService:
             'Autrichienne': (0, 5),
             'Belge': (0, 5),
             'Française': (0, 5),
-            'Luxembourgeoise': (0, 5),
+
             'Néerlandaise': (0, 5),
             'Suisse': (0, 5),
             
