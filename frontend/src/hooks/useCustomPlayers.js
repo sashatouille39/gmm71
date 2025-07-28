@@ -4,8 +4,8 @@ export const useCustomPlayers = () => {
   const [customPlayers, setCustomPlayers] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Charger les joueurs depuis le localStorage
-  useEffect(() => {
+  // Fonction pour charger les données depuis localStorage
+  const loadFromStorage = useCallback(() => {
     console.log('🔍 DEBUG: Loading from localStorage...');
     const saved = localStorage.getItem('gamemaster-custom-players');
     console.log('🔍 DEBUG: Raw localStorage data:', saved);
@@ -20,8 +20,28 @@ export const useCustomPlayers = () => {
       }
     } else {
       console.log('🔍 DEBUG: No data found in localStorage');
+      setCustomPlayers([]);
     }
+  }, []);
+
+  // Charger les joueurs depuis le localStorage au montage
+  useEffect(() => {
+    loadFromStorage();
     setIsLoaded(true);
+  }, [loadFromStorage]);
+
+  // Écouter les changements d'autres instances du hook
+  useEffect(() => {
+    const handleCustomPlayersChanged = (event) => {
+      console.log('🔍 DEBUG: Received customPlayersChanged event:', event.detail);
+      setCustomPlayers(event.detail);
+    };
+
+    window.addEventListener('customPlayersChanged', handleCustomPlayersChanged);
+    
+    return () => {
+      window.removeEventListener('customPlayersChanged', handleCustomPlayersChanged);
+    };
   }, []);
 
   // Sauvegarder automatiquement (seulement après le chargement initial)
