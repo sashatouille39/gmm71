@@ -1272,16 +1272,32 @@ class EventsService:
         return [event for event in cls.GAME_EVENTS if not event.is_final]
     
     @classmethod
-    def organize_events_for_game(cls, selected_event_ids: List[int]) -> List[GameEvent]:
-        """Organise les événements sélectionnés avec les finales à la fin"""
-        selected_events = [cls.get_event_by_id(event_id) for event_id in selected_event_ids]
+    def organize_events_for_game(cls, selected_event_ids: List[int], preserve_order: bool = True) -> List[GameEvent]:
+        """
+        Organise les événements sélectionnés
         
-        # Séparer les finales des autres épreuves
-        final_events = [event for event in selected_events if event.is_final]
-        regular_events = [event for event in selected_events if not event.is_final]
-        
-        # Retourner les épreuves régulières suivies des finales
-        return regular_events + final_events
+        Args:
+            selected_event_ids: Liste des IDs d'événements dans l'ordre choisi par l'utilisateur
+            preserve_order: Si True, respecte l'ordre choisi par l'utilisateur. Si False, met les finales à la fin
+        """
+        if preserve_order:
+            # Respecter l'ordre exact choisi par l'utilisateur
+            selected_events = []
+            for event_id in selected_event_ids:
+                event = cls.get_event_by_id(event_id)
+                if event:
+                    selected_events.append(event)
+            return selected_events
+        else:
+            # Ancien comportement : finales à la fin
+            selected_events = [cls.get_event_by_id(event_id) for event_id in selected_event_ids]
+            
+            # Séparer les finales des autres épreuves
+            final_events = [event for event in selected_events if event.is_final]
+            regular_events = [event for event in selected_events if not event.is_final]
+            
+            # Retourner les épreuves régulières suivies des finales
+            return regular_events + final_events
     
     @classmethod
     def get_events_by_difficulty(cls, min_difficulty: int, max_difficulty: int) -> List[GameEvent]:
