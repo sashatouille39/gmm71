@@ -128,6 +128,16 @@ class VipCharacter(BaseModel):
     bets: int = 0
     favorite_player: Optional[str] = None
     total_winnings: int = 0
+    viewing_fee: int = 0  # Montant payé pour regarder cette partie
+    
+class VipBet(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    vip_id: str
+    game_id: str
+    player_id: str
+    amount: int
+    event_id: Optional[int] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class Celebrity(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
