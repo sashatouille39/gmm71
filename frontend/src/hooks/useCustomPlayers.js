@@ -22,13 +22,19 @@ export const useCustomPlayers = () => {
   }, [customPlayers]);
 
   const addPlayer = (player) => {
+    console.log('🔍 DEBUG: Adding player:', player);
     const newPlayer = {
       ...player,
       id: Date.now().toString(),
       createdAt: new Date().toISOString(),
       isCustom: true
     };
-    setCustomPlayers(prev => [...prev, newPlayer]);
+    console.log('🔍 DEBUG: New player with ID:', newPlayer);
+    setCustomPlayers(prev => {
+      const updated = [...prev, newPlayer];
+      console.log('🔍 DEBUG: Updated customPlayers list:', updated);
+      return updated;
+    });
     return newPlayer;
   };
 
