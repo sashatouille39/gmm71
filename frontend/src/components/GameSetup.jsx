@@ -801,7 +801,7 @@ const GameSetup = ({ gameState, onStartGame }) => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Joueurs:</span>
-                        <span className="text-green-400">${(players.length * 10).toLocaleString()}</span>
+                        <span className="text-green-400">${(players.length * 100).toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Épreuves:</span>
