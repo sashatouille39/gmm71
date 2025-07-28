@@ -39,6 +39,44 @@ const GameSetup = ({ gameState, onStartGame }) => {
     custom: { name: 'Personnalisé', cost: 1500, description: 'Choisissez vos propres épreuves' }
   };
 
+  // Charger les épreuves depuis l'API backend
+  const loadEventsFromAPI = async () => {
+    setIsLoadingEvents(true);
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      const response = await fetch(`${backendUrl}/api/games/events/available`);
+      
+      if (!response.ok) {
+        throw new Error('Erreur lors du chargement des épreuves');
+      }
+      
+      const events = await response.json();
+      // Transformer les données de l'API pour correspondre au format attendu du frontend
+      const transformedEvents = events.map(event => ({
+        id: event.id,
+        name: event.name,
+        type: event.type,
+        difficulty: event.difficulty,
+        category: event.type, // Utiliser le type comme catégorie
+        duration: event.survival_time_max || 300,
+        description: event.description,
+        killRequired: event.elimination_rate > 0.7, // Considérer comme "kill required" si très mortel
+        elimination_rate: event.elimination_rate, // Conserver le taux de mortalité corrigé
+        decor: event.decor,
+        death_animations: event.death_animations,
+        special_mechanics: event.special_mechanics
+      }));
+      
+      setAvailableEvents(transformedEvents);
+      console.log(`Épreuves chargées depuis l'API: ${transformedEvents.length} épreuves avec taux corrigés`);
+    } catch (error) {
+      console.error('Erreur lors du chargement des épreuves:', error);
+      // Pas de fallback vers mockData, on veut utiliser les données du backend
+      setAvailableEvents([]);
+    }
+    setIsLoadingEvents(false);
+  };
+
   const generatePlayers = async () => {
     setIsGenerating(true);
     
