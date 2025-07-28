@@ -449,7 +449,7 @@ class GameService:
             'Roumaine': (1, 7),
             'Russe': (0, 6),
             'Tchèque': (0, 6),
-            'Ukrainienne': (0, 6),
+
             
             # Moyen-Orient
             'Afghane': (6, 16),
