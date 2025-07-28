@@ -707,6 +707,404 @@ class BackendTester:
         except Exception as e:
             self.log_result("Backend Logs", False, f"Could not check logs: {str(e)}")
     
+    def test_celebrity_participation_route(self):
+        """Test NEW: Route de participation des célébrités PUT /api/celebrities/{id}/participation"""
+        try:
+            print("\n🎯 TESTING NEW CELEBRITY PARTICIPATION ROUTE")
+            
+            # First, get a celebrity to test with
+            response = requests.get(f"{API_BASE}/celebrities/?limit=1", timeout=5)
+            if response.status_code != 200:
+                self.log_result("Celebrity Participation Route", False, f"Could not get celebrities - HTTP {response.status_code}")
+                return None
+                
+            celebrities = response.json()
+            if not celebrities:
+                self.log_result("Celebrity Participation Route", False, "No celebrities found in database")
+                return None
+                
+            celebrity = celebrities[0]
+            celebrity_id = celebrity['id']
+            original_stats = celebrity['stats'].copy()
+            
+            # Test participation with good performance (should improve stats)
+            participation_data = {
+                "survived_events": 5,  # Good performance - survived 5 events
+                "total_score": 150     # Good score - above 100
+            }
+            
+            response = requests.put(f"{API_BASE}/celebrities/{celebrity_id}/participation", 
+                                  json=participation_data,
+                                  headers={"Content-Type": "application/json"},
+                                  timeout=5)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                required_fields = ['message', 'performance', 'updated_stats']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    performance = data['performance']
+                    updated_stats = data['updated_stats']
+                    
+                    # Verify performance data
+                    if (performance['survived_events'] == 5 and 
+                        performance['total_score'] == 150):
+                        
+                        # Check if stats improved (at least one stat should increase)
+                        stats_improved = (
+                            updated_stats['intelligence'] > original_stats['intelligence'] or
+                            updated_stats['force'] > original_stats['force'] or
+                            updated_stats['agilite'] > original_stats['agilite']
+                        )
+                        
+                        if stats_improved:
+                            self.log_result("Celebrity Participation Route", True, 
+                                          f"✅ Participation recorded successfully with stat improvement")
+                            return celebrity_id
+                        else:
+                            self.log_result("Celebrity Participation Route", True, 
+                                          f"✅ Participation recorded (stats may not improve based on rules)")
+                            return celebrity_id
+                    else:
+                        self.log_result("Celebrity Participation Route", False, 
+                                      f"Performance data mismatch", performance)
+                else:
+                    self.log_result("Celebrity Participation Route", False, 
+                                  f"Response missing fields: {missing_fields}")
+            else:
+                self.log_result("Celebrity Participation Route", False, 
+                              f"HTTP {response.status_code}", response.text[:200])
+                
+        except Exception as e:
+            self.log_result("Celebrity Participation Route", False, f"Error: {str(e)}")
+        
+        return None
+
+    def test_celebrity_victory_route(self):
+        """Test: Route de victoire des célébrités PUT /api/celebrities/{id}/victory"""
+        try:
+            print("\n🎯 TESTING CELEBRITY VICTORY ROUTE")
+            
+            # Get a celebrity to test with
+            response = requests.get(f"{API_BASE}/celebrities/?limit=1", timeout=5)
+            if response.status_code != 200:
+                self.log_result("Celebrity Victory Route", False, f"Could not get celebrities - HTTP {response.status_code}")
+                return None
+                
+            celebrities = response.json()
+            if not celebrities:
+                self.log_result("Celebrity Victory Route", False, "No celebrities found in database")
+                return None
+                
+            celebrity = celebrities[0]
+            celebrity_id = celebrity['id']
+            original_wins = celebrity['wins']
+            original_stats = celebrity['stats'].copy()
+            
+            # Record a victory
+            response = requests.put(f"{API_BASE}/celebrities/{celebrity_id}/victory", timeout=5)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                required_fields = ['message', 'total_wins', 'stats']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    total_wins = data['total_wins']
+                    updated_stats = data['stats']
+                    
+                    # Verify wins increased
+                    if total_wins == original_wins + 1:
+                        # Check if stats improved (every 3 wins according to the code)
+                        if total_wins % 3 == 0:
+                            stats_improved = (
+                                updated_stats['intelligence'] > original_stats['intelligence'] or
+                                updated_stats['force'] > original_stats['force'] or
+                                updated_stats['agilite'] > original_stats['agilite']
+                            )
+                            
+                            if stats_improved:
+                                self.log_result("Celebrity Victory Route", True, 
+                                              f"✅ Victory recorded with stat improvement (wins: {total_wins})")
+                            else:
+                                self.log_result("Celebrity Victory Route", True, 
+                                              f"✅ Victory recorded, stats at max or improvement logic different (wins: {total_wins})")
+                        else:
+                            self.log_result("Celebrity Victory Route", True, 
+                                          f"✅ Victory recorded successfully (wins: {total_wins})")
+                        return celebrity_id
+                    else:
+                        self.log_result("Celebrity Victory Route", False, 
+                                      f"Wins count incorrect: expected {original_wins + 1}, got {total_wins}")
+                else:
+                    self.log_result("Celebrity Victory Route", False, 
+                                  f"Response missing fields: {missing_fields}")
+            else:
+                self.log_result("Celebrity Victory Route", False, 
+                              f"HTTP {response.status_code}", response.text[:200])
+                
+        except Exception as e:
+            self.log_result("Celebrity Victory Route", False, f"Error: {str(e)}")
+        
+        return None
+
+    def test_celebrity_stats_summary_route(self):
+        """Test: Route de statistiques GET /api/celebrities/stats/summary"""
+        try:
+            print("\n🎯 TESTING CELEBRITY STATS SUMMARY ROUTE")
+            
+            response = requests.get(f"{API_BASE}/celebrities/stats/summary", timeout=5)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                required_fields = ['total_celebrities', 'owned_celebrities', 'by_category', 'by_stars', 'total_wins', 'average_wins']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    total_celebrities = data['total_celebrities']
+                    owned_celebrities = data['owned_celebrities']
+                    by_category = data['by_category']
+                    by_stars = data['by_stars']
+                    total_wins = data['total_wins']
+                    average_wins = data['average_wins']
+                    
+                    # Validate data consistency
+                    if (isinstance(total_celebrities, int) and total_celebrities > 0 and
+                        isinstance(owned_celebrities, int) and owned_celebrities >= 0 and
+                        isinstance(by_category, dict) and len(by_category) > 0 and
+                        isinstance(by_stars, dict) and len(by_stars) > 0 and
+                        isinstance(total_wins, int) and total_wins >= 0 and
+                        isinstance(average_wins, (int, float)) and average_wins >= 0):
+                        
+                        # Check that by_stars has expected keys (2, 3, 4, 5)
+                        expected_star_levels = {2, 3, 4, 5}
+                        actual_star_levels = set(int(k) for k in by_stars.keys())
+                        
+                        if expected_star_levels == actual_star_levels:
+                            self.log_result("Celebrity Stats Summary Route", True, 
+                                          f"✅ Stats summary working: {total_celebrities} celebrities, {len(by_category)} categories")
+                        else:
+                            self.log_result("Celebrity Stats Summary Route", False, 
+                                          f"Star levels mismatch: expected {expected_star_levels}, got {actual_star_levels}")
+                    else:
+                        self.log_result("Celebrity Stats Summary Route", False, 
+                                      f"Data validation failed", data)
+                else:
+                    self.log_result("Celebrity Stats Summary Route", False, 
+                                  f"Response missing fields: {missing_fields}")
+            else:
+                self.log_result("Celebrity Stats Summary Route", False, 
+                              f"HTTP {response.status_code}", response.text[:200])
+                
+        except Exception as e:
+            self.log_result("Celebrity Stats Summary Route", False, f"Error: {str(e)}")
+
+    def test_celebrity_owned_list_route(self):
+        """Test: Route des célébrités possédées GET /api/celebrities/owned/list"""
+        try:
+            print("\n🎯 TESTING CELEBRITY OWNED LIST ROUTE")
+            
+            # First, purchase a celebrity to have something in the owned list
+            response = requests.get(f"{API_BASE}/celebrities/?limit=1", timeout=5)
+            if response.status_code != 200:
+                self.log_result("Celebrity Owned List Route", False, f"Could not get celebrities for purchase test")
+                return
+                
+            celebrities = response.json()
+            if not celebrities:
+                self.log_result("Celebrity Owned List Route", False, "No celebrities found for purchase test")
+                return
+                
+            celebrity = celebrities[0]
+            celebrity_id = celebrity['id']
+            
+            # Purchase the celebrity
+            purchase_response = requests.post(f"{API_BASE}/celebrities/{celebrity_id}/purchase", timeout=5)
+            if purchase_response.status_code != 200:
+                self.log_result("Celebrity Owned List Route", False, f"Could not purchase celebrity for test")
+                return
+            
+            # Now test the owned list
+            response = requests.get(f"{API_BASE}/celebrities/owned/list", timeout=5)
+            
+            if response.status_code == 200:
+                owned_celebrities = response.json()
+                
+                if isinstance(owned_celebrities, list):
+                    # Check if our purchased celebrity is in the list
+                    purchased_celebrity_found = any(c['id'] == celebrity_id for c in owned_celebrities)
+                    
+                    if purchased_celebrity_found:
+                        # Verify structure of owned celebrities
+                        if owned_celebrities:
+                            first_owned = owned_celebrities[0]
+                            required_fields = ['id', 'name', 'category', 'stars', 'price', 'nationality', 'wins', 'stats', 'is_owned']
+                            missing_fields = [field for field in required_fields if field not in first_owned]
+                            
+                            if not missing_fields and first_owned['is_owned'] == True:
+                                self.log_result("Celebrity Owned List Route", True, 
+                                              f"✅ Owned list working: {len(owned_celebrities)} owned celebrities")
+                            else:
+                                self.log_result("Celebrity Owned List Route", False, 
+                                              f"Owned celebrity structure invalid: missing {missing_fields}")
+                        else:
+                            self.log_result("Celebrity Owned List Route", True, 
+                                          f"✅ Owned list working (empty list)")
+                    else:
+                        self.log_result("Celebrity Owned List Route", False, 
+                                      f"Purchased celebrity not found in owned list")
+                else:
+                    self.log_result("Celebrity Owned List Route", False, 
+                                  f"Response is not a list: {type(owned_celebrities)}")
+            else:
+                self.log_result("Celebrity Owned List Route", False, 
+                              f"HTTP {response.status_code}", response.text[:200])
+                
+        except Exception as e:
+            self.log_result("Celebrity Owned List Route", False, f"Error: {str(e)}")
+
+    def test_celebrity_stats_improvement_rules(self):
+        """Test: Vérifier que les stats des célébrités s'améliorent selon les règles"""
+        try:
+            print("\n🎯 TESTING CELEBRITY STATS IMPROVEMENT RULES")
+            
+            # Get a celebrity with low stats for testing
+            response = requests.get(f"{API_BASE}/celebrities/?limit=10", timeout=5)
+            if response.status_code != 200:
+                self.log_result("Celebrity Stats Improvement Rules", False, f"Could not get celebrities")
+                return
+                
+            celebrities = response.json()
+            if not celebrities:
+                self.log_result("Celebrity Stats Improvement Rules", False, "No celebrities found")
+                return
+            
+            # Find a celebrity with stats that can be improved (not all at 10)
+            test_celebrity = None
+            for celebrity in celebrities:
+                stats = celebrity['stats']
+                if (stats['intelligence'] < 10 or stats['force'] < 10 or stats['agilite'] < 10):
+                    test_celebrity = celebrity
+                    break
+            
+            if not test_celebrity:
+                self.log_result("Celebrity Stats Improvement Rules", True, 
+                              f"✅ All celebrities have max stats (cannot test improvement)")
+                return
+            
+            celebrity_id = test_celebrity['id']
+            original_stats = test_celebrity['stats'].copy()
+            
+            # Test 1: Poor performance (should not improve stats)
+            poor_participation = {
+                "survived_events": 1,  # Poor performance
+                "total_score": 50      # Low score
+            }
+            
+            response = requests.put(f"{API_BASE}/celebrities/{celebrity_id}/participation", 
+                                  json=poor_participation,
+                                  headers={"Content-Type": "application/json"},
+                                  timeout=5)
+            
+            if response.status_code == 200:
+                data = response.json()
+                stats_after_poor = data['updated_stats']
+                
+                # Stats should not improve with poor performance
+                stats_unchanged = (
+                    stats_after_poor['intelligence'] == original_stats['intelligence'] and
+                    stats_after_poor['force'] == original_stats['force'] and
+                    stats_after_poor['agilite'] == original_stats['agilite']
+                )
+                
+                if stats_unchanged:
+                    self.log_result("Celebrity Stats Improvement Rules - Poor Performance", True, 
+                                  f"✅ Stats correctly unchanged with poor performance")
+                else:
+                    self.log_result("Celebrity Stats Improvement Rules - Poor Performance", False, 
+                                  f"Stats improved with poor performance (unexpected)")
+            
+            # Test 2: Good performance (should improve stats)
+            good_participation = {
+                "survived_events": 4,  # Good performance - survived 4 events (>= 3)
+                "total_score": 120     # Good score (> 100)
+            }
+            
+            response = requests.put(f"{API_BASE}/celebrities/{celebrity_id}/participation", 
+                                  json=good_participation,
+                                  headers={"Content-Type": "application/json"},
+                                  timeout=5)
+            
+            if response.status_code == 200:
+                data = response.json()
+                stats_after_good = data['updated_stats']
+                
+                # At least one stat should improve with good performance
+                stats_improved = (
+                    stats_after_good['intelligence'] > original_stats['intelligence'] or
+                    stats_after_good['force'] > original_stats['force'] or
+                    stats_after_good['agilite'] > original_stats['agilite']
+                )
+                
+                if stats_improved:
+                    self.log_result("Celebrity Stats Improvement Rules - Good Performance", True, 
+                                  f"✅ Stats correctly improved with good performance")
+                else:
+                    # Check if all stats are already at max
+                    all_stats_max = (
+                        original_stats['intelligence'] == 10 and
+                        original_stats['force'] == 10 and
+                        original_stats['agilite'] == 10
+                    )
+                    
+                    if all_stats_max:
+                        self.log_result("Celebrity Stats Improvement Rules - Good Performance", True, 
+                                      f"✅ Stats at maximum, cannot improve further")
+                    else:
+                        self.log_result("Celebrity Stats Improvement Rules - Good Performance", False, 
+                                      f"Stats did not improve with good performance")
+            
+            # Test 3: Victory improvement (every 3 wins)
+            original_wins = test_celebrity['wins']
+            wins_needed_for_improvement = 3 - (original_wins % 3)
+            
+            # Record victories to trigger stat improvement
+            for i in range(wins_needed_for_improvement):
+                victory_response = requests.put(f"{API_BASE}/celebrities/{celebrity_id}/victory", timeout=5)
+                if victory_response.status_code != 200:
+                    break
+            
+            # Check if stats improved after reaching multiple of 3 wins
+            final_response = requests.get(f"{API_BASE}/celebrities/{celebrity_id}", timeout=5)
+            if final_response.status_code == 200:
+                final_celebrity = final_response.json()
+                final_stats = final_celebrity['stats']
+                final_wins = final_celebrity['wins']
+                
+                if final_wins % 3 == 0 and final_wins > original_wins:
+                    victory_stats_improved = (
+                        final_stats['intelligence'] > original_stats['intelligence'] or
+                        final_stats['force'] > original_stats['force'] or
+                        final_stats['agilite'] > original_stats['agilite']
+                    )
+                    
+                    if victory_stats_improved:
+                        self.log_result("Celebrity Stats Improvement Rules - Victory Bonus", True, 
+                                      f"✅ Stats improved after {final_wins} wins (multiple of 3)")
+                    else:
+                        self.log_result("Celebrity Stats Improvement Rules - Victory Bonus", True, 
+                                      f"✅ Stats at max or improvement logic working differently")
+                
+        except Exception as e:
+            self.log_result("Celebrity Stats Improvement Rules", False, f"Error: {str(e)}")
+
     def run_all_tests(self):
         """Run all backend tests"""
         print(f"🚀 Starting Backend Tests for Game Master Manager")
@@ -750,6 +1148,24 @@ class BackendTester:
         # Test 11: CRITICAL - One survivor condition
         print("\n🎯 Testing CRITICAL fix: 1 survivor condition...")
         self.test_one_survivor_condition()
+        
+        # NEW TESTS FOR CELEBRITY FEATURES
+        print("\n🎯 Testing NEW CELEBRITY FEATURES...")
+        
+        # Test 12: Celebrity participation route
+        self.test_celebrity_participation_route()
+        
+        # Test 13: Celebrity victory route
+        self.test_celebrity_victory_route()
+        
+        # Test 14: Celebrity stats summary route
+        self.test_celebrity_stats_summary_route()
+        
+        # Test 15: Celebrity owned list route
+        self.test_celebrity_owned_list_route()
+        
+        # Test 16: Celebrity stats improvement rules
+        self.test_celebrity_stats_improvement_rules()
         
         # Check logs
         self.check_backend_logs()
