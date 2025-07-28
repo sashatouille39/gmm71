@@ -282,7 +282,7 @@ async def simulate_event(game_id: str):
     else:
         # NOUVEAU: Calculer les gains partiels même si le jeu n'est pas terminé
         # pour que l'utilisateur voie les gains s'accumuler
-        base_vip_fee = 100000  # 100k de base par joueur
+        base_vip_fee = 100  # 100$ de base par joueur
         total_players = len(game.players)
         deaths_count = len(game.players) - len(alive_players_after)
         
