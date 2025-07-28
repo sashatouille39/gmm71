@@ -1637,6 +1637,10 @@ class BackendTester:
         print("\n🎯 PRIORITY TEST: Testing mortality rates correction as per review request...")
         self.test_mortality_rates_correction()
         
+        # PRIORITY TEST: Game termination issue (specific review request)
+        print("\n🎯 PRIORITY TEST: Testing game termination issue as per review request...")
+        self.test_game_termination_issue()
+        
         # Test 3: Game events
         self.test_game_events_available()
         
