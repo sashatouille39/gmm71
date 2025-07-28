@@ -1236,7 +1236,7 @@ class EventsService:
                 "Transcendance mortelle vers autre dimension"
             ],
             survival_time_min=1800, survival_time_max=3600,
-            elimination_rate=0.7  # Exception: Épreuve finale,
+            elimination_rate=0.7,  # Exception: Épreuve finale
             special_mechanics=["Tous les défis combinés", "Épreuve ultime"]
         )
     ]
