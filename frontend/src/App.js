@@ -99,7 +99,7 @@ function App() {
         id: `local_${Date.now()}`,
         players,
         events: selectedEvents,
-        current_event_index: 0,
+        currentEventIndex: 0, // CORRECTION: utiliser camelCase pour cohérence
         start_time: new Date(),
         completed: false
       });
