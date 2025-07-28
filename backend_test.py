@@ -1684,6 +1684,18 @@ class BackendTester:
         # Test 16: Celebrity stats improvement rules
         self.test_celebrity_stats_improvement_rules()
         
+        # NEW TESTS FOR FINALS SYSTEM (as per review request)
+        print("\n🎯 Testing NEW FINALS SYSTEM - REVIEW REQUEST...")
+        
+        # Test 17: Event categorization system
+        self.test_event_categorization_system()
+        
+        # Test 18: Finals organization logic
+        self.test_finals_organization_logic()
+        
+        # Test 19: Finals special logic (2-4 players, 1 survivor)
+        self.test_finals_special_logic()
+        
         # Check logs
         self.check_backend_logs()
         
