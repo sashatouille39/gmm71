@@ -1105,6 +1105,149 @@ class BackendTester:
         except Exception as e:
             self.log_result("Celebrity Stats Improvement Rules", False, f"Error: {str(e)}")
 
+    def test_mortality_rates_correction(self):
+        """Test CRITICAL: Vérifier la correction des taux de mortalité selon la review request"""
+        try:
+            print("\n🎯 TESTING MORTALITY RATES CORRECTION - REVIEW REQUEST")
+            print("=" * 80)
+            
+            # Test 1: Vérifier que l'API /api/games/events/available retourne bien 81 épreuves
+            response = requests.get(f"{API_BASE}/games/events/available", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Mortality Rates - API Available", False, f"Could not get events - HTTP {response.status_code}")
+                return
+                
+            events = response.json()
+            
+            if len(events) != 81:
+                self.log_result("Mortality Rates - 81 Events Count", False, f"Expected 81 events, got {len(events)}")
+                return
+            else:
+                self.log_result("Mortality Rates - 81 Events Count", True, f"✅ CONFIRMED: API returns exactly 81 events")
+            
+            # Test 2: Confirmer que les taux de mortalité (elimination_rate) sont dans la fourchette 40-60% pour la plupart des épreuves
+            mortality_rates = []
+            high_mortality_events = []  # Events with >60% mortality (should be exceptions only)
+            very_high_mortality_events = []  # Events with >=90% mortality (should be NONE)
+            
+            for event in events:
+                elimination_rate = event.get('elimination_rate', 0)
+                mortality_percentage = elimination_rate * 100
+                mortality_rates.append(mortality_percentage)
+                
+                # Check for high mortality rates
+                if mortality_percentage > 60:
+                    high_mortality_events.append({
+                        'name': event.get('name', 'Unknown'),
+                        'id': event.get('id', 'Unknown'),
+                        'rate': mortality_percentage
+                    })
+                
+                # Check for very high mortality rates (90%+) - these should NOT exist
+                if mortality_percentage >= 90:
+                    very_high_mortality_events.append({
+                        'name': event.get('name', 'Unknown'),
+                        'id': event.get('id', 'Unknown'),
+                        'rate': mortality_percentage
+                    })
+            
+            # Test 3: Vérifier qu'aucune épreuve n'a un taux de mortalité de 90% ou plus
+            if very_high_mortality_events:
+                self.log_result("Mortality Rates - No 90%+ Rates", False, 
+                              f"❌ Found {len(very_high_mortality_events)} events with 90%+ mortality", 
+                              [f"{e['name']}: {e['rate']:.1f}%" for e in very_high_mortality_events[:5]])
+            else:
+                self.log_result("Mortality Rates - No 90%+ Rates", True, 
+                              f"✅ CONFIRMED: No events have 90%+ mortality rate")
+            
+            # Test 4: Vérifier que les exceptions (Bataille royale à 65%, Jugement Final à 70%) sont respectées
+            battle_royale_found = False
+            final_judgment_found = False
+            
+            for event in events:
+                name = event.get('name', '').lower()
+                elimination_rate = event.get('elimination_rate', 0)
+                mortality_percentage = elimination_rate * 100
+                
+                if 'bataille royale' in name or 'battle royale' in name:
+                    battle_royale_found = True
+                    if abs(mortality_percentage - 65) <= 1:  # Allow 1% tolerance
+                        self.log_result("Mortality Rates - Battle Royale Exception", True, 
+                                      f"✅ Battle Royale has correct rate: {mortality_percentage:.1f}%")
+                    else:
+                        self.log_result("Mortality Rates - Battle Royale Exception", False, 
+                                      f"❌ Battle Royale rate incorrect: {mortality_percentage:.1f}% (expected ~65%)")
+                
+                if 'jugement final' in name or 'final judgment' in name or name == 'le jugement final':
+                    final_judgment_found = True
+                    if abs(mortality_percentage - 70) <= 1:  # Allow 1% tolerance
+                        self.log_result("Mortality Rates - Final Judgment Exception", True, 
+                                      f"✅ Final Judgment has correct rate: {mortality_percentage:.1f}%")
+                    else:
+                        self.log_result("Mortality Rates - Final Judgment Exception", False, 
+                                      f"❌ Final Judgment rate incorrect: {mortality_percentage:.1f}% (expected ~70%)")
+            
+            if not battle_royale_found:
+                self.log_result("Mortality Rates - Battle Royale Exception", False, "❌ Battle Royale event not found")
+            
+            if not final_judgment_found:
+                self.log_result("Mortality Rates - Final Judgment Exception", False, "❌ Final Judgment event not found")
+            
+            # Test 5: Analyser la distribution générale des taux de mortalité
+            rates_40_60 = [rate for rate in mortality_rates if 40 <= rate <= 60]
+            average_mortality = sum(mortality_rates) / len(mortality_rates)
+            
+            percentage_in_range = (len(rates_40_60) / len(mortality_rates)) * 100
+            
+            if percentage_in_range >= 70:  # At least 70% should be in 40-60% range
+                self.log_result("Mortality Rates - 40-60% Range", True, 
+                              f"✅ {percentage_in_range:.1f}% of events in 40-60% range (avg: {average_mortality:.1f}%)")
+            else:
+                self.log_result("Mortality Rates - 40-60% Range", False, 
+                              f"❌ Only {percentage_in_range:.1f}% of events in 40-60% range")
+            
+            # Test 6: Vérifier que l'API ne retourne pas seulement 14 épreuves comme l'utilisateur le voyait
+            if len(events) == 14:
+                self.log_result("Mortality Rates - Not Just 14 Events", False, 
+                              f"❌ CRITICAL: API still returns only 14 events (old problem persists)")
+            else:
+                self.log_result("Mortality Rates - Not Just 14 Events", True, 
+                              f"✅ CONFIRMED: API returns {len(events)} events, not just 14")
+            
+            # Summary of findings
+            print(f"\n   📊 MORTALITY RATES ANALYSIS:")
+            print(f"   - Total events: {len(events)}")
+            print(f"   - Average mortality rate: {average_mortality:.1f}%")
+            print(f"   - Events in 40-60% range: {len(rates_40_60)}/{len(events)} ({percentage_in_range:.1f}%)")
+            print(f"   - Events with >60% mortality: {len(high_mortality_events)}")
+            print(f"   - Events with >=90% mortality: {len(very_high_mortality_events)}")
+            
+            if high_mortality_events:
+                print(f"   - High mortality events (>60%):")
+                for event in high_mortality_events[:5]:
+                    print(f"     • {event['name']}: {event['rate']:.1f}%")
+            
+            # Overall assessment
+            critical_issues = len(very_high_mortality_events)
+            if critical_issues == 0 and len(events) == 81 and percentage_in_range >= 70:
+                self.log_result("Mortality Rates - Overall Assessment", True, 
+                              f"✅ MORTALITY RATES CORRECTION SUCCESSFUL: All requirements met")
+            else:
+                issues = []
+                if critical_issues > 0:
+                    issues.append(f"{critical_issues} events with 90%+ mortality")
+                if len(events) != 81:
+                    issues.append(f"Wrong event count: {len(events)}")
+                if percentage_in_range < 70:
+                    issues.append(f"Only {percentage_in_range:.1f}% in 40-60% range")
+                
+                self.log_result("Mortality Rates - Overall Assessment", False, 
+                              f"❌ Issues found: {', '.join(issues)}")
+                
+        except Exception as e:
+            self.log_result("Mortality Rates Correction", False, f"Error during test: {str(e)}")
+
     def run_all_tests(self):
         """Run all backend tests"""
         print(f"🚀 Starting Backend Tests for Game Master Manager")
@@ -1119,6 +1262,10 @@ class BackendTester:
         
         # Test 2: Basic routes
         self.test_basic_routes()
+        
+        # PRIORITY TEST: Mortality rates correction (as per review request)
+        print("\n🎯 PRIORITY TEST: Testing mortality rates correction as per review request...")
+        self.test_mortality_rates_correction()
         
         # Test 3: Game events
         self.test_game_events_available()
