@@ -3528,6 +3528,745 @@ class BackendTester:
         except Exception as e:
             self.log_result("VIP Earnings Implementation", False, f"Error during test: {str(e)}")
 
+    def test_vip_real_amounts(self):
+        """Test 1: Vérifier que les VIPs ont leurs vrais montants viewing_fee entre 200k et 3M$"""
+        try:
+            print("\n🎯 TESTING VIP REAL AMOUNTS - REVIEW REQUEST")
+            print("=" * 80)
+            
+            # Test 1: GET /api/vips/all pour voir tous les VIPs disponibles
+            response = requests.get(f"{API_BASE}/vips/all", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("VIP Real Amounts - Get All VIPs", False, f"Could not get all VIPs - HTTP {response.status_code}")
+                return
+            
+            all_vips = response.json()
+            
+            if not isinstance(all_vips, list) or len(all_vips) == 0:
+                self.log_result("VIP Real Amounts - Get All VIPs", False, f"Expected list of VIPs, got {type(all_vips)} with length {len(all_vips) if isinstance(all_vips, list) else 'N/A'}")
+                return
+            
+            self.log_result("VIP Real Amounts - Get All VIPs", True, f"✅ Found {len(all_vips)} VIPs in database")
+            
+            # Test 2: Créer une partie pour assigner automatiquement des VIPs
+            print("   Step 2: Creating game to auto-assign VIPs...")
+            
+            game_request = {
+                "player_count": 50,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("VIP Real Amounts - Game Creation", False, f"Could not create game - HTTP {response.status_code}")
+                return
+            
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            if not game_id:
+                self.log_result("VIP Real Amounts - Game Creation", False, "No game ID returned")
+                return
+            
+            self.log_result("VIP Real Amounts - Game Creation", True, f"✅ Game created with ID: {game_id}")
+            
+            # Test 3: GET /api/vips/game/{game_id} pour voir les VIPs assignés avec leurs viewing_fee
+            print("   Step 3: Getting VIPs assigned to game...")
+            
+            response = requests.get(f"{API_BASE}/vips/game/{game_id}", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("VIP Real Amounts - Game VIPs", False, f"Could not get game VIPs - HTTP {response.status_code}")
+                return
+            
+            game_vips = response.json()
+            
+            if not isinstance(game_vips, list) or len(game_vips) == 0:
+                self.log_result("VIP Real Amounts - Game VIPs", False, f"Expected list of VIPs, got {type(game_vips)} with length {len(game_vips) if isinstance(game_vips, list) else 'N/A'}")
+                return
+            
+            # Test 4: Vérifier que les viewing_fee sont entre 200k et 3M$ par VIP
+            print("   Step 4: Verifying VIP viewing_fee amounts...")
+            
+            viewing_fees = []
+            royal_vips = []
+            invalid_fees = []
+            
+            for vip in game_vips:
+                viewing_fee = vip.get('viewing_fee', 0)
+                personality = vip.get('personality', '')
+                name = vip.get('name', 'Unknown')
+                
+                viewing_fees.append(viewing_fee)
+                
+                # Vérifier que le viewing_fee est dans la fourchette 200k-3M
+                if not (200000 <= viewing_fee <= 3000000):
+                    invalid_fees.append(f"{name}: {viewing_fee}$ (personality: {personality})")
+                
+                # Identifier les VIPs royaux/aristocrates
+                if personality in ['royal', 'impérial', 'aristocrate']:
+                    royal_vips.append(f"{name}: {viewing_fee}$ (personality: {personality})")
+            
+            if invalid_fees:
+                self.log_result("VIP Real Amounts - Viewing Fees Range", False, 
+                              f"❌ Found {len(invalid_fees)} VIPs with viewing_fee outside 200k-3M range", invalid_fees[:3])
+                return
+            
+            # Calculer les statistiques
+            min_fee = min(viewing_fees)
+            max_fee = max(viewing_fees)
+            avg_fee = sum(viewing_fees) / len(viewing_fees)
+            total_earnings = sum(viewing_fees)
+            
+            self.log_result("VIP Real Amounts - Viewing Fees Range", True, 
+                          f"✅ All {len(game_vips)} VIPs have viewing_fee in 200k-3M range (min: {min_fee:,}$, max: {max_fee:,}$, avg: {avg_fee:,.0f}$)")
+            
+            # Test 5: Vérifier que les VIPs royaux/aristocrates paient plus cher
+            if royal_vips:
+                royal_fees = [int(vip.split(': ')[1].split('$')[0].replace(',', '')) for vip in royal_vips]
+                avg_royal_fee = sum(royal_fees) / len(royal_fees)
+                
+                if avg_royal_fee > avg_fee:
+                    self.log_result("VIP Real Amounts - Royal Premium", True, 
+                                  f"✅ Royal VIPs pay premium: avg {avg_royal_fee:,.0f}$ vs general avg {avg_fee:,.0f}$")
+                else:
+                    self.log_result("VIP Real Amounts - Royal Premium", False, 
+                                  f"Royal VIPs don't pay premium: avg {avg_royal_fee:,.0f}$ vs general avg {avg_fee:,.0f}$")
+            else:
+                self.log_result("VIP Real Amounts - Royal Premium", True, 
+                              f"✅ No royal VIPs in this game (random selection)")
+            
+            # Test 6: Vérifier que les gains totaux correspondent à la somme des viewing_fee
+            print("   Step 6: Verifying total earnings calculation...")
+            
+            response = requests.get(f"{API_BASE}/games/{game_id}/vip-earnings-status", timeout=10)
+            
+            if response.status_code == 200:
+                earnings_data = response.json()
+                earnings_available = earnings_data.get('earnings_available', 0)
+                
+                if earnings_available == total_earnings:
+                    self.log_result("VIP Real Amounts - Total Earnings", True, 
+                                  f"✅ Total earnings match sum of viewing_fees: {total_earnings:,}$")
+                else:
+                    self.log_result("VIP Real Amounts - Total Earnings", False, 
+                                  f"Earnings mismatch: expected {total_earnings:,}$, got {earnings_available:,}$")
+            else:
+                self.log_result("VIP Real Amounts - Total Earnings", False, 
+                              f"Could not get earnings status - HTTP {response.status_code}")
+            
+            # Résumé final
+            print(f"   📊 VIP REAL AMOUNTS SUMMARY:")
+            print(f"   - VIPs assigned to game: {len(game_vips)}")
+            print(f"   - Total potential earnings: {total_earnings:,}$")
+            print(f"   - Average viewing fee: {avg_fee:,.0f}$")
+            print(f"   - Range: {min_fee:,}$ - {max_fee:,}$")
+            print(f"   - Royal VIPs found: {len(royal_vips)}")
+            
+            return game_id  # Return for further testing
+            
+        except Exception as e:
+            self.log_result("VIP Real Amounts", False, f"Error during test: {str(e)}")
+            return None
+
+    def test_vip_auto_assignment(self):
+        """Test 2: Vérifier que les VIPs sont automatiquement assignés lors de la création de partie"""
+        try:
+            print("\n🎯 TESTING VIP AUTO-ASSIGNMENT - REVIEW REQUEST")
+            print("=" * 80)
+            
+            # Test 1: Créer une partie et vérifier l'assignation automatique des VIPs
+            print("   Step 1: Creating game and checking auto VIP assignment...")
+            
+            game_request = {
+                "player_count": 30,
+                "game_mode": "hardcore",
+                "selected_events": [1, 2, 3, 4],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("VIP Auto-Assignment - Game Creation", False, f"Could not create game - HTTP {response.status_code}")
+                return None
+            
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            if not game_id:
+                self.log_result("VIP Auto-Assignment - Game Creation", False, "No game ID returned")
+                return None
+            
+            self.log_result("VIP Auto-Assignment - Game Creation", True, f"✅ Game created with ID: {game_id}")
+            
+            # Test 2: Vérifier que les VIPs sont stockés dans active_vips_by_game
+            print("   Step 2: Checking VIPs are stored in active_vips_by_game...")
+            
+            response = requests.get(f"{API_BASE}/vips/game/{game_id}", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("VIP Auto-Assignment - VIPs Storage", False, f"Could not get game VIPs - HTTP {response.status_code}")
+                return None
+            
+            game_vips = response.json()
+            
+            if not isinstance(game_vips, list) or len(game_vips) == 0:
+                self.log_result("VIP Auto-Assignment - VIPs Storage", False, f"No VIPs found for game {game_id}")
+                return None
+            
+            # Test 3: Vérifier les viewing_fee de chaque VIP assigné
+            print("   Step 3: Verifying viewing_fee for each assigned VIP...")
+            
+            vip_details = []
+            total_viewing_fees = 0
+            
+            for vip in game_vips:
+                name = vip.get('name', 'Unknown')
+                viewing_fee = vip.get('viewing_fee', 0)
+                personality = vip.get('personality', 'unknown')
+                mask = vip.get('mask', 'unknown')
+                
+                vip_details.append({
+                    'name': name,
+                    'viewing_fee': viewing_fee,
+                    'personality': personality,
+                    'mask': mask
+                })
+                
+                total_viewing_fees += viewing_fee
+                
+                # Vérifier que chaque VIP a un viewing_fee valide
+                if not (200000 <= viewing_fee <= 3000000):
+                    self.log_result("VIP Auto-Assignment - Individual Fees", False, 
+                                  f"VIP {name} has invalid viewing_fee: {viewing_fee}$")
+                    return None
+            
+            self.log_result("VIP Auto-Assignment - VIPs Storage", True, 
+                          f"✅ Found {len(game_vips)} VIPs auto-assigned with valid viewing_fees")
+            
+            # Résumé final
+            print(f"   📊 VIP AUTO-ASSIGNMENT SUMMARY:")
+            print(f"   - VIPs auto-assigned: {len(game_vips)}")
+            print(f"   - Total viewing fees: {total_viewing_fees:,}$")
+            print(f"   - VIP details:")
+            for vip in vip_details[:5]:  # Show first 5 VIPs
+                print(f"     * {vip['name']} ({vip['mask']}): {vip['viewing_fee']:,}$ [{vip['personality']}]")
+            
+            return game_id
+            
+        except Exception as e:
+            self.log_result("VIP Auto-Assignment", False, f"Error during test: {str(e)}")
+            return None
+
+    def test_vip_real_earnings(self):
+        """Test 3: Simuler événements et vérifier que earnings_available = sum(viewing_fee des VIPs)"""
+        try:
+            print("\n🎯 TESTING VIP REAL EARNINGS - REVIEW REQUEST")
+            print("=" * 80)
+            
+            # Test 1: Créer une partie avec VIPs auto-assignés
+            print("   Step 1: Creating game with auto-assigned VIPs...")
+            
+            game_request = {
+                "player_count": 40,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("VIP Real Earnings - Game Creation", False, f"Could not create game - HTTP {response.status_code}")
+                return None
+            
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            if not game_id:
+                self.log_result("VIP Real Earnings - Game Creation", False, "No game ID returned")
+                return None
+            
+            # Test 2: Récupérer les VIPs assignés et calculer la somme des viewing_fee
+            print("   Step 2: Getting assigned VIPs and calculating total viewing_fee...")
+            
+            response = requests.get(f"{API_BASE}/vips/game/{game_id}", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("VIP Real Earnings - Get VIPs", False, f"Could not get game VIPs - HTTP {response.status_code}")
+                return None
+            
+            game_vips = response.json()
+            
+            if not isinstance(game_vips, list) or len(game_vips) == 0:
+                self.log_result("VIP Real Earnings - Get VIPs", False, f"No VIPs found for game")
+                return None
+            
+            # Calculer la somme des viewing_fee
+            expected_total_earnings = sum(vip.get('viewing_fee', 0) for vip in game_vips)
+            vip_count = len(game_vips)
+            
+            self.log_result("VIP Real Earnings - VIP Calculation", True, 
+                          f"✅ Found {vip_count} VIPs with total viewing_fee: {expected_total_earnings:,}$")
+            
+            # Test 3: Vérifier les gains avant simulation (devraient être égaux à la somme des viewing_fee)
+            print("   Step 3: Checking initial earnings status...")
+            
+            response = requests.get(f"{API_BASE}/games/{game_id}/vip-earnings-status", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("VIP Real Earnings - Initial Status", False, f"Could not get earnings status - HTTP {response.status_code}")
+                return None
+            
+            initial_status = response.json()
+            initial_earnings = initial_status.get('earnings_available', 0)
+            
+            if initial_earnings == expected_total_earnings:
+                self.log_result("VIP Real Earnings - Initial Status", True, 
+                              f"✅ Initial earnings match VIP viewing_fee sum: {initial_earnings:,}$")
+            else:
+                self.log_result("VIP Real Earnings - Initial Status", False, 
+                              f"Initial earnings mismatch: expected {expected_total_earnings:,}$, got {initial_earnings:,}$")
+                return None
+            
+            # Test 4: Simuler quelques événements
+            print("   Step 4: Simulating events...")
+            
+            events_simulated = 0
+            max_events = 3
+            
+            while events_simulated < max_events:
+                response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if response.status_code != 200:
+                    break
+                
+                event_data = response.json()
+                game_state = event_data.get('game', {})
+                
+                events_simulated += 1
+                
+                # Vérifier que les gains restent constants (somme des viewing_fee)
+                current_earnings = game_state.get('earnings', 0)
+                
+                if current_earnings == expected_total_earnings:
+                    print(f"     Event {events_simulated}: earnings still {current_earnings:,}$ ✅")
+                else:
+                    self.log_result("VIP Real Earnings - During Simulation", False, 
+                                  f"Earnings changed during event {events_simulated}: expected {expected_total_earnings:,}$, got {current_earnings:,}$")
+                    return None
+                
+                # Arrêter si le jeu est terminé
+                if game_state.get('completed', False):
+                    print(f"     Game completed after {events_simulated} events")
+                    break
+            
+            self.log_result("VIP Real Earnings - Event Simulation", True, 
+                          f"✅ Simulated {events_simulated} events, earnings remained constant at {expected_total_earnings:,}$")
+            
+            # Exemple concret comme dans la review request
+            print(f"   📊 VIP REAL EARNINGS EXAMPLE:")
+            print(f"   - VIPs assigned: {vip_count}")
+            print(f"   - Individual viewing_fees:")
+            for i, vip in enumerate(game_vips[:3]):  # Show first 3 VIPs
+                fee = vip.get('viewing_fee', 0)
+                name = vip.get('name', 'Unknown')
+                print(f"     * {name}: {fee:,}$")
+            if len(game_vips) > 3:
+                print(f"     * ... and {len(game_vips) - 3} more VIPs")
+            print(f"   - Total earnings: {expected_total_earnings:,}$")
+            print(f"   - Example from review: 3 VIPs with [800k, 1.2M, 2.5M] = 4.5M total")
+            
+            return game_id
+            
+        except Exception as e:
+            self.log_result("VIP Real Earnings", False, f"Error during test: {str(e)}")
+            return None
+
+    def test_vip_earnings_collection(self):
+        """Test 4: Tester la collecte des gains VIP et l'ajout au portefeuille"""
+        try:
+            print("\n🎯 TESTING VIP EARNINGS COLLECTION - REVIEW REQUEST")
+            print("=" * 80)
+            
+            # Test 1: Créer une partie et la terminer
+            print("   Step 1: Creating and completing a game...")
+            
+            game_request = {
+                "player_count": 20,  # Petit nombre pour terminer rapidement
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3, 4, 5],  # Plusieurs événements
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("VIP Earnings Collection - Game Creation", False, f"Could not create game - HTTP {response.status_code}")
+                return
+            
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            if not game_id:
+                self.log_result("VIP Earnings Collection - Game Creation", False, "No game ID returned")
+                return
+            
+            # Test 2: Récupérer les VIPs et calculer les gains attendus
+            print("   Step 2: Getting VIPs and calculating expected earnings...")
+            
+            response = requests.get(f"{API_BASE}/vips/game/{game_id}", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("VIP Earnings Collection - Get VIPs", False, f"Could not get game VIPs - HTTP {response.status_code}")
+                return
+            
+            game_vips = response.json()
+            expected_earnings = sum(vip.get('viewing_fee', 0) for vip in game_vips)
+            
+            self.log_result("VIP Earnings Collection - Expected Earnings", True, 
+                          f"✅ Expected earnings from {len(game_vips)} VIPs: {expected_earnings:,}$")
+            
+            # Test 3: Obtenir l'argent initial du joueur
+            print("   Step 3: Getting initial player money...")
+            
+            response = requests.get(f"{API_BASE}/gamestate/", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("VIP Earnings Collection - Initial Money", False, f"Could not get gamestate - HTTP {response.status_code}")
+                return
+            
+            initial_gamestate = response.json()
+            initial_money = initial_gamestate.get('money', 0)
+            
+            self.log_result("VIP Earnings Collection - Initial Money", True, 
+                          f"✅ Initial player money: {initial_money:,}$")
+            
+            # Test 4: Simuler des événements jusqu'à la fin du jeu
+            print("   Step 4: Simulating events until game completion...")
+            
+            events_simulated = 0
+            max_events = 10  # Limite de sécurité
+            game_completed = False
+            
+            while events_simulated < max_events and not game_completed:
+                response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if response.status_code != 200:
+                    break
+                
+                event_data = response.json()
+                game_state = event_data.get('game', {})
+                result = event_data.get('result', {})
+                
+                events_simulated += 1
+                game_completed = game_state.get('completed', False)
+                
+                survivors = result.get('survivors', [])
+                eliminated = result.get('eliminated', [])
+                
+                print(f"     Event {events_simulated}: {len(survivors)} survivors, {len(eliminated)} eliminated, completed: {game_completed}")
+                
+                if game_completed:
+                    winner = game_state.get('winner')
+                    if winner:
+                        print(f"     Winner: {winner.get('name', 'Unknown')} (#{winner.get('number', 'N/A')})")
+                    break
+            
+            if not game_completed:
+                self.log_result("VIP Earnings Collection - Game Completion", False, 
+                              f"Game not completed after {events_simulated} events")
+                return
+            
+            self.log_result("VIP Earnings Collection - Game Completion", True, 
+                          f"✅ Game completed after {events_simulated} events")
+            
+            # Test 5: Vérifier que les gains sont disponibles à la collecte
+            print("   Step 5: Checking earnings are available for collection...")
+            
+            response = requests.get(f"{API_BASE}/games/{game_id}/vip-earnings-status", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("VIP Earnings Collection - Earnings Status", False, f"Could not get earnings status - HTTP {response.status_code}")
+                return
+            
+            earnings_status = response.json()
+            earnings_available = earnings_status.get('earnings_available', 0)
+            can_collect = earnings_status.get('can_collect', False)
+            
+            if not can_collect:
+                self.log_result("VIP Earnings Collection - Can Collect", False, 
+                              f"Cannot collect earnings: can_collect={can_collect}, completed={earnings_status.get('completed', False)}")
+                return
+            
+            if earnings_available != expected_earnings:
+                self.log_result("VIP Earnings Collection - Available Amount", False, 
+                              f"Available earnings mismatch: expected {expected_earnings:,}$, got {earnings_available:,}$")
+                return
+            
+            self.log_result("VIP Earnings Collection - Earnings Available", True, 
+                          f"✅ Earnings available for collection: {earnings_available:,}$")
+            
+            # Test 6: Collecter les gains VIP
+            print("   Step 6: Collecting VIP earnings...")
+            
+            response = requests.post(f"{API_BASE}/games/{game_id}/collect-vip-earnings", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("VIP Earnings Collection - Collection", False, f"Could not collect earnings - HTTP {response.status_code}")
+                return
+            
+            collection_result = response.json()
+            earnings_collected = collection_result.get('earnings_collected', 0)
+            new_total_money = collection_result.get('new_total_money', 0)
+            
+            # Test 7: Vérifier que l'argent a été ajouté au portefeuille
+            print("   Step 7: Verifying money was added to wallet...")
+            
+            expected_new_money = initial_money + earnings_collected
+            
+            if new_total_money == expected_new_money and earnings_collected == expected_earnings:
+                self.log_result("VIP Earnings Collection - Money Added", True, 
+                              f"✅ Money correctly added: {initial_money:,}$ + {earnings_collected:,}$ = {new_total_money:,}$")
+            else:
+                self.log_result("VIP Earnings Collection - Money Added", False, 
+                              f"Money calculation error: expected {expected_new_money:,}$, got {new_total_money:,}$")
+                return
+            
+            # Résumé final du scénario complet
+            print(f"   📊 COMPLETE VIP EARNINGS COLLECTION SCENARIO:")
+            print(f"   - Initial money: {initial_money:,}$")
+            print(f"   - Game cost: {game_data.get('total_cost', 0):,}$ (already deducted)")
+            print(f"   - VIPs assigned: {len(game_vips)}")
+            print(f"   - Total VIP viewing_fees: {expected_earnings:,}$")
+            print(f"   - Events simulated: {events_simulated}")
+            print(f"   - Earnings collected: {earnings_collected:,}$")
+            print(f"   - Final money: {new_total_money:,}$")
+            print(f"   - Net gain: {new_total_money - initial_money:,}$ (after game cost)")
+            
+        except Exception as e:
+            self.log_result("VIP Earnings Collection", False, f"Error during test: {str(e)}")
+
+    def test_complete_vip_scenario(self):
+        """Test 5: Scénario complet avec vrais montants selon la review request"""
+        try:
+            print("\n🎯 TESTING COMPLETE VIP SCENARIO - REVIEW REQUEST")
+            print("=" * 80)
+            
+            # Scénario complet selon la review request:
+            # 1. Créer partie (budget diminue + VIPs assignés automatiquement)
+            # 2. Vérifier les VIPs et leurs viewing_fee individuels
+            # 3. Terminer la partie (gains = somme viewing_fee des VIPs)
+            # 4. Collecter gains (budget augmente de plusieurs millions)
+            
+            print("   🎬 COMPLETE SCENARIO: Real VIP amounts instead of small arbitrary sums")
+            
+            # Step 1: Obtenir le budget initial
+            print("   Step 1: Getting initial budget...")
+            
+            response = requests.get(f"{API_BASE}/gamestate/", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Complete VIP Scenario - Initial Budget", False, f"Could not get gamestate - HTTP {response.status_code}")
+                return
+            
+            initial_gamestate = response.json()
+            initial_budget = initial_gamestate.get('money', 0)
+            
+            print(f"     Initial budget: {initial_budget:,}$")
+            
+            # Step 2: Créer partie (budget diminue + VIPs assignés automatiquement)
+            print("   Step 2: Creating game (budget decreases + VIPs auto-assigned)...")
+            
+            game_request = {
+                "player_count": 50,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Complete VIP Scenario - Game Creation", False, f"Could not create game - HTTP {response.status_code}")
+                return
+            
+            game_data = response.json()
+            game_id = game_data.get('id')
+            game_cost = game_data.get('total_cost', 0)
+            
+            print(f"     Game created with ID: {game_id}")
+            print(f"     Game cost: {game_cost:,}$")
+            
+            # Vérifier que le budget a diminué
+            response = requests.get(f"{API_BASE}/gamestate/", timeout=10)
+            if response.status_code == 200:
+                current_gamestate = response.json()
+                current_budget = current_gamestate.get('money', 0)
+                budget_decrease = initial_budget - current_budget
+                
+                if budget_decrease == game_cost:
+                    print(f"     ✅ Budget correctly decreased: {initial_budget:,}$ → {current_budget:,}$ (-{budget_decrease:,}$)")
+                else:
+                    self.log_result("Complete VIP Scenario - Budget Decrease", False, 
+                                  f"Budget decrease mismatch: expected -{game_cost:,}$, got -{budget_decrease:,}$")
+                    return
+            
+            # Step 3: Vérifier les VIPs et leurs viewing_fee individuels
+            print("   Step 3: Checking VIPs and their individual viewing_fees...")
+            
+            response = requests.get(f"{API_BASE}/vips/game/{game_id}", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Complete VIP Scenario - VIP Check", False, f"Could not get game VIPs - HTTP {response.status_code}")
+                return
+            
+            game_vips = response.json()
+            
+            print(f"     VIPs assigned: {len(game_vips)}")
+            print(f"     Individual viewing_fees:")
+            
+            total_viewing_fees = 0
+            for i, vip in enumerate(game_vips):
+                name = vip.get('name', 'Unknown')
+                viewing_fee = vip.get('viewing_fee', 0)
+                personality = vip.get('personality', 'unknown')
+                
+                total_viewing_fees += viewing_fee
+                
+                print(f"       {i+1}. {name}: {viewing_fee:,}$ [{personality}]")
+                
+                # Vérifier que c'est dans la fourchette 200k-3M
+                if not (200000 <= viewing_fee <= 3000000):
+                    self.log_result("Complete VIP Scenario - VIP Fees Range", False, 
+                                  f"VIP {name} has viewing_fee outside 200k-3M range: {viewing_fee:,}$")
+                    return
+            
+            print(f"     Total potential earnings: {total_viewing_fees:,}$")
+            
+            # Step 4: Terminer la partie (gains = somme viewing_fee des VIPs)
+            print("   Step 4: Completing game (earnings = sum of VIP viewing_fees)...")
+            
+            events_simulated = 0
+            max_events = 10
+            game_completed = False
+            
+            while events_simulated < max_events and not game_completed:
+                response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if response.status_code != 200:
+                    break
+                
+                event_data = response.json()
+                game_state = event_data.get('game', {})
+                result = event_data.get('result', {})
+                
+                events_simulated += 1
+                game_completed = game_state.get('completed', False)
+                
+                survivors = result.get('survivors', [])
+                
+                print(f"       Event {events_simulated}: {len(survivors)} survivors remaining")
+                
+                if game_completed:
+                    winner = game_state.get('winner')
+                    final_earnings = game_state.get('earnings', 0)
+                    
+                    print(f"       Game completed! Winner: {winner.get('name', 'Unknown') if winner else 'None'}")
+                    print(f"       Final earnings: {final_earnings:,}$")
+                    
+                    # Vérifier que les gains correspondent à la somme des viewing_fee
+                    if final_earnings == total_viewing_fees:
+                        print(f"       ✅ Earnings match VIP viewing_fees sum: {final_earnings:,}$")
+                    else:
+                        self.log_result("Complete VIP Scenario - Earnings Match", False, 
+                                      f"Earnings mismatch: expected {total_viewing_fees:,}$, got {final_earnings:,}$")
+                        return
+                    break
+            
+            if not game_completed:
+                self.log_result("Complete VIP Scenario - Game Completion", False, 
+                              f"Game not completed after {events_simulated} events")
+                return
+            
+            # Step 5: Collecter gains (budget augmente de plusieurs millions)
+            print("   Step 5: Collecting earnings (budget increases by millions)...")
+            
+            # Obtenir le budget avant collecte
+            response = requests.get(f"{API_BASE}/gamestate/", timeout=10)
+            if response.status_code != 200:
+                self.log_result("Complete VIP Scenario - Pre-Collection Budget", False, "Could not get budget before collection")
+                return
+            
+            pre_collection_gamestate = response.json()
+            pre_collection_budget = pre_collection_gamestate.get('money', 0)
+            
+            # Collecter les gains
+            response = requests.post(f"{API_BASE}/games/{game_id}/collect-vip-earnings", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Complete VIP Scenario - Earnings Collection", False, f"Could not collect earnings - HTTP {response.status_code}")
+                return
+            
+            collection_result = response.json()
+            earnings_collected = collection_result.get('earnings_collected', 0)
+            final_budget = collection_result.get('new_total_money', 0)
+            
+            budget_increase = final_budget - pre_collection_budget
+            net_profit = final_budget - initial_budget  # Profit après déduction du coût du jeu
+            
+            print(f"     Earnings collected: {earnings_collected:,}$")
+            print(f"     Budget increase: {budget_increase:,}$")
+            print(f"     Final budget: {final_budget:,}$")
+            print(f"     Net profit (after game cost): {net_profit:,}$")
+            
+            # Vérifications finales
+            if earnings_collected == total_viewing_fees and budget_increase == earnings_collected:
+                self.log_result("Complete VIP Scenario - Final Verification", True, 
+                              f"✅ Complete scenario successful: collected {earnings_collected:,}$, net profit {net_profit:,}$")
+            else:
+                self.log_result("Complete VIP Scenario - Final Verification", False, 
+                              f"Final verification failed: earnings_collected={earnings_collected:,}$, budget_increase={budget_increase:,}$")
+                return
+            
+            # Résumé du scénario complet
+            print(f"   📊 COMPLETE VIP SCENARIO SUMMARY:")
+            print(f"   ✅ 1. Game created: budget {initial_budget:,}$ → {current_budget:,}$ (-{game_cost:,}$)")
+            print(f"   ✅ 2. VIPs auto-assigned: {len(game_vips)} VIPs with viewing_fees 200k-3M each")
+            print(f"   ✅ 3. Game completed: earnings = {total_viewing_fees:,}$ (sum of VIP viewing_fees)")
+            print(f"   ✅ 4. Earnings collected: budget {pre_collection_budget:,}$ → {final_budget:,}$ (+{budget_increase:,}$)")
+            print(f"   ✅ 5. Net result: {net_profit:,}$ profit (using REAL VIP amounts, not small arbitrary sums)")
+            print(f"   ")
+            print(f"   🎯 REVIEW REQUEST FULFILLED:")
+            print(f"   - VIPs pay their REAL viewing_fee amounts (200k-3M each) ✅")
+            print(f"   - No more 100$ per player + 50$ per death formula ✅")
+            print(f"   - VIPs auto-assigned on game creation ✅")
+            print(f"   - Earnings = sum of all VIP viewing_fees ✅")
+            print(f"   - Budget increases by millions when collecting ✅")
+            
+        except Exception as e:
+            self.log_result("Complete VIP Scenario", False, f"Error during test: {str(e)}")
+
 if __name__ == "__main__":
     tester = BackendTester()
     
