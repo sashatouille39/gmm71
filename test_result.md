@@ -155,6 +155,9 @@
         - working: true
           agent: "main"
           comment: "✅ GAINS VIP PARFAITEMENT IMPLÉMENTÉS! Problèmes résolus: 1) Gains VIP calculés à chaque simulation d'événement (plus de 0), 2) Formule correcte: (nombre_joueurs × 100k frais_visionnage_base) + (morts × 50k bonus_dramatique), 3) Test validé: partie 50 joueurs avec 20 morts = 6,000,000 gains (50×100k + 20×50k), 4) Gains s'accumulent progressivement pendant le jeu au lieu d'attendre la fin, 5) Les VIPs paient selon leur statut (royaux paient 2x plus, sages 1.5x plus) via viewing_fee dans vip_service.py."
+        - working: true
+          agent: "testing"
+          comment: "✅ GAINS VIP PARFAITEMENT VALIDÉS - REVIEW REQUEST FRANÇAISE ACCOMPLIE! Tests exhaustifs effectués selon l'exemple exact de la demande: 1) **Gains initiaux**: ✅ CONFIRMÉ - Partie créée avec earnings = 0 (correct). 2) **Simulation d'événement**: ✅ CONFIRMÉ - 50 joueurs participent, 30 survivants + 20 éliminés = 50 total. 3) **Calcul des gains**: ✅ CONFIRMÉ - Formule exacte: (50 joueurs × 100k) + (20 morts × 50k) = 6,000,000 gains. 4) **Gains non-zéro**: ✅ CONFIRMÉ - Les gains s'accumulent maintenant correctement (plus de 0). 5) **Exemple de la review**: ✅ CONFIRMÉ - L'exemple spécifique '50 joueurs + 20 morts = 6,000,000' fonctionne parfaitement. Backend tests: 5/5 passed (100% success rate). Le problème des gains VIP à 0 signalé par l'utilisateur français est complètement résolu - les gains s'accumulent maintenant selon la formule correcte."
 
   - task: "Modèles de données de base"
     implemented: true
