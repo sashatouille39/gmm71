@@ -241,9 +241,9 @@ class VipService:
         
         # Assigner des frais de visionnage aléatoires basés sur la personnalité
         for vip in selected:
-            base_fee = random.randint(500000, 2000000)  # Entre 500k et 2M
+            base_fee = random.randint(200000, 1500000)  # Entre 200k et 1.5M comme base
             if vip.personality in ['royal', 'impérial', 'aristocrate']:
-                vip.viewing_fee = int(base_fee * 2)  # VIPs royaux paient plus
+                vip.viewing_fee = int(base_fee * 2)  # VIPs royaux paient plus (jusqu'à 3M)
             elif vip.personality in ['mystique', 'sage', 'oracle']:
                 vip.viewing_fee = int(base_fee * 1.5)  # VIPs sages paient modérément plus
             else:
