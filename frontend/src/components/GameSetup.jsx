@@ -119,9 +119,9 @@ const GameSetup = ({ gameState, onStartGame }) => {
   };
 
   const selectRandomEvents = () => {
-    const shuffled = [...GAME_EVENTS].sort(() => 0.5 - Math.random());
+    const shuffled = [...availableEvents].sort(() => 0.5 - Math.random());
     const eventCount = Math.min(8, shuffled.length);
-    setSelectedEvents(shuffled.slice(0, eventCount));
+    setSelectedEvents(shuffled.slice(0, eventCount).map(event => event.id));
   };
 
   const toggleEvent = (eventId) => {
