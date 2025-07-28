@@ -283,49 +283,91 @@ const VipSalon = ({ gameState, updateGameState }) => {
                 <CardTitle className="text-white flex items-center gap-2">
                   <Users className="w-5 h-5" />
                   VIP Permanents
+                  <Button 
+                    onClick={refreshVips} 
+                    disabled={loadingVips}
+                    variant="outline" 
+                    size="sm"
+                    className="ml-auto"
+                  >
+                    <RefreshCw className={`w-4 h-4 mr-2 ${loadingVips ? 'animate-spin' : ''}`} />
+                    Changer les VIPs
+                  </Button>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {VIP_CHARACTERS.map((vip) => (
-                    <Card key={vip.id} className="bg-gray-800/50 border-gray-600/30">
-                      <CardContent className="p-6 text-center">
-                        <div className="w-20 h-20 bg-gray-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-                          <span className="text-2xl">🎭</span>
-                        </div>
-                        <h3 className="text-white font-bold mb-2">{vip.name}</h3>
-                        <Badge 
-                          variant="outline" 
-                          className={`mb-4 ${
-                            vip.personality === 'absurde' ? 'text-purple-400 border-purple-400' :
-                            vip.personality === 'raffiné' ? 'text-blue-400 border-blue-400' :
-                            'text-green-400 border-green-400'
-                          }`}
-                        >
-                          {vip.personality}
-                        </Badge>
-                        
-                        {/* Dialogue récent */}
-                        <div className="bg-gray-700/50 p-3 rounded-lg mb-4">
-                          <MessageCircle className="w-4 h-4 text-gray-400 mx-auto mb-2" />
-                          <p className="text-xs text-gray-300 italic">
-                            "{vip.dialogues[Math.floor(Math.random() * vip.dialogues.length)]}"
-                          </p>
-                        </div>
+                {loadingVips ? (
+                  <div className="flex justify-center items-center py-12">
+                    <RefreshCw className="w-8 h-8 animate-spin text-red-500" />
+                    <span className="ml-2 text-gray-400">Chargement des VIPs...</span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {currentVips.map((vip, index) => (
+                      <Card key={vip.id || index} className="bg-gray-800/50 border-gray-600/30">
+                        <CardContent className="p-6 text-center">
+                          <div className="w-20 h-20 bg-gradient-to-br from-red-600 to-red-800 rounded-full mx-auto mb-4 flex items-center justify-center">
+                            <span className="text-2xl">{getAnimalEmoji(vip.mask)}</span>
+                          </div>
+                          <h3 className="text-white font-bold mb-2">{vip.name}</h3>
+                          <Badge 
+                            variant="outline" 
+                            className={`mb-4 ${getPersonalityColor(vip.personality)}`}
+                          >
+                            {vip.personality}
+                          </Badge>
+                          
+                          {/* Dialogue récent */}
+                          <div className="bg-gray-700/50 p-3 rounded-lg mb-4">
+                            <MessageCircle className="w-4 h-4 text-gray-400 mx-auto mb-2" />
+                            <p className="text-xs text-gray-300 italic">
+                              "{vip.dialogues[Math.floor(Math.random() * vip.dialogues.length)]}"
+                            </p>
+                          </div>
 
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">Mises totales:</span>
-                            <span className="text-white">${(Math.random() * 50000).toFixed(0)}</span>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Frais de visionnage:</span>
+                              <span className="text-green-400">${vip.viewing_fee?.toLocaleString() || 'N/A'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Masque:</span>
+                              <span className="text-white">{vip.mask}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Gains totaux:</span>
+                              <span className="text-yellow-400">${vip.total_winnings?.toLocaleString() || '0'}</span>
+                            </div>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">Victoires:</span>
-                            <span className="text-green-400">{Math.floor(Math.random() * 10)}</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Statistiques du salon */}
+                <div className="mt-8 p-4 bg-gray-800/30 rounded-lg">
+                  <h4 className="text-white font-bold mb-2">Statistiques du salon</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-400">{currentVips.length}</div>
+                      <div className="text-gray-400">VIPs présents</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-400">
+                        ${currentVips.reduce((sum, vip) => sum + (vip.viewing_fee || 0), 0).toLocaleString()}
+                      </div>
+                      <div className="text-gray-400">Revenus totaux</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-yellow-400">{currentSalon?.capacity}</div>
+                      <div className="text-gray-400">Capacité max</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-400">{allVips.length}</div>
+                      <div className="text-gray-400">VIPs disponibles</div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
