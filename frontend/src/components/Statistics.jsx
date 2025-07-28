@@ -21,6 +21,25 @@ import {
 const Statistics = ({ gameState }) => {
   const navigate = useNavigate();
   const [selectedPeriod, setSelectedPeriod] = useState('all');
+  const [celebrityStats, setCelebrityStats] = useState(null);
+
+  // Charger les statistiques des célébrités
+  useEffect(() => {
+    const fetchCelebrityStats = async () => {
+      try {
+        const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+        const response = await fetch(`${backendUrl}/api/celebrities/stats/summary`);
+        if (response.ok) {
+          const stats = await response.json();
+          setCelebrityStats(stats);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des stats de célébrités:', error);
+      }
+    };
+
+    fetchCelebrityStats();
+  }, []);
 
   // Utiliser les vraies données de jeu au lieu des données mockées
   const realGames = gameState.completedGames || [];
