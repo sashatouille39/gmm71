@@ -61,8 +61,14 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState }) 
       
       const { result, game } = await response.json();
       
+      // Adapter le format de jeu pour le frontend
+      const adaptedGame = {
+        ...game,
+        currentEventIndex: game.current_event_index || 0 // CORRECTION: convertir snake_case vers camelCase
+      };
+      
       // Mettre à jour l'état du jeu avec les résultats du backend
-      setCurrentGame(game);
+      setCurrentGame(adaptedGame);
       
       // Mettre à jour les stats des célébrités si nécessaire
       if (result.survivors) {
