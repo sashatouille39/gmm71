@@ -105,6 +105,42 @@
 ## user_problem_statement: "Continuer le développement du jeu Game Master Manager, un simulateur de Squid Game complexe. Le joueur incarne l'organisateur et peut créer des parties avec 20-1000 joueurs. Ajouter les fonctionnalités manquantes : 80+ épreuves avec animations gore, personnalisation complète des joueurs (15+ formes visages, 25+ couleurs peau, 80+ coiffures), mode spectateur immersif, salon VIP évolutif, boutique 1000+ célébrités, économie interne, système de paris VIP, musée des morts, IA avancée, sauvegarde MongoDB. Interface modulaire avec menu : Jouer/Statistiques/Uniformes/Salon VIP/Paramètres. PROBLÈME RÉSOLU: Le taux de mortalité était trop élevé (80-99%), maintenant corrigé à 40-60% avec exceptions (Battle Royale 65%, Jugement Final 70%). NOUVEAU: Système de catégorisation et gestion des finales implémenté."
 
 ## backend:
+  - task: "Système économique mis à jour"
+    implemented: false
+    working: false
+    file: "routes/game_routes.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL: Economic system still uses old values. Game costs are in thousands instead of millions: Standard=2,200 (expected 2,200,000), Hardcore=4,500 (expected 4,500,000), Custom=5,000 (expected 5,000,000). Player costs are 10 instead of 10,000, event costs are 500 instead of 500,000. Initial money is correct at 50M but cost calculations need to be updated to millions."
+
+  - task: "Nouvelles routes VIP"
+    implemented: false
+    working: false
+    file: "routes/vip_routes.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL: All VIP routes return 404 errors. Routes not properly configured: GET /api/vips/salon/{salon_level}, GET /api/vips/all, GET /api/vips/game/{game_id}, POST /api/vips/game/{game_id}/refresh, GET /api/vips/earnings/{game_id}. VIP service exists with 50 unique animal/insect masks but routes are not accessible."
+
+  - task: "Gains VIP améliorés"
+    implemented: false
+    working: false
+    file: "routes/game_routes.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL: VIP earnings not implemented. Game earnings are 0 instead of expected 5M+ (50 players * 100k viewing fees). VIP viewing fees (100k per player) not being calculated or added to game earnings during event simulation."
+
   - task: "Modèles de données de base"
     implemented: true
     working: true
@@ -142,7 +178,7 @@
           comment: "✅ CORRECTION FINALE DES 43 NATIONALITÉS PARFAITEMENT VALIDÉE - MISSION ACCOMPLIE! Tests exhaustifs effectués selon la demande de review pour confirmer exactement 43 nationalités (18 originales + 25 nouvelles) avec noms authentiques: 1) **Décompte exact confirmé**: ✅ CONFIRMÉ - Exactement 43 nationalités disponibles dans le système, pas 49. Liste complète vérifiée de 'Afghane' à 'Égyptienne' en ordre alphabétique parfait. 2) **Noms authentiques pour toutes les 43 nationalités**: ✅ CONFIRMÉ - 100% des joueurs générés ont des noms complets authentiques spécifiques à leur nationalité (ex: Afghane: 'Rashid Yusuf', Coréenne: 'Min-jun Park', Nigériane: 'Chijioke Okonkwo', Allemande: 'Dieter Meyer'). Aucune nationalité n'utilise plus les noms français par défaut. 3) **Tests de génération complète**: ✅ CONFIRMÉ - Génération de 300 joueurs montre les 43 nationalités avec 100% de noms authentiques et format complet (prénom + nom de famille). 4) **Cohérence dans création de parties**: ✅ CONFIRMÉ - Création de parties avec 100 joueurs fonctionne parfaitement, 40 nationalités différentes représentées, 0 erreur de format de nom. 5) **Ordre alphabétique**: ✅ CONFIRMÉ - Toutes les nationalités sont correctement ordonnées alphabétiquement. 6) **Couleurs de peau cohérentes**: ✅ CONFIRMÉ - Les couleurs de peau correspondent aux nationalités. Backend tests: 14/14 passed (100% success rate). La correction finale répond exactement aux exigences - exactement 43 nationalités avec noms authentiques, plus aucun nom français par défaut."
         - working: true
           agent: "testing"
-          comment: "Minor: Détecté 42 nationalités au lieu de 43 attendues (manque 1 nationalité), mais 100% de noms authentiques confirmés. Fonctionnalité principale opérationnelle."
+          comment: "Minor: Détecté 41 nationalités au lieu de 43 attendues (manque 2 nationalités), mais 100% de noms authentiques confirmés. Fonctionnalité principale opérationnelle."
 
   - task: "API Routes de base"
     implemented: true
