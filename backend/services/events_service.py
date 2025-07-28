@@ -114,7 +114,7 @@ class EventsService:
                 "Noyade forcée dans une mare de sang"
             ],
             survival_time_min=300, survival_time_max=900,
-            elimination_rate=0.8,
+            elimination_rate=0.65,  # Exception: Battle Royale peut être plus élevé
             special_mechanics=["Libre pour tous", "Armes cachées"]
         ),
         
