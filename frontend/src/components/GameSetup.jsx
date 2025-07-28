@@ -760,7 +760,7 @@ const GameSetup = ({ gameState, onStartGame }) => {
                       <Separator className="bg-gray-600" />
                       <div className="flex justify-between font-medium">
                         <span className="text-gray-300">Sous-total:</span>
-                        <span className="text-green-400">${(players.length * 10).toLocaleString()}</span>
+                        <span className="text-green-400">${(players.length * 100).toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
