@@ -33,23 +33,66 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState }) 
     }
   }, [currentGame]);
 
-  const simulateEvent = () => {
-    if (!currentEvent || !currentGame) return;
-
+  const simulateEvent = async () => {
     setIsPlaying(true);
-    setEventProgress(0);
-
-    // Simulation progressive de l'épreuve
-    const interval = setInterval(() => {
-      setEventProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          completeEvent();
-          return 100;
+    setAnimationPhase('preparation');
+    
+    try {
+      // Animation de préparation
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setAnimationPhase('action');
+      
+      // Animation d'action
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      setAnimationPhase('results');
+      
+      // Appeler l'API backend pour simuler l'événement
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      const response = await fetch(`${backendUrl}/api/games/${currentGame.id}/simulate-event`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         }
-        return prev + 2;
       });
-    }, 100);
+      
+      if (!response.ok) {
+        throw new Error(`Erreur API: ${response.status}`);
+      }
+      
+      const { result, game } = await response.json();
+      
+      // Mettre à jour l'état du jeu avec les résultats du backend
+      setCurrentGame(game);
+      
+      // Mettre à jour les stats des célébrités si nécessaire
+      if (result.survivors) {
+        for (const survivorData of result.survivors) {
+          if (survivorData.player && survivorData.player.isCelebrity) {
+            await updateCelebrityStats(survivorData.player.celebrityId, {
+              survived_events: survivorData.player.survived_events || 0,
+              total_score: survivorData.player.total_score || 0
+            });
+          }
+        }
+      }
+      
+      // Traiter les victoires si le jeu est terminé
+      if (game.completed && game.winner && game.winner.isCelebrity) {
+        await updateCelebrityVictory(game.winner.celebrityId);
+      }
+      
+      console.log('Événement simulé avec succès:', {
+        survivors: result.survivors?.length || 0,
+        eliminated: result.eliminated?.length || 0,
+        totalParticipants: result.total_participants || 0
+      });
+      
+    } catch (error) {
+      console.error('Erreur lors de la simulation:', error);
+      alert('Erreur lors de la simulation de l\'événement. Vérifiez votre connexion.');
+    } finally {
+      setIsPlaying(false);
+    }
   };
 
   // Fonction pour mettre à jour les stats des célébrités après un jeu
