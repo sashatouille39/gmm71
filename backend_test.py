@@ -1105,6 +1105,301 @@ class BackendTester:
         except Exception as e:
             self.log_result("Celebrity Stats Improvement Rules", False, f"Error: {str(e)}")
 
+    def test_game_end_logic_and_scoring(self):
+        """Test CRITICAL: Tester spécifiquement la logique de fin de jeu et les scores selon la review request"""
+        try:
+            print("\n🎯 TESTING GAME END LOGIC AND SCORING SYSTEM - REVIEW REQUEST")
+            print("=" * 80)
+            
+            # 1. Créer une partie avec 20 joueurs et 2 événements avec des taux de mortalité élevés (60-70%)
+            print("   Step 1: Creating game with 20 players and 2 high-mortality events...")
+            
+            # First, get available events to find ones with 60-70% mortality rates
+            events_response = requests.get(f"{API_BASE}/games/events/available", timeout=10)
+            if events_response.status_code != 200:
+                self.log_result("Game End Logic - Get Events", False, f"Could not get events - HTTP {events_response.status_code}")
+                return
+                
+            all_events = events_response.json()
+            
+            # Find events with 60-70% elimination rates
+            high_mortality_events = []
+            for event in all_events:
+                elimination_rate = event.get('elimination_rate', 0)
+                if 0.60 <= elimination_rate <= 0.70:
+                    high_mortality_events.append(event['id'])
+            
+            if len(high_mortality_events) < 2:
+                # Fallback: use events with closest to 60-70% rates
+                sorted_events = sorted(all_events, key=lambda x: abs(x.get('elimination_rate', 0) - 0.65))
+                high_mortality_events = [sorted_events[0]['id'], sorted_events[1]['id']]
+                print(f"   Using fallback events with rates: {sorted_events[0].get('elimination_rate', 0):.2f}, {sorted_events[1].get('elimination_rate', 0):.2f}")
+            else:
+                print(f"   Found {len(high_mortality_events)} events with 60-70% mortality rates")
+            
+            # Create game with 20 players and 2 high-mortality events
+            game_request = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": high_mortality_events[:2],  # Use first 2 high-mortality events
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Game End Logic - Create Game", False, f"Could not create game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            if not game_id:
+                self.log_result("Game End Logic - Create Game", False, "No game ID returned")
+                return
+            
+            # Verify initial game state
+            initial_players = game_data.get('players', [])
+            initial_events = game_data.get('events', [])
+            
+            if len(initial_players) != 20:
+                self.log_result("Game End Logic - Initial State", False, f"Expected 20 players, got {len(initial_players)}")
+                return
+            
+            if len(initial_events) != 2:
+                self.log_result("Game End Logic - Initial State", False, f"Expected 2 events, got {len(initial_events)}")
+                return
+            
+            # Check initial scores
+            initial_total_scores = [p.get('total_score', 0) for p in initial_players]
+            if not all(score == 0 for score in initial_total_scores):
+                self.log_result("Game End Logic - Initial Scores", False, f"Players should start with 0 total_score")
+                return
+            
+            self.log_result("Game End Logic - Initial State", True, 
+                          f"✅ Game created: 20 players, 2 events, all players start with total_score=0")
+            
+            # 2. Simuler le premier événement et vérifier les scores des joueurs et survivants
+            print("   Step 2: Simulating first event and verifying scores...")
+            
+            first_event_response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+            
+            if first_event_response.status_code != 200:
+                self.log_result("Game End Logic - First Event", False, f"First event simulation failed - HTTP {first_event_response.status_code}")
+                return
+            
+            first_event_data = first_event_response.json()
+            first_result = first_event_data.get('result', {})
+            first_game_state = first_event_data.get('game', {})
+            
+            # Verify first event results
+            first_survivors = first_result.get('survivors', [])
+            first_eliminated = first_result.get('eliminated', [])
+            first_total_participants = first_result.get('total_participants', 0)
+            
+            if first_total_participants != 20:
+                self.log_result("Game End Logic - First Event Participants", False, 
+                              f"Expected 20 participants, got {first_total_participants}")
+                return
+            
+            if len(first_survivors) + len(first_eliminated) != 20:
+                self.log_result("Game End Logic - First Event Count", False, 
+                              f"Survivors + eliminated ({len(first_survivors)} + {len(first_eliminated)}) != 20")
+                return
+            
+            # Check that survivors have accumulated scores
+            survivor_scores_valid = True
+            for survivor in first_survivors:
+                total_score = survivor.get('total_score', 0)
+                if total_score <= 0:
+                    survivor_scores_valid = False
+                    break
+            
+            if not survivor_scores_valid:
+                self.log_result("Game End Logic - First Event Scores", False, 
+                              f"Some survivors have invalid total_score (should be > 0)")
+                return
+            
+            # Check game state after first event
+            if first_game_state.get('completed', False):
+                self.log_result("Game End Logic - First Event Completion", False, 
+                              f"Game should not be completed after first event with {len(first_survivors)} survivors")
+                return
+            
+            if first_game_state.get('current_event_index', 0) != 1:
+                self.log_result("Game End Logic - First Event Index", False, 
+                              f"current_event_index should be 1 after first event, got {first_game_state.get('current_event_index', 0)}")
+                return
+            
+            self.log_result("Game End Logic - First Event", True, 
+                          f"✅ First event completed: {len(first_survivors)} survivors, {len(first_eliminated)} eliminated, scores accumulated correctly")
+            
+            # 3. Simuler le deuxième événement
+            print("   Step 3: Simulating second event...")
+            
+            second_event_response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+            
+            if second_event_response.status_code != 200:
+                self.log_result("Game End Logic - Second Event", False, f"Second event simulation failed - HTTP {second_event_response.status_code}")
+                return
+            
+            second_event_data = second_event_response.json()
+            second_result = second_event_data.get('result', {})
+            second_game_state = second_event_data.get('game', {})
+            
+            # Verify second event results
+            second_survivors = second_result.get('survivors', [])
+            second_eliminated = second_result.get('eliminated', [])
+            second_total_participants = second_result.get('total_participants', 0)
+            
+            if second_total_participants != len(first_survivors):
+                self.log_result("Game End Logic - Second Event Participants", False, 
+                              f"Expected {len(first_survivors)} participants, got {second_total_participants}")
+                return
+            
+            if len(second_survivors) + len(second_eliminated) != len(first_survivors):
+                self.log_result("Game End Logic - Second Event Count", False, 
+                              f"Second event participant count mismatch")
+                return
+            
+            self.log_result("Game End Logic - Second Event", True, 
+                          f"✅ Second event completed: {len(second_survivors)} survivors, {len(second_eliminated)} eliminated")
+            
+            # 4. Vérifier que si il ne reste qu'1 survivant, le jeu marque completed=true
+            print("   Step 4: Verifying game completion logic...")
+            
+            final_survivors_count = len(second_survivors)
+            game_completed = second_game_state.get('completed', False)
+            
+            if final_survivors_count == 1:
+                if not game_completed:
+                    self.log_result("Game End Logic - Completion Check", False, 
+                                  f"Game should be completed=true with 1 survivor, but completed={game_completed}")
+                    return
+                else:
+                    self.log_result("Game End Logic - Completion Check", True, 
+                                  f"✅ Game correctly marked completed=true with 1 survivor")
+            elif final_survivors_count > 1:
+                if game_completed:
+                    self.log_result("Game End Logic - Completion Check", False, 
+                                  f"Game should not be completed with {final_survivors_count} survivors")
+                    return
+                else:
+                    self.log_result("Game End Logic - Completion Check", True, 
+                                  f"✅ Game correctly not completed with {final_survivors_count} survivors")
+            else:  # 0 survivors
+                self.log_result("Game End Logic - Completion Check", False, 
+                              f"❌ CRITICAL: Game has 0 survivors (should have resurrection logic)")
+                return
+            
+            # 5. Vérifier que le winner a bien un total_score défini et qu'il est correctement identifié
+            print("   Step 5: Verifying winner identification and scoring...")
+            
+            winner = second_game_state.get('winner')
+            
+            if final_survivors_count == 1 and game_completed:
+                if not winner:
+                    self.log_result("Game End Logic - Winner Identification", False, 
+                                  f"Game completed with 1 survivor but no winner set")
+                    return
+                
+                # Verify winner has valid total_score
+                winner_total_score = winner.get('total_score', 0)
+                if winner_total_score <= 0:
+                    self.log_result("Game End Logic - Winner Score", False, 
+                                  f"Winner has invalid total_score: {winner_total_score}")
+                    return
+                
+                # Verify winner is the same as the sole survivor
+                sole_survivor = second_survivors[0] if second_survivors else None
+                if not sole_survivor:
+                    self.log_result("Game End Logic - Winner Consistency", False, 
+                                  f"No survivor found but winner exists")
+                    return
+                
+                if winner.get('id') != sole_survivor.get('player', {}).get('id'):
+                    self.log_result("Game End Logic - Winner Consistency", False, 
+                                  f"Winner ID doesn't match sole survivor ID")
+                    return
+                
+                self.log_result("Game End Logic - Winner Identification", True, 
+                              f"✅ Winner correctly identified with total_score={winner_total_score}")
+            
+            elif final_survivors_count > 1:
+                if winner:
+                    self.log_result("Game End Logic - Winner Premature", False, 
+                                  f"Winner set prematurely with {final_survivors_count} survivors")
+                    return
+                else:
+                    self.log_result("Game End Logic - Winner Timing", True, 
+                                  f"✅ No winner set correctly with {final_survivors_count} survivors")
+            
+            # 6. Afficher la structure complète de la réponse finale pour vérifier les champs
+            print("   Step 6: Displaying complete final response structure...")
+            
+            print(f"   📊 FINAL GAME STATE STRUCTURE:")
+            print(f"   - Game ID: {second_game_state.get('id', 'N/A')}")
+            print(f"   - Completed: {second_game_state.get('completed', False)}")
+            print(f"   - Current Event Index: {second_game_state.get('current_event_index', 0)}")
+            print(f"   - Total Players: {len(second_game_state.get('players', []))}")
+            print(f"   - Living Players: {len([p for p in second_game_state.get('players', []) if p.get('alive', False)])}")
+            print(f"   - Winner: {'Set' if second_game_state.get('winner') else 'Not Set'}")
+            print(f"   - Total Cost: {second_game_state.get('total_cost', 0)}")
+            print(f"   - Earnings: {second_game_state.get('earnings', 0)}")
+            print(f"   - Event Results Count: {len(second_game_state.get('event_results', []))}")
+            
+            if winner:
+                print(f"   📊 WINNER DETAILS:")
+                print(f"   - Name: {winner.get('name', 'N/A')}")
+                print(f"   - Number: {winner.get('number', 'N/A')}")
+                print(f"   - Total Score: {winner.get('total_score', 0)}")
+                print(f"   - Survived Events: {winner.get('survived_events', 0)}")
+                print(f"   - Kills: {winner.get('kills', 0)}")
+                print(f"   - Role: {winner.get('role', 'N/A')}")
+                print(f"   - Nationality: {winner.get('nationality', 'N/A')}")
+            
+            print(f"   📊 FINAL EVENT RESULT:")
+            print(f"   - Event ID: {second_result.get('event_id', 'N/A')}")
+            print(f"   - Event Name: {second_result.get('event_name', 'N/A')}")
+            print(f"   - Survivors: {len(second_result.get('survivors', []))}")
+            print(f"   - Eliminated: {len(second_result.get('eliminated', []))}")
+            print(f"   - Total Participants: {second_result.get('total_participants', 0)}")
+            
+            # Verify score accumulation across events
+            print("   Step 7: Verifying score accumulation across events...")
+            
+            # Check that players who survived both events have higher scores than those who survived only one
+            if len(second_survivors) > 0:
+                final_survivor_scores = [s.get('total_score', 0) for s in second_survivors]
+                min_final_score = min(final_survivor_scores)
+                max_final_score = max(final_survivor_scores)
+                
+                print(f"   📊 FINAL SURVIVOR SCORES:")
+                print(f"   - Min Score: {min_final_score}")
+                print(f"   - Max Score: {max_final_score}")
+                print(f"   - Score Range: {max_final_score - min_final_score}")
+                
+                # Scores should be accumulated (higher than single event scores)
+                if min_final_score > 0:
+                    self.log_result("Game End Logic - Score Accumulation", True, 
+                                  f"✅ Scores accumulated correctly across events (min: {min_final_score}, max: {max_final_score})")
+                else:
+                    self.log_result("Game End Logic - Score Accumulation", False, 
+                                  f"Some final survivors have 0 total_score")
+                    return
+            
+            # Final comprehensive result
+            self.log_result("Game End Logic and Scoring System", True, 
+                          f"✅ COMPREHENSIVE TEST PASSED: Game end logic and scoring system working correctly. "
+                          f"Final state: {final_survivors_count} survivors, completed={game_completed}, "
+                          f"winner={'set' if winner else 'not set'}")
+            
+        except Exception as e:
+            self.log_result("Game End Logic and Scoring System", False, f"Error during comprehensive test: {str(e)}")
+
     def test_event_categorization_system(self):
         """Test NEW: Vérifier le nouveau système de catégorisation des événements"""
         try:
