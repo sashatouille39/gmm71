@@ -29,7 +29,12 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState }) 
 
   useEffect(() => {
     if (currentGame && currentGame.events.length > 0) {
-      setCurrentEvent(currentGame.events[currentGame.currentEventIndex]);
+      // Si le jeu est terminé, ne pas définir d'événement courant pour afficher l'écran de fin
+      if (currentGame.completed) {
+        setCurrentEvent(null);
+      } else {
+        setCurrentEvent(currentGame.events[currentGame.currentEventIndex]);
+      }
     }
   }, [currentGame]);
 
