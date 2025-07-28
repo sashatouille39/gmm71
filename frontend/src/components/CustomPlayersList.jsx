@@ -28,21 +28,8 @@ const CustomPlayersList = ({ onSelectPlayer, onCreateNew, selectedPlayers = [] }
     const matchesSearch = player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          player.nationality.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = filterRole === 'all' || player.role === filterRole;
-    const result = matchesSearch && matchesRole;
-    
-    console.log('🔍 DEBUG Filter player:', {
-      player: player.name,
-      searchTerm,
-      filterRole,
-      matchesSearch,
-      matchesRole,
-      result
-    });
-    
-    return result;
+    return matchesSearch && matchesRole;
   });
-
-  console.log('🔍 DEBUG filteredPlayers:', filteredPlayers);
 
   const handleDelete = (playerId) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce joueur ?')) {
