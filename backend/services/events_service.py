@@ -89,7 +89,7 @@ class EventsService:
         # ÉPREUVES DE COMBAT (15)
         # ================================
         GameEvent(
-            id=6, name="Combat de gladiateurs", type=EventType.FORCE, difficulty=9,
+            id=6, name="Combat de gladiateurs", type=EventType.FORCE, category=EventCategory.COMBAT, difficulty=9,
             description="Battez-vous à mort dans l'arène avec des armes",
             decor="Arène romaine avec gradins remplis de VIP",
             death_animations=[
@@ -104,7 +104,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=7, name="Bataille royale", type=EventType.FORCE, difficulty=10,
+            id=7, name="Bataille royale", type=EventType.FORCE, category=EventCategory.COMBAT, difficulty=10,
             description="Dernière personne debout remporte l'épreuve",
             decor="Zone de guerre urbaine avec bâtiments en ruine",
             death_animations=[
