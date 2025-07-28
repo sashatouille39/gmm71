@@ -502,110 +502,93 @@ class GameService:
     
     @classmethod
     def simulate_event(cls, players: List[Player], event: GameEvent) -> EventResult:
-        """Simule une épreuve et retourne les résultats avec animations de mort"""
+        """Simule une épreuve et retourne les résultats avec animations de mort - VERSION CORRIGÉE"""
         alive_players = [p for p in players if p.alive]
         survivors = []
         eliminated = []
         
-        # Calcul préliminaire pour s'assurer du respect des taux de mortalité
-        target_survivors = len(alive_players) * (1 - event.elimination_rate)
+        if not alive_players:
+            return EventResult(
+                event_id=event.id,
+                event_name=event.name,
+                survivors=[],
+                eliminated=[],
+                total_participants=0
+            )
         
-        # Pour les épreuves normales: 40-60% de mortalité (60-40% de survivants)
-        # Pour les épreuves spéciales: respecter le taux configuré
-        if event.name not in ["Le Jugement Final", "Bataille royale"]:
-            min_survivors = max(1, int(len(alive_players) * 0.40))  # Minimum 40% de survivants (60% mortalité)
-            max_survivors = int(len(alive_players) * 0.60)  # Maximum 60% de survivants (40% mortalité)
-            target_survivors = max(min_survivors, min(max_survivors, target_survivors))
-        else:
-            # Pour les épreuves spéciales, respecter exactement le taux configuré
-            min_survivors = max(1, int(target_survivors * 0.9))  # Petite marge d'erreur
-            max_survivors = int(target_survivors * 1.1)
+        # Calculer le nombre exact de survivants selon le taux d'élimination configuré
+        target_survivors = int(len(alive_players) * (1 - event.elimination_rate))
         
-        # Calculer les chances individuelles de survie
-        player_chances = []
+        # S'assurer qu'il y a au moins 1 survivant
+        target_survivors = max(1, target_survivors)
+        
+        # Calculer un score de survie pour chaque joueur (stats + rôle + aléatoire)
+        player_scores = []
         for player in alive_players:
-            # Calcul des chances de survie selon les stats et le rôle
+            # Bonus de stats selon le type d'épreuve
             stat_bonus = cls._get_stat_bonus_for_event(player, event)
+            
+            # Bonus de rôle
             role_bonus = cls._get_role_bonus_for_event(player, event)
             
-            # Calcul base de survie influencé par le taux d'élimination
-            base_survival = 1.0 - event.elimination_rate
-            survive_chance = base_survival + (stat_bonus * 0.04) + role_bonus
+            # Malus de difficulté
+            difficulty_malus = (event.difficulty - 5) * 0.5
             
-            # Ajustement selon difficulté (réduit pour éviter les extrêmes)
-            difficulty_malus = (event.difficulty - 5) * 0.015  # Réduit de 0.02 à 0.015
-            survive_chance = survive_chance - difficulty_malus
+            # Score de base + bonus - malus + facteur aléatoire
+            survival_score = stat_bonus + (role_bonus * 10) - difficulty_malus + random.uniform(0, 5)
             
-            # Limiter les chances dans une fourchette raisonnable
-            survive_chance = max(0.15, min(0.85, survive_chance))
+            player_scores.append((player, survival_score))
+        
+        # Trier par score de survie (les meilleurs en premier)
+        player_scores.sort(key=lambda x: x[1], reverse=True)
+        
+        # Sélectionner exactement target_survivors survivants (les meilleurs)
+        survivors_selected = player_scores[:target_survivors]
+        eliminated_selected = player_scores[target_survivors:]
+        
+        # Traiter les survivants
+        for player, score in survivors_selected:
+            time_remaining = random.randint(event.survival_time_min // 4, event.survival_time_max // 2)
+            event_kills = random.randint(0, 2) if event.type == EventType.FORCE else random.randint(0, 1)
+            betrayed = random.random() < 0.1
             
-            player_chances.append((player, survive_chance))
+            player.survived_events += 1
+            player.kills += event_kills
+            if betrayed:
+                player.betrayals += 1
+            
+            event_score = time_remaining + (event_kills * 10) - (5 if betrayed else 0)
+            player.total_score += event_score
+            
+            survivors.append({
+                "player": player,
+                "number": player.number,
+                "name": player.name,
+                "time_remaining": time_remaining,
+                "event_kills": event_kills,
+                "betrayed": betrayed,
+                "score": event_score,
+                "kills": player.kills,
+                "total_score": player.total_score,
+                "survived_events": player.survived_events
+            })
         
-        # Trier par chances de survie pour prioriser les meilleurs joueurs
-        player_chances.sort(key=lambda x: x[1], reverse=True)
+        # Traiter les éliminés
+        for player, score in eliminated_selected:
+            player.alive = False
+            death_animation = EventsService.get_random_death_animation(event)
+            
+            eliminated.append({
+                "player": player,
+                "number": player.number,
+                "name": player.name,
+                "elimination_time": random.randint(10, event.survival_time_max // 2),
+                "cause": death_animation,
+                "decor": event.decor,
+                "event_name": event.name
+            })
         
-        # Sélectionner les survivants en respectant le target
-        actual_survivors = 0
-        for player, chance in player_chances:
-            # Garantir un minimum de survivants parmi les meilleurs
-            if actual_survivors < target_survivors or random.random() < chance:
-                if actual_survivors < len(alive_players) - 1:  # Éviter d'éliminer tout le monde
-                    # Survie
-                    time_remaining = random.randint(event.survival_time_min // 4, event.survival_time_max // 2)
-                    event_kills = random.randint(0, 2) if event.type == EventType.FORCE else random.randint(0, 1)
-                    betrayed = random.random() < 0.1
-                    
-                    player.survived_events += 1
-                    player.kills += event_kills
-                    if betrayed:
-                        player.betrayals += 1
-                    
-                    score = time_remaining + (event_kills * 10) - (5 if betrayed else 0)
-                    player.total_score += score
-                    
-                    survivors.append({
-                        "player": player,
-                        "number": player.number,
-                        "name": player.name,
-                        "time_remaining": time_remaining,
-                        "event_kills": event_kills,
-                        "betrayed": betrayed,
-                        "score": score,
-                        "kills": player.kills,
-                        "total_score": player.total_score,
-                        "survived_events": player.survived_events
-                    })
-                    actual_survivors += 1
-                else:
-                    # Force l'élimination pour respecter les limites
-                    player.alive = False
-                    death_animation = EventsService.get_random_death_animation(event)
-                    
-                    eliminated.append({
-                        "player": player,
-                        "number": player.number,
-                        "name": player.name,
-                        "elimination_time": random.randint(10, event.survival_time_max // 2),
-                        "cause": death_animation,
-                        "decor": event.decor,
-                        "event_name": event.name
-                    })
-            else:
-                # Élimination avec animation de mort spécifique
-                player.alive = False
-                death_animation = EventsService.get_random_death_animation(event)
-                
-                eliminated.append({
-                    "player": player,
-                    "number": player.number,
-                    "name": player.name,
-                    "elimination_time": random.randint(10, event.survival_time_max // 2),
-                    "cause": death_animation,
-                    "decor": event.decor,
-                    "event_name": event.name
-                })
-        
-        # Trier les survivants par score
+        # Trier les survivants par score d'événement
         survivors.sort(key=lambda x: x["score"], reverse=True)
         
         return EventResult(
