@@ -108,7 +108,16 @@ export const useCustomPlayers = () => {
         name: `${player.name} (Copie)`,
         createdAt: new Date().toISOString()
       };
-      setCustomPlayers(prev => [...prev, duplicated]);
+      setCustomPlayers(prev => {
+        const updated = [...prev, duplicated];
+        // Dispatch l'événement lors de duplication explicite
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('customPlayersChanged', { 
+            detail: updated 
+          }));
+        }, 0);
+        return updated;
+      });
       return duplicated;
     }
     return null;
