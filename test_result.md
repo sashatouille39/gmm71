@@ -541,13 +541,11 @@
 
 ## test_plan:
   current_focus:
-    - "Système économique mis à jour"
-    - "Nouvelles routes VIP"
-    - "Gains VIP améliorés"
+    - "Intégration MongoDB"
+    - "Système VIP complet avec paris"
+    - "Arène de jeu avec mode spectateur"
   stuck_tasks:
-    - "Système économique mis à jour"
-    - "Nouvelles routes VIP"
-    - "Gains VIP améliorés"
+    - "Intégration MongoDB"
   test_all: false
   test_priority: "high_first"
 
