@@ -268,10 +268,7 @@ class GameService:
                 'M': ['Jón', 'Sigurdur', 'Guðmundur', 'Gunnar', 'Ólafur', 'Einar', 'Kristján', 'Magnús'],
                 'F': ['Guðrún', 'Anna', 'Kristín', 'Margrét', 'Sigríður', 'Helga', 'Ragnhildur', 'Jóhanna']
             },
-            'Israélienne': {
-                'M': ['Moshe', 'David', 'Yosef', 'Daniel', 'Michael', 'Avi', 'Roi', 'Itai'],
-                'F': ['Sarah', 'Miriam', 'Rachel', 'Tamar', 'Yael', 'Noa', 'Maya', 'Chen']
-            },
+
             'Italienne': {
                 'M': ['Giuseppe', 'Antonio', 'Giovanni', 'Mario', 'Francesco', 'Luigi', 'Angelo', 'Vincenzo'],
                 'F': ['Maria', 'Anna', 'Giuseppina', 'Rosa', 'Angela', 'Giovanna', 'Teresa', 'Lucia']
