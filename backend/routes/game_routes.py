@@ -57,26 +57,23 @@ async def create_game(request: GameCreateRequest):
             player = GameService.generate_random_player(player_id)
             players.append(player)
         
-        # Sélectionner les événements
-        selected_events = [
-            event for event in GameService.GAME_EVENTS 
-            if event.id in request.selected_events
-        ]
+        # Sélectionner et organiser les événements (finales à la fin)
+        organized_events = EventsService.organize_events_for_game(request.selected_events)
         
-        if not selected_events:
+        if not organized_events:
             raise HTTPException(status_code=400, detail="Aucun événement sélectionné")
         
         # Calculer le coût
         game_modes_cost = {"standard": 1000, "hardcore": 2500, "custom": 1500}
         base_cost = game_modes_cost.get(request.game_mode, 1000)
         player_cost = len(players) * 10
-        event_cost = len(selected_events) * 500
+        event_cost = len(organized_events) * 500
         total_cost = base_cost + player_cost + event_cost
         
         # Créer la partie
         game = Game(
             players=players,
-            events=selected_events,
+            events=organized_events,
             total_cost=total_cost
         )
         
