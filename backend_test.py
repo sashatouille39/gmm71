@@ -402,7 +402,43 @@ class BackendTester:
                 self.log_result("Nationality Names Correction", False, 
                               f"❌ NATIONALITY NAMES CORRECTION FAILED", messages)
             
-            # Test 5: Test with game creation to ensure consistency
+            # Test 5: CRITICAL - Verify exactly 43 nationalities are available in the system
+            print("   Testing that exactly 43 nationalities are available...")
+            
+            # Generate a larger sample to ensure we see all nationalities
+            response = requests.post(f"{API_BASE}/games/generate-players?count=200", timeout=20)
+            
+            if response.status_code == 200:
+                large_sample_players = response.json()
+                all_nationalities_found = set()
+                
+                for player in large_sample_players:
+                    nationality = player.get('nationality', '')
+                    if nationality:
+                        all_nationalities_found.add(nationality)
+                
+                # Check if we found exactly 43 unique nationalities
+                total_found = len(all_nationalities_found)
+                
+                if total_found == 43:
+                    # Verify they match our expected list
+                    missing_from_expected = all_nationalities_found - set(expected_nationalities)
+                    extra_from_expected = set(expected_nationalities) - all_nationalities_found
+                    
+                    if not missing_from_expected and not extra_from_expected:
+                        self.log_result("43 Nationalities Count Verification", True, 
+                                      f"✅ CONFIRMED: Exactly 43 nationalities available, all match expected list")
+                    else:
+                        self.log_result("43 Nationalities Count Verification", False, 
+                                      f"❌ Nationality mismatch - Missing: {missing_from_expected}, Extra: {extra_from_expected}")
+                else:
+                    self.log_result("43 Nationalities Count Verification", False, 
+                                  f"❌ Expected exactly 43 nationalities, found {total_found}: {sorted(all_nationalities_found)}")
+            else:
+                self.log_result("43 Nationalities Count Verification", False, 
+                              f"Could not verify nationality count - HTTP {response.status_code}")
+            
+            # Test 6: Test with game creation to ensure consistency
             print("   Testing nationality names in game creation...")
             game_request = {
                 "player_count": 50,
