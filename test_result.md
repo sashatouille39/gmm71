@@ -121,16 +121,19 @@
           comment: "✅ SYSTÈME ÉCONOMIQUE COMPLÈTEMENT CORRIGÉ! Problèmes résolus: 1) Coûts de base modifiés: Standard=2,200,000 (au lieu de 1M), Hardcore=4,500,000 (au lieu de 2.5M), Custom=5,000,000 (au lieu de 1.5M), 2) Coût par joueur: 100,000 par joueur (au lieu de 10k), 3) Coût par épreuve: 5,000,000 par épreuve (au lieu de 500k), 4) Test validé avec partie 50 joueurs + 3 événements = 22,200,000 total (2.2M base + 5M joueurs + 15M événements). Le problème d'argent insuffisant est résolu car 50M > 22.2M."
 
   - task: "Nouvelles routes VIP"
-    implemented: false
-    working: false
+    implemented: true
+    working: true
     file: "routes/vip_routes.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
         - working: false
           agent: "testing"
           comment: "❌ CRITICAL: All VIP routes return 404 errors. Routes not properly configured: GET /api/vips/salon/{salon_level}, GET /api/vips/all, GET /api/vips/game/{game_id}, POST /api/vips/game/{game_id}/refresh, GET /api/vips/earnings/{game_id}. VIP service exists with 50 unique animal/insect masks but routes are not accessible."
+        - working: true
+          agent: "main"
+          comment: "✅ ROUTES VIP COMPLÈTEMENT FONCTIONNELLES! Problèmes résolus: 1) Toutes les routes VIP testées et fonctionnelles (plus de 404), 2) GET /api/vips/all retourne les 50 VIPs uniques avec masques d'animaux/insectes, 3) GET /api/vips/salon/{salon_level} fonctionne (capacité: niveau 1=3 VIPs, niveau 2=5 VIPs, etc.), 4) GET /api/vips/game/{game_id} assigne des VIPs spécifiques à chaque partie avec viewing_fee calculés automatiquement (500k-2M selon personnalité), 5) VipService.get_random_vips() fonctionne parfaitement avec attribution des frais de visionnage."
 
   - task: "Gains VIP améliorés"
     implemented: false
