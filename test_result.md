@@ -137,6 +137,9 @@
         - working: false
           agent: "main"
           comment: "CORRECTION IMPLÉMENTÉE : Ajout d'une route /collect-vip-earnings pour collecter les gains VIP et les ajouter au gamestate."
+        - working: false
+          agent: "main"
+          comment: "CORRECTION CRITIQUE APPLIQUÉE : Les gains VIP utilisent maintenant les VRAIS montants des VIPs (200k-3M chacun) au lieu de la formule 100$ par joueur. Les VIPs sont automatiquement assignés lors de création de partie avec leurs viewing_fee spécifiques affichés dans le salon VIP."
         - working: true
           agent: "testing"
           comment: "✅ PROBLÈME 2 COMPLÈTEMENT RÉSOLU - LES VIPS PAIENT MAINTENANT! Tests exhaustifs effectués selon la review request française: 1) **Route POST /api/games/{id}/collect-vip-earnings**: ✅ CONFIRMÉ - Ajoute correctement les gains VIP au portefeuille après fin de partie. 2) **Calcul des gains VIP**: ✅ CONFIRMÉ - Formule exacte (50 joueurs × 100$) + (20 morts × 50$) = 6,000$ exact. 3) **Vérification partie terminée**: ✅ CONFIRMÉ - Erreur 400 'partie n'est pas terminée' pour parties en cours (comportement correct). 4) **Accumulation progressive**: ✅ CONFIRMÉ - Les gains s'accumulent pendant le jeu (0 → 6,000 → 6,900 selon les morts). Backend tests: 4/4 passed (100% success rate). Le problème 'les VIPs ne paient pas' signalé par l'utilisateur français est complètement résolu."
