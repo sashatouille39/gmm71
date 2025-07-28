@@ -165,34 +165,254 @@ class GameService:
     def _generate_random_name(cls, nationality: str, gender: str) -> str:
         """Génère un nom complet aléatoire selon la nationalité et le genre"""
         first_names = {
+            'Afghane': {
+                'M': ['Ahmad', 'Mohammed', 'Abdul', 'Hassan', 'Omar', 'Ali', 'Mahmud', 'Rashid'],
+                'F': ['Fatima', 'Aisha', 'Zara', 'Maryam', 'Layla', 'Nadia', 'Soraya', 'Jamila']
+            },
+            'Allemande': {
+                'M': ['Hans', 'Klaus', 'Jürgen', 'Wolfgang', 'Dieter', 'Günter', 'Helmut', 'Manfred'],
+                'F': ['Ursula', 'Ingrid', 'Gisela', 'Christa', 'Helga', 'Monika', 'Renate', 'Brigitte']
+            },
+            'Argentine': {
+                'M': ['Carlos', 'Juan', 'José', 'Luis', 'Miguel', 'Jorge', 'Roberto', 'Diego'],
+                'F': ['María', 'Ana', 'Carmen', 'Rosa', 'Isabel', 'Teresa', 'Cristina', 'Patricia']
+            },
+            'Australienne': {
+                'M': ['Jack', 'William', 'James', 'Benjamin', 'Luke', 'Henry', 'Alexander', 'Mason'],
+                'F': ['Charlotte', 'Ruby', 'Lily', 'Sophie', 'Emily', 'Chloe', 'Mia', 'Grace']
+            },
+            'Autrichienne': {
+                'M': ['Johann', 'Franz', 'Karl', 'Josef', 'Georg', 'Anton', 'Heinrich', 'Paul'],
+                'F': ['Maria', 'Anna', 'Elisabeth', 'Theresia', 'Johanna', 'Franziska', 'Katharina', 'Barbara']
+            },
+            'Belge': {
+                'M': ['Jean', 'Pierre', 'Marc', 'Philippe', 'Michel', 'Paul', 'Luc', 'André'],
+                'F': ['Marie', 'Anne', 'Catherine', 'Martine', 'Françoise', 'Monique', 'Christine', 'Isabelle']
+            },
+            'Brésilienne': {
+                'M': ['João', 'José', 'Carlos', 'Paulo', 'Pedro', 'Francisco', 'Luiz', 'Marcos'],
+                'F': ['Maria', 'Ana', 'Francisca', 'Antônia', 'Adriana', 'Juliana', 'Márcia', 'Fernanda']
+            },
+            'Britannique': {
+                'M': ['James', 'John', 'Robert', 'Michael', 'William', 'David', 'Richard', 'Charles'],
+                'F': ['Mary', 'Patricia', 'Jennifer', 'Linda', 'Elizabeth', 'Barbara', 'Susan', 'Jessica']
+            },
+            'Bulgare': {
+                'M': ['Georgi', 'Ivan', 'Dimitar', 'Nikolai', 'Stoyan', 'Petar', 'Hristo', 'Stefan'],
+                'F': ['Maria', 'Elena', 'Valentina', 'Gergana', 'Daniela', 'Svetlana', 'Milena', 'Tsveta']
+            },
+            'Canadienne': {
+                'M': ['Liam', 'Noah', 'William', 'James', 'Logan', 'Benjamin', 'Mason', 'Ethan'],
+                'F': ['Emma', 'Olivia', 'Ava', 'Isabella', 'Sophia', 'Charlotte', 'Mia', 'Amelia']
+            },
+            'Chinoise': {
+                'M': ['Wei', 'Jun', 'Ming', 'Hao', 'Lei', 'Qiang', 'Yang', 'Bin'],
+                'F': ['Li', 'Wang', 'Zhang', 'Liu', 'Chen', 'Yang', 'Zhao', 'Huang']
+            },
             'Coréenne': {
                 'M': ['Min-jun', 'Seo-jun', 'Do-yoon', 'Si-woo', 'Joon-ho', 'Hyun-woo', 'Jin-woo', 'Sung-min'],
                 'F': ['Seo-yeon', 'Min-seo', 'Ji-woo', 'Ha-eun', 'Soo-jin', 'Ye-jin', 'Su-bin', 'Na-eun']
             },
-            'Japonaise': {
-                'M': ['Hiroshi', 'Takeshi', 'Akira', 'Yuki', 'Daiki', 'Haruto', 'Sota', 'Ren'],
-                'F': ['Sakura', 'Yuki', 'Ai', 'Rei', 'Mana', 'Yui', 'Hina', 'Emi']
+            'Croate': {
+                'M': ['Marko', 'Ante', 'Josip', 'Ivan', 'Luka', 'Matej', 'Tomislav', 'Petar'],
+                'F': ['Ana', 'Marija', 'Petra', 'Marijana', 'Ivana', 'Katarina', 'Nikolina', 'Sara']
+            },
+            'Danoise': {
+                'M': ['Lars', 'Niels', 'Jens', 'Peter', 'Henrik', 'Thomas', 'Christian', 'Martin'],
+                'F': ['Anne', 'Kirsten', 'Mette', 'Hanne', 'Lene', 'Susanne', 'Camilla', 'Maria']
+            },
+            'Égyptienne': {
+                'M': ['Mohamed', 'Ahmed', 'Mahmoud', 'Omar', 'Ali', 'Hassan', 'Khaled', 'Amr'],
+                'F': ['Fatima', 'Aisha', 'Maryam', 'Zeinab', 'Nour', 'Salma', 'Yasmin', 'Nadia']
+            },
+            'Espagnole': {
+                'M': ['Antonio', 'José', 'Francisco', 'David', 'Juan', 'Javier', 'Daniel', 'Carlos'],
+                'F': ['Carmen', 'María', 'Josefa', 'Isabel', 'Ana', 'Pilar', 'Mercedes', 'Dolores']
+            },
+            'Estonienne': {
+                'M': ['Jaan', 'Toomas', 'Andres', 'Mart', 'Ants', 'Peeter', 'Kalev', 'Rein'],
+                'F': ['Kadri', 'Kristiina', 'Liis', 'Mari', 'Karin', 'Helen', 'Piret', 'Anne']
+            },
+            'Finlandaise': {
+                'M': ['Jukka', 'Mikael', 'Juha', 'Matti', 'Pekka', 'Antti', 'Jari', 'Heikki'],
+                'F': ['Maria', 'Helena', 'Johanna', 'Anna', 'Kaarina', 'Kristiina', 'Margareta', 'Elisabeth']
             },
             'Française': {
                 'M': ['Pierre', 'Jean', 'Michel', 'Alain', 'Philippe', 'Nicolas', 'Antoine', 'Julien'],
                 'F': ['Marie', 'Nathalie', 'Isabelle', 'Sylvie', 'Catherine', 'Valérie', 'Christine', 'Sophie']
             },
+            'Grecque': {
+                'M': ['Georgios', 'Ioannis', 'Konstantinos', 'Dimitrios', 'Nikolaos', 'Panagiotis', 'Vasileios', 'Christos'],
+                'F': ['Maria', 'Eleni', 'Aikaterini', 'Vasiliki', 'Sofia', 'Angeliki', 'Georgia', 'Dimitra']
+            },
+            'Hongroise': {
+                'M': ['László', 'József', 'János', 'Zoltán', 'Sándor', 'Gábor', 'Ferenc', 'Attila'],
+                'F': ['Mária', 'Erzsébet', 'Katalin', 'Ilona', 'Éva', 'Anna', 'Zsuzsanna', 'Margit']
+            },
+            'Indienne': {
+                'M': ['Rahul', 'Amit', 'Raj', 'Vikash', 'Sunil', 'Ravi', 'Anil', 'Sanjay'],
+                'F': ['Priya', 'Sunita', 'Pooja', 'Kavita', 'Neetu', 'Rekha', 'Geeta', 'Seema']
+            },
+            'Indonésienne': {
+                'M': ['Budi', 'Ahmad', 'Agus', 'Andi', 'Bambang', 'Dedi', 'Eko', 'Hadi'],
+                'F': ['Sari', 'Sri', 'Indira', 'Dewi', 'Rina', 'Maya', 'Lestari', 'Wati']
+            },
+            'Iranienne': {
+                'M': ['Mohammad', 'Ali', 'Hassan', 'Hossein', 'Reza', 'Ahmad', 'Mehdi', 'Abbas'],
+                'F': ['Fatima', 'Zahra', 'Maryam', 'Narges', 'Somayeh', 'Fatemeh', 'Leila', 'Nasrin']
+            },
+            'Irlandaise': {
+                'M': ['Sean', 'Patrick', 'Michael', 'John', 'David', 'Daniel', 'Paul', 'Mark'],
+                'F': ['Mary', 'Margaret', 'Catherine', 'Bridget', 'Anne', 'Patricia', 'Helen', 'Elizabeth']
+            },
+            'Islandaise': {
+                'M': ['Jón', 'Sigurdur', 'Guðmundur', 'Gunnar', 'Ólafur', 'Einar', 'Kristján', 'Magnús'],
+                'F': ['Guðrún', 'Anna', 'Kristín', 'Margrét', 'Sigríður', 'Helga', 'Ragnhildur', 'Jóhanna']
+            },
+            'Israélienne': {
+                'M': ['Moshe', 'David', 'Yosef', 'Daniel', 'Michael', 'Avi', 'Roi', 'Itai'],
+                'F': ['Sarah', 'Miriam', 'Rachel', 'Tamar', 'Yael', 'Noa', 'Maya', 'Chen']
+            },
+            'Italienne': {
+                'M': ['Giuseppe', 'Antonio', 'Giovanni', 'Mario', 'Francesco', 'Luigi', 'Angelo', 'Vincenzo'],
+                'F': ['Maria', 'Anna', 'Giuseppina', 'Rosa', 'Angela', 'Giovanna', 'Teresa', 'Lucia']
+            },
+            'Japonaise': {
+                'M': ['Hiroshi', 'Takeshi', 'Akira', 'Yuki', 'Daiki', 'Haruto', 'Sota', 'Ren'],
+                'F': ['Sakura', 'Yuki', 'Ai', 'Rei', 'Mana', 'Yui', 'Hina', 'Emi']
+            },
+            'Kazakhe': {
+                'M': ['Askar', 'Nurzhan', 'Dauren', 'Arman', 'Serik', 'Baurzhan', 'Erlan', 'Marat'],
+                'F': ['Aida', 'Aigerim', 'Zhanna', 'Madina', 'Gulnara', 'Saule', 'Aliya', 'Nazira']
+            },
+            'Lettone': {
+                'M': ['Jānis', 'Pēteris', 'Andris', 'Juris', 'Māris', 'Aivars', 'Valdis', 'Edgars'],
+                'F': ['Anna', 'Marija', 'Ieva', 'Linda', 'Kristīne', 'Inese', 'Ilze', 'Dace']
+            },
+            'Lituanienne': {
+                'M': ['Jonas', 'Antanas', 'Vytautas', 'Petras', 'Algirdas', 'Kęstutis', 'Mindaugas', 'Rimantas'],
+                'F': ['Ona', 'Marija', 'Elena', 'Janina', 'Irena', 'Nijolė', 'Danutė', 'Aldona']
+            },
+            'Luxembourgeoise': {
+                'M': ['Jean', 'Pierre', 'Marc', 'Alain', 'Claude', 'Michel', 'André', 'François'],
+                'F': ['Marie', 'Anne', 'Monique', 'Josée', 'Christiane', 'Nicole', 'Martine', 'Françoise']
+            },
+            'Marocaine': {
+                'M': ['Mohamed', 'Ahmed', 'Ali', 'Hassan', 'Omar', 'Youssef', 'Khalid', 'Abdelkader'],
+                'F': ['Fatima', 'Aisha', 'Khadija', 'Zahra', 'Amina', 'Nadia', 'Malika', 'Samira']
+            },
+            'Mexicaine': {
+                'M': ['José', 'Juan', 'Antonio', 'Jesús', 'Miguel', 'Pedro', 'Alejandro', 'Manuel'],
+                'F': ['María', 'Guadalupe', 'Juana', 'Margarita', 'Francisca', 'Rosa', 'Isabel', 'Teresa']
+            },
+            'Néerlandaise': {
+                'M': ['Johannes', 'Gerrit', 'Jan', 'Pieter', 'Cornelis', 'Hendrikus', 'Jacobus', 'Adrianus'],
+                'F': ['Maria', 'Anna', 'Johanna', 'Cornelia', 'Elisabeth', 'Catharina', 'Geertruida', 'Margaretha']
+            },
+            'Nigériane': {
+                'M': ['Chukwu', 'Emeka', 'Ikechukwu', 'Nnamdi', 'Obinna', 'Chijioke', 'Kelechi', 'Chidi'],
+                'F': ['Ngozi', 'Chioma', 'Ifeoma', 'Adaeze', 'Chinwe', 'Nneka', 'Chiamaka', 'Uchechi']
+            },
+            'Norvégienne': {
+                'M': ['Ole', 'Lars', 'Nils', 'Erik', 'Hans', 'Knut', 'Magnus', 'Bjørn'],
+                'F': ['Anna', 'Marie', 'Ingrid', 'Karen', 'Astrid', 'Solveig', 'Kari', 'Liv']
+            },
+            'Polonaise': {
+                'M': ['Jan', 'Andrzej', 'Krzysztof', 'Stanisław', 'Tomasz', 'Paweł', 'Józef', 'Marcin'],
+                'F': ['Anna', 'Maria', 'Katarzyna', 'Małgorzata', 'Agnieszka', 'Barbara', 'Ewa', 'Elżbieta']
+            },
+            'Portugaise': {
+                'M': ['José', 'António', 'João', 'Manuel', 'Francisco', 'Carlos', 'Joaquim', 'Luís'],
+                'F': ['Maria', 'Ana', 'Manuela', 'Helena', 'Fernanda', 'Isabel', 'Paula', 'Conceição']
+            },
+            'Roumaine': {
+                'M': ['Ion', 'Gheorghe', 'Nicolae', 'Vasile', 'Dumitru', 'Petre', 'Florin', 'Marian'],
+                'F': ['Maria', 'Ana', 'Elena', 'Ioana', 'Mihaela', 'Cristina', 'Daniela', 'Andreea']
+            },
+            'Russe': {
+                'M': ['Aleksandr', 'Sergei', 'Vladimir', 'Dmitri', 'Andrei', 'Alexei', 'Nikolai', 'Ivan'],
+                'F': ['Elena', 'Olga', 'Irina', 'Tatyana', 'Svetlana', 'Natasha', 'Marina', 'Lyudmila']
+            },
+            'Suédoise': {
+                'M': ['Lars', 'Karl', 'Nils', 'Erik', 'Anders', 'Johan', 'Per', 'Olof'],
+                'F': ['Anna', 'Maria', 'Margareta', 'Elisabeth', 'Eva', 'Birgitta', 'Kristina', 'Karin']
+            },
+            'Suisse': {
+                'M': ['Hans', 'Peter', 'Franz', 'Johann', 'Jakob', 'Rudolf', 'Karl', 'Fritz'],
+                'F': ['Maria', 'Anna', 'Elisabeth', 'Rosa', 'Emma', 'Bertha', 'Martha', 'Marie']
+            },
+            'Tchèque': {
+                'M': ['Jan', 'Pavel', 'Petr', 'Tomáš', 'Jiří', 'Josef', 'Miroslav', 'Zdeněk'],
+                'F': ['Marie', 'Jiřina', 'Anna', 'Věra', 'Alena', 'Lenka', 'Hana', 'Jaroslava']
+            },
+            'Thaïlandaise': {
+                'M': ['Somchai', 'Surasak', 'Sombat', 'Suwan', 'Prasert', 'Wichai', 'Pornchai', 'Thawatchai'],
+                'F': ['Siriporn', 'Sunisa', 'Pranee', 'Suwanna', 'Malee', 'Pimchai', 'Wanna', 'Sirikul']
+            },
+            'Turque': {
+                'M': ['Mehmet', 'Mustafa', 'Ahmed', 'Ali', 'Hasan', 'İbrahim', 'Osman', 'Süleyman'],
+                'F': ['Fatma', 'Ayşe', 'Emine', 'Hatice', 'Zeynep', 'Elif', 'Meryem', 'Özlem']
+            },
+            'Ukrainienne': {
+                'M': ['Oleksandr', 'Sergiy', 'Andriy', 'Volodymyr', 'Oleksiy', 'Vitaliy', 'Igor', 'Yuriy'],
+                'F': ['Oksana', 'Natalya', 'Olena', 'Iryna', 'Tetyana', 'Lyudmyla', 'Svitlana', 'Mariya']
+            },
             'Américaine': {
                 'M': ['John', 'Michael', 'David', 'James', 'Robert', 'William', 'Christopher', 'Matthew'],
                 'F': ['Mary', 'Jennifer', 'Linda', 'Patricia', 'Susan', 'Jessica', 'Sarah', 'Karen']
-            },
-            'Chinoise': {
-                'M': ['Wei', 'Jun', 'Ming', 'Hao', 'Lei', 'Qiang', 'Yang', 'Bin'],
-                'F': ['Li', 'Wang', 'Zhang', 'Liu', 'Chen', 'Yang', 'Zhao', 'Huang']
             }
         }
         
         last_names = {
+            'Afghane': ['Ahmad', 'Khan', 'Shah', 'Ali', 'Rahman', 'Hassan', 'Hussain', 'Mahmud', 'Omar', 'Yusuf'],
+            'Allemande': ['Müller', 'Schmidt', 'Schneider', 'Fischer', 'Weber', 'Meyer', 'Wagner', 'Becker', 'Schulz', 'Hoffmann'],
+            'Argentine': ['González', 'Rodríguez', 'Gómez', 'Fernández', 'López', 'Díaz', 'Martínez', 'Pérez', 'García', 'Sánchez'],
+            'Australienne': ['Smith', 'Jones', 'Williams', 'Brown', 'Wilson', 'Taylor', 'Johnson', 'White', 'Martin', 'Anderson'],
+            'Autrichienne': ['Gruber', 'Huber', 'Bauer', 'Wagner', 'Müller', 'Pichler', 'Steiner', 'Moser', 'Mayer', 'Hofer'],
+            'Belge': ['Peeters', 'Janssens', 'Maes', 'Jacobs', 'Mertens', 'Willems', 'Claes', 'Goossens', 'Wouters', 'De Smet'],
+            'Brésilienne': ['Silva', 'Santos', 'Oliveira', 'Souza', 'Rodrigues', 'Ferreira', 'Alves', 'Pereira', 'Lima', 'Gomes'],
+            'Britannique': ['Smith', 'Jones', 'Taylor', 'Williams', 'Brown', 'Davies', 'Evans', 'Wilson', 'Thomas', 'Roberts'],
+            'Bulgare': ['Ivanov', 'Petrov', 'Dimitrov', 'Georgiev', 'Nikolov', 'Todorov', 'Hristov', 'Stoyanov', 'Marinov', 'Angelov'],
+            'Canadienne': ['Smith', 'Brown', 'Tremblay', 'Martin', 'Roy', 'Wilson', 'MacDonald', 'Johnson', 'Thompson', 'Anderson'],
+            'Chinoise': ['Wang', 'Li', 'Zhang', 'Liu', 'Chen', 'Yang', 'Zhao', 'Huang', 'Zhou', 'Wu', 'Xu', 'Sun'],
             'Coréenne': ['Kim', 'Lee', 'Park', 'Choi', 'Jung', 'Kang', 'Cho', 'Yoon', 'Jang', 'Lim', 'Han', 'Oh'],
-            'Japonaise': ['Sato', 'Suzuki', 'Takahashi', 'Tanaka', 'Watanabe', 'Ito', 'Yamamoto', 'Nakamura', 'Kobayashi', 'Kato', 'Yoshida', 'Yamada'],
+            'Croate': ['Horvat', 'Novak', 'Marić', 'Petrović', 'Jurić', 'Babić', 'Matić', 'Pavić', 'Tomić', 'Kovač'],
+            'Danoise': ['Nielsen', 'Jensen', 'Hansen', 'Pedersen', 'Andersen', 'Christensen', 'Larsen', 'Sørensen', 'Rasmussen', 'Jørgensen'],
+            'Égyptienne': ['Mohamed', 'Ahmed', 'Mahmoud', 'Hassan', 'Ali', 'Ibrahim', 'Abdel Rahman', 'Omar', 'Khalil', 'Said'],
+            'Espagnole': ['García', 'Rodríguez', 'González', 'Fernández', 'López', 'Martínez', 'Sánchez', 'Pérez', 'Gómez', 'Martín'],
+            'Estonienne': ['Tamm', 'Saar', 'Sepp', 'Mägi', 'Kask', 'Kukk', 'Rebane', 'Ilves', 'Pärn', 'Känd'],
+            'Finlandaise': ['Korhonen', 'Virtanen', 'Mäkinen', 'Nieminen', 'Mäkelä', 'Hämäläinen', 'Laine', 'Heikkinen', 'Koskinen', 'Järvinen'],
             'Française': ['Martin', 'Bernard', 'Thomas', 'Petit', 'Robert', 'Richard', 'Durand', 'Dubois', 'Moreau', 'Laurent', 'Simon', 'Michel'],
-            'Américaine': ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez'],
-            'Chinoise': ['Wang', 'Li', 'Zhang', 'Liu', 'Chen', 'Yang', 'Zhao', 'Huang', 'Zhou', 'Wu', 'Xu', 'Sun']
+            'Grecque': ['Papadopoulos', 'Georgiou', 'Dimitriou', 'Nikolaou', 'Ioannou', 'Petrou', 'Andreou', 'Christou', 'Antoniou', 'Stavrou'],
+            'Hongroise': ['Nagy', 'Kovács', 'Tóth', 'Szabó', 'Horváth', 'Varga', 'Kiss', 'Molnár', 'Németh', 'Farkas'],
+            'Indienne': ['Sharma', 'Verma', 'Singh', 'Kumar', 'Gupta', 'Agarwal', 'Mishra', 'Jain', 'Patel', 'Yadav'],
+            'Indonésienne': ['Sari', 'Dewi', 'Lestari', 'Wati', 'Indira', 'Putri', 'Anggraini', 'Fitria', 'Ningsih', 'Maharani'],
+            'Iranienne': ['Hosseini', 'Ahmadi', 'Mohammadi', 'Rezaei', 'Moradi', 'Mousavi', 'Karimi', 'Rahimi', 'Bagheri', 'Hashemi'],
+            'Irlandaise': ["O'Brien", "O'Sullivan", 'Murphy', "O'Connor", 'Kelly', 'Ryan', "O'Neill", 'Walsh', 'McCarthy', 'Gallagher'],
+            'Islandaise': ['Jónsson', 'Sigurdsson', 'Guðmundsson', 'Einarsson', 'Gunnarsson', 'Ólafsson', 'Kristjánsson', 'Magnússon', 'Stefánsson', 'Þórsson'],
+            'Israélienne': ['Cohen', 'Levy', 'Miller', 'Goldberg', 'Goldstein', 'Rosen', 'Katz', 'Friedman', 'Klein', 'Green'],
+            'Italienne': ['Rossi', 'Russo', 'Ferrari', 'Esposito', 'Bianchi', 'Romano', 'Colombo', 'Ricci', 'Marino', 'Greco'],
+            'Japonaise': ['Sato', 'Suzuki', 'Takahashi', 'Tanaka', 'Watanabe', 'Ito', 'Yamamoto', 'Nakamura', 'Kobayashi', 'Kato', 'Yoshida', 'Yamada'],
+            'Kazakhe': ['Nazarbayev', 'Suleimenov', 'Akhmetov', 'Zhakenov', 'Kassymov', 'Moldashev', 'Bekmuratov', 'Aubakirov', 'Tuleyev', 'Mukanov'],
+            'Lettone': ['Bērziņš', 'Kalniņš', 'Ozols', 'Krūmiņš', 'Liepa', 'Pētersons', 'Jansons', 'Kļaviņš', 'Zariņš', 'Sproģis'],
+            'Lituanienne': ['Kazlauskas', 'Petrauskas', 'Jankauskas', 'Stankevicius', 'Vasiliauskas', 'Zukauskas', 'Butkus', 'Paulauskas', 'Urbonas', 'Rimkus'],
+            'Luxembourgeoise': ['Muller', 'Weber', 'Wagner', 'Schmit', 'Hansen', 'Becker', 'Hoffmann', 'Klein', 'Fischer', 'Mayer'],
+            'Marocaine': ['Alami', 'Bennani', 'El Idrissi', 'Fassi', 'Tazi', 'Benali', 'Berrada', 'Chakir', 'Lamrani', 'Oudghiri'],
+            'Mexicaine': ['González', 'García', 'Martínez', 'López', 'Hernández', 'Pérez', 'Rodríguez', 'Sánchez', 'Ramírez', 'Cruz'],
+            'Néerlandaise': ['De Jong', 'Jansen', 'De Vries', 'Van den Berg', 'Van Dijk', 'Bakker', 'Janssen', 'Visser', 'Smit', 'Meijer'],
+            'Nigériane': ['Adebayo', 'Okafor', 'Okoro', 'Eze', 'Nwankwo', 'Okonkwo', 'Ogbonna', 'Chukwu', 'Emeka', 'Ikechukwu'],
+            'Norvégienne': ['Hansen', 'Johansen', 'Olsen', 'Larsen', 'Andersen', 'Pedersen', 'Nilsen', 'Kristiansen', 'Jensen', 'Karlsen'],
+            'Polonaise': ['Nowak', 'Kowalski', 'Wiśniewski', 'Wójcik', 'Kowalczyk', 'Kamiński', 'Lewandowski', 'Zieliński', 'Szymański', 'Woźniak'],
+            'Portugaise': ['Silva', 'Santos', 'Ferreira', 'Pereira', 'Oliveira', 'Costa', 'Rodrigues', 'Martins', 'Jesus', 'Sousa'],
+            'Roumaine': ['Popescu', 'Ionescu', 'Popa', 'Stoica', 'Stan', 'Dumitrescu', 'Gheorghe', 'Constantinescu', 'Marin', 'Diaconu'],
+            'Russe': ['Ivanov', 'Smirnov', 'Kuznetsov', 'Popov', 'Sokolov', 'Lebedev', 'Kozlov', 'Novikov', 'Morozov', 'Petrov'],
+            'Suédoise': ['Andersson', 'Johansson', 'Karlsson', 'Nilsson', 'Eriksson', 'Larsson', 'Olsson', 'Persson', 'Svensson', 'Gustafsson'],
+            'Suisse': ['Müller', 'Meier', 'Schmid', 'Keller', 'Weber', 'Huber', 'Schneider', 'Meyer', 'Steiner', 'Fischer'],
+            'Tchèque': ['Novák', 'Svoboda', 'Novotný', 'Dvořák', 'Černý', 'Procházka', 'Krejčí', 'Hájek', 'Kratochvíl', 'Horák'],
+            'Thaïlandaise': ['Chanthavy', 'Siriporn', 'Somboon', 'Chanpen', 'Kamon', 'Narongsak', 'Prasert', 'Suwan', 'Thawatchai', 'Wichai'],
+            'Turque': ['Yılmaz', 'Kaya', 'Demir', 'Şahin', 'Çelik', 'Yıldız', 'Yıldırım', 'Öztürk', 'Aydin', 'Özkan'],
+            'Ukrainienne': ['Petrenko', 'Kovalenko', 'Bondarenko', 'Tkachenko', 'Kovalchuk', 'Kravchenko', 'Shevchenko', 'Polishchuk', 'Lysenko', 'Savchenko'],
+            'Américaine': ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez']
         }
         
         nationality_first_names = first_names.get(nationality, first_names['Française'])
