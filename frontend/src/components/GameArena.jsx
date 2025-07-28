@@ -18,7 +18,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 
-const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState }) => {
+const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, onRefreshGameState }) => {
   const navigate = useNavigate();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentEvent, setCurrentEvent] = useState(null);
