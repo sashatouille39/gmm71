@@ -76,7 +76,7 @@ function App() {
         id: game.id,
         players: game.players,
         events: game.events,
-        current_event_index: game.current_event_index || 0,
+        currentEventIndex: game.current_event_index || 0, // CORRECTION: utiliser camelCase pour cohérence frontend
         start_time: game.start_time,
         completed: game.completed || false,
         winner: game.winner || null,
