@@ -454,7 +454,7 @@ class GameService:
             # Moyen-Orient
             'Afghane': (6, 16),
             'Iranienne': (5, 15),
-            'Israélienne': (3, 12),
+
             'Turque': (4, 12),
             
             # Afrique du Nord
