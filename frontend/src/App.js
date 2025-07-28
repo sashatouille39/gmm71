@@ -9,6 +9,7 @@ import UniformCustomization from './components/UniformCustomization';
 import VipSalon from './components/VipSalon';
 import Settings from './components/Settings';
 import PlayerCreator from './components/PlayerCreator';
+import FinalRanking from './components/FinalRanking';
 import { INITIAL_GAME_STATE } from './mock/mockData';
 
 function App() {
