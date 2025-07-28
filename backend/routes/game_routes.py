@@ -144,6 +144,48 @@ async def simulate_event(game_id: str):
             "game": game
         }
     
+    # Logique spéciale pour les épreuves finales
+    if current_event.is_final:
+        # Les finales ne se déclenchent que s'il y a 2-4 joueurs
+        if len(alive_players_before) > current_event.min_players_for_final:
+            # Trop de joueurs pour une finale, passer à l'événement suivant
+            game.current_event_index += 1
+            
+            # Vérifier si il y a encore des événements
+            if game.current_event_index >= len(game.events):
+                # Plus d'événements, terminer la partie avec les survivants actuels
+                game.completed = True
+                game.end_time = datetime.utcnow()
+                game.winner = max(alive_players_before, key=lambda p: p.total_score) if alive_players_before else None
+                game.earnings = 10000 + (len(game.players) - len(alive_players_before)) * 100
+                games_db[game_id] = game
+                
+                return {
+                    "result": EventResult(
+                        event_id=current_event.id,
+                        event_name=f"Finale reportée - {current_event.name}",
+                        survivors=[{
+                            "player": p,
+                            "number": p.number,
+                            "name": p.name,
+                            "time_remaining": 0,
+                            "event_kills": 0,
+                            "betrayed": False,
+                            "score": 0,
+                            "kills": p.kills,
+                            "total_score": p.total_score,
+                            "survived_events": p.survived_events
+                        } for p in alive_players_before],
+                        eliminated=[],
+                        total_participants=len(alive_players_before)
+                    ),
+                    "game": game,
+                    "message": f"Finale reportée: trop de joueurs ({len(alive_players_before)}) pour une finale (max {current_event.min_players_for_final})"
+                }
+            else:
+                # Récursivement essayer le prochain événement
+                return await simulate_event(game_id)
+    
     # Simuler l'événement
     result = GameService.simulate_event(game.players, current_event)
     game.event_results.append(result)
