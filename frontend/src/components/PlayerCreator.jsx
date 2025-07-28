@@ -145,8 +145,6 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
     // Afficher le statut de sauvegarde
     setSavedStatus(true);
     setTimeout(() => setSavedStatus(false), 2000);
-
-    console.log('Joueur sauvegardé:', savedPlayer);
     
     // Optionnel: retourner au menu de configuration
     setTimeout(() => {
