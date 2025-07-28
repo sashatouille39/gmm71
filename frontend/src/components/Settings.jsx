@@ -106,7 +106,7 @@ const Settings = ({ gameState, updateGameState }) => {
 
   const resetGameData = () => {
     updateGameState({
-      money: 50000,
+      money: 50000000, // 50 millions
       vipSalonLevel: 1,
       unlockedUniforms: [],
       unlockedPatterns: [],
