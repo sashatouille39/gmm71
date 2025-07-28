@@ -153,8 +153,14 @@ const GameSetup = ({ gameState, onStartGame }) => {
   };
 
   useEffect(() => {
-    selectRandomEvents();
+    loadEventsFromAPI();
   }, []);
+
+  useEffect(() => {
+    if (availableEvents.length > 0) {
+      selectRandomEvents();
+    }
+  }, [availableEvents]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-red-900 to-black p-6">
