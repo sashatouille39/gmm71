@@ -317,7 +317,7 @@ class EventsService:
         # ÉPREUVES D'AGILITÉ (15)
         # ================================
         GameEvent(
-            id=21, name="Course d'obstacles mortels", type=EventType.AGILITE, difficulty=7,
+            id=21, name="Course d'obstacles mortels", type=EventType.AGILITE, category=EventCategory.ATHLETIQUE, difficulty=7,
             description="Parcours d'obstacles avec pièges mortels",
             decor="Parcours militaire avec lames rotatives et fosses",
             death_animations=[
@@ -332,7 +332,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=22, name="Parkour de la mort", type=EventType.AGILITE, difficulty=8,
+            id=22, name="Parkour de la mort", type=EventType.AGILITE, category=EventCategory.ATHLETIQUE, difficulty=8,
             description="Parcours urbain avec pièges et snipers",
             decor="Ville en ruine avec bâtiments piégés",
             death_animations=[
