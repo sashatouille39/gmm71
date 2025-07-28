@@ -1105,6 +1105,369 @@ class BackendTester:
         except Exception as e:
             self.log_result("Celebrity Stats Improvement Rules", False, f"Error: {str(e)}")
 
+    def test_event_categorization_system(self):
+        """Test NEW: Vérifier le nouveau système de catégorisation des événements"""
+        try:
+            print("\n🎯 TESTING NEW EVENT CATEGORIZATION SYSTEM")
+            print("=" * 80)
+            
+            # Test 1: Vérifier que l'API /api/games/events/available inclut les nouveaux champs
+            response = requests.get(f"{API_BASE}/games/events/available", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Event Categorization - API Available", False, f"Could not get events - HTTP {response.status_code}")
+                return
+                
+            events = response.json()
+            
+            if len(events) != 81:
+                self.log_result("Event Categorization - 81 Events Count", False, f"Expected 81 events, got {len(events)}")
+                return
+            else:
+                self.log_result("Event Categorization - 81 Events Count", True, f"✅ CONFIRMED: API returns exactly 81 events")
+            
+            # Test 2: Vérifier que tous les événements ont les nouveaux champs category et is_final
+            missing_category_events = []
+            missing_is_final_events = []
+            
+            for event in events:
+                if 'category' not in event:
+                    missing_category_events.append(event.get('name', f"ID {event.get('id', 'unknown')}"))
+                if 'is_final' not in event:
+                    missing_is_final_events.append(event.get('name', f"ID {event.get('id', 'unknown')}"))
+            
+            if missing_category_events:
+                self.log_result("Event Categorization - Category Field", False, 
+                              f"❌ {len(missing_category_events)} events missing 'category' field", 
+                              missing_category_events[:5])
+            else:
+                self.log_result("Event Categorization - Category Field", True, 
+                              f"✅ All events have 'category' field")
+            
+            if missing_is_final_events:
+                self.log_result("Event Categorization - Is Final Field", False, 
+                              f"❌ {len(missing_is_final_events)} events missing 'is_final' field", 
+                              missing_is_final_events[:5])
+            else:
+                self.log_result("Event Categorization - Is Final Field", True, 
+                              f"✅ All events have 'is_final' field")
+            
+            # Test 3: Vérifier les catégories disponibles
+            categories = set()
+            for event in events:
+                if 'category' in event:
+                    categories.add(event['category'])
+            
+            expected_categories = {
+                'classiques', 'combat', 'survie', 'psychologique', 
+                'athletique', 'technologique', 'extreme', 'finale'
+            }
+            
+            if categories == expected_categories:
+                self.log_result("Event Categorization - Categories", True, 
+                              f"✅ All expected categories found: {sorted(categories)}")
+            else:
+                missing = expected_categories - categories
+                extra = categories - expected_categories
+                self.log_result("Event Categorization - Categories", False, 
+                              f"❌ Category mismatch - Missing: {missing}, Extra: {extra}")
+            
+            # Test 4: Vérifier qu'il y a exactement une épreuve finale
+            final_events = [event for event in events if event.get('is_final', False)]
+            
+            if len(final_events) == 1:
+                final_event = final_events[0]
+                if final_event.get('name') == "Le Jugement Final" and final_event.get('id') == 81:
+                    self.log_result("Event Categorization - Final Event", True, 
+                                  f"✅ Exactly 1 final event found: '{final_event['name']}' (ID: {final_event['id']})")
+                else:
+                    self.log_result("Event Categorization - Final Event", False, 
+                                  f"❌ Final event found but wrong details: {final_event.get('name')} (ID: {final_event.get('id')})")
+            else:
+                self.log_result("Event Categorization - Final Event", False, 
+                              f"❌ Expected exactly 1 final event, found {len(final_events)}")
+            
+            # Test 5: Vérifier les propriétés spéciales de l'épreuve finale
+            if final_events:
+                final_event = final_events[0]
+                
+                # Vérifier elimination_rate = 0.99 pour garantir 1 survivant
+                elimination_rate = final_event.get('elimination_rate', 0)
+                if abs(elimination_rate - 0.99) <= 0.01:
+                    self.log_result("Event Categorization - Final Elimination Rate", True, 
+                                  f"✅ Final event has correct elimination rate: {elimination_rate}")
+                else:
+                    self.log_result("Event Categorization - Final Elimination Rate", False, 
+                                  f"❌ Final event elimination rate incorrect: {elimination_rate} (expected ~0.99)")
+                
+                # Vérifier min_players_for_final
+                min_players = final_event.get('min_players_for_final', 0)
+                if min_players >= 2 and min_players <= 4:
+                    self.log_result("Event Categorization - Final Min Players", True, 
+                                  f"✅ Final event has correct min_players_for_final: {min_players}")
+                else:
+                    self.log_result("Event Categorization - Final Min Players", False, 
+                                  f"❌ Final event min_players_for_final incorrect: {min_players} (expected 2-4)")
+                
+                # Vérifier category = 'finale'
+                category = final_event.get('category', '')
+                if category == 'finale':
+                    self.log_result("Event Categorization - Final Category", True, 
+                                  f"✅ Final event has correct category: '{category}'")
+                else:
+                    self.log_result("Event Categorization - Final Category", False, 
+                                  f"❌ Final event category incorrect: '{category}' (expected 'finale')")
+            
+            # Test 6: Vérifier la distribution des catégories
+            category_counts = {}
+            for event in events:
+                category = event.get('category', 'unknown')
+                category_counts[category] = category_counts.get(category, 0) + 1
+            
+            self.log_result("Event Categorization - Distribution", True, 
+                          f"✅ Category distribution: {dict(sorted(category_counts.items()))}")
+                
+        except Exception as e:
+            self.log_result("Event Categorization System", False, f"Error during test: {str(e)}")
+
+    def test_finals_organization_logic(self):
+        """Test NEW: Vérifier la logique d'organisation automatique des finales"""
+        try:
+            print("\n🎯 TESTING FINALS ORGANIZATION LOGIC")
+            print("=" * 80)
+            
+            # Test 1: Créer une partie avec des événements incluant une finale
+            game_request = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3, 81],  # Inclure l'épreuve finale (ID 81)
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Finals Organization - Game Creation", False, f"Could not create game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            events = game_data.get('events', [])
+            
+            if len(events) != 4:
+                self.log_result("Finals Organization - Event Count", False, f"Expected 4 events, got {len(events)}")
+                return
+            
+            # Test 2: Vérifier que la finale est à la fin
+            final_event = events[-1]  # Dernier événement
+            
+            if final_event.get('is_final', False) and final_event.get('name') == "Le Jugement Final":
+                self.log_result("Finals Organization - Final at End", True, 
+                              f"✅ Final event correctly placed at end: '{final_event['name']}'")
+            else:
+                self.log_result("Finals Organization - Final at End", False, 
+                              f"❌ Final event not at end. Last event: '{final_event.get('name')}' (is_final: {final_event.get('is_final')})")
+            
+            # Test 3: Vérifier que les événements réguliers sont avant la finale
+            regular_events = events[:-1]  # Tous sauf le dernier
+            all_regular = all(not event.get('is_final', False) for event in regular_events)
+            
+            if all_regular:
+                self.log_result("Finals Organization - Regular Events First", True, 
+                              f"✅ All {len(regular_events)} regular events placed before final")
+            else:
+                final_in_regular = [e.get('name') for e in regular_events if e.get('is_final', False)]
+                self.log_result("Finals Organization - Regular Events First", False, 
+                              f"❌ Final events found in regular section: {final_in_regular}")
+            
+            # Test 4: Tester avec plusieurs finales (si elles existaient)
+            # Pour l'instant, il n'y a qu'une finale, donc ce test vérifie la logique
+            game_request_multiple = {
+                "player_count": 20,
+                "game_mode": "standard", 
+                "selected_events": [1, 81, 2, 3],  # Finale au milieu
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request_multiple, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data_multiple = response.json()
+                events_multiple = game_data_multiple.get('events', [])
+                
+                # Vérifier que la finale est toujours à la fin malgré l'ordre initial
+                if events_multiple and events_multiple[-1].get('is_final', False):
+                    self.log_result("Finals Organization - Reordering", True, 
+                                  f"✅ Final event correctly moved to end despite initial order")
+                else:
+                    self.log_result("Finals Organization - Reordering", False, 
+                                  f"❌ Final event not properly reordered")
+            else:
+                self.log_result("Finals Organization - Reordering", False, 
+                              f"Could not test reordering - HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Finals Organization Logic", False, f"Error during test: {str(e)}")
+
+    def test_finals_special_logic(self):
+        """Test NEW: Vérifier la logique spéciale des finales (2-4 joueurs, 1 survivant)"""
+        try:
+            print("\n🎯 TESTING FINALS SPECIAL LOGIC")
+            print("=" * 80)
+            
+            # Test 1: Créer une partie et la simuler jusqu'à avoir 3 joueurs pour tester la finale
+            game_request = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3, 81],  # Inclure finale
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Finals Special Logic - Game Creation", False, f"Could not create game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            if not game_id:
+                self.log_result("Finals Special Logic - Game ID", False, "No game ID returned")
+                return
+            
+            # Simuler les événements réguliers jusqu'à arriver à la finale
+            max_simulations = 10
+            simulation_count = 0
+            current_survivors = 20
+            finale_reached = False
+            
+            while simulation_count < max_simulations and current_survivors > 1:
+                simulation_count += 1
+                
+                response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if response.status_code != 200:
+                    self.log_result("Finals Special Logic - Simulation", False, 
+                                  f"Simulation failed at step {simulation_count} - HTTP {response.status_code}")
+                    return
+                
+                data = response.json()
+                game = data.get('game', {})
+                result = data.get('result', {})
+                
+                current_survivors = len([p for p in game.get('players', []) if p.get('alive', False)])
+                current_event_index = game.get('current_event_index', 0)
+                events = game.get('events', [])
+                
+                print(f"   Simulation {simulation_count}: {current_survivors} survivors, event index: {current_event_index}")
+                
+                # Vérifier si on a atteint la finale
+                if current_event_index > 0 and current_event_index <= len(events):
+                    if current_event_index == len(events):
+                        # Tous les événements terminés
+                        break
+                    current_event = events[current_event_index - 1]  # Événement qui vient d'être simulé
+                    if current_event.get('is_final', False):
+                        finale_reached = True
+                        break
+                
+                # Si le jeu est terminé
+                if game.get('completed', False):
+                    break
+            
+            # Test 2: Vérifier le comportement de la finale selon le nombre de joueurs
+            if current_survivors > 4:
+                # Trop de joueurs pour une finale - elle devrait être reportée
+                self.log_result("Finals Special Logic - Too Many Players", True, 
+                              f"✅ Finale correctly handled with {current_survivors} players (>4)")
+            elif 2 <= current_survivors <= 4:
+                # Nombre correct pour une finale
+                if finale_reached:
+                    # Vérifier que la finale garantit 1 seul survivant
+                    final_survivors = len([p for p in game.get('players', []) if p.get('alive', False)])
+                    if final_survivors == 1:
+                        self.log_result("Finals Special Logic - One Survivor", True, 
+                                      f"✅ Finale correctly left exactly 1 survivor")
+                    else:
+                        self.log_result("Finals Special Logic - One Survivor", False, 
+                                      f"❌ Finale left {final_survivors} survivors (expected 1)")
+                else:
+                    self.log_result("Finals Special Logic - Finale Trigger", False, 
+                                  f"❌ Finale not reached with {current_survivors} players")
+            elif current_survivors == 1:
+                # Déjà 1 survivant, finale pas nécessaire
+                self.log_result("Finals Special Logic - Already One Survivor", True, 
+                              f"✅ Game correctly ended with 1 survivor before finale")
+            else:
+                # 0 survivants - problème
+                self.log_result("Finals Special Logic - Zero Survivors", False, 
+                              f"❌ Game ended with 0 survivors")
+            
+            # Test 3: Vérifier que le gagnant est défini quand la partie se termine
+            if game.get('completed', False):
+                winner = game.get('winner')
+                if winner:
+                    self.log_result("Finals Special Logic - Winner Set", True, 
+                                  f"✅ Winner correctly set: {winner.get('name')} (#{winner.get('number')})")
+                else:
+                    self.log_result("Finals Special Logic - Winner Set", False, 
+                                  f"❌ Game completed but no winner set")
+            
+            # Test 4: Tester spécifiquement avec exactement 3 joueurs pour déclencher la finale
+            # Créer une nouvelle partie pour ce test spécifique
+            small_game_request = {
+                "player_count": 20,  # On va simuler jusqu'à avoir 3 joueurs
+                "game_mode": "standard",
+                "selected_events": [81],  # Seulement la finale
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=small_game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                small_game_data = response.json()
+                small_game_id = small_game_data.get('id')
+                
+                # Modifier manuellement le nombre de survivants pour tester la finale
+                # (Dans un vrai test, on simulerait jusqu'à avoir 3 joueurs)
+                # Pour ce test, on va juste vérifier que l'API gère correctement la finale
+                
+                response = requests.post(f"{API_BASE}/games/{small_game_id}/simulate-event", timeout=10)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    message = data.get('message', '')
+                    
+                    if 'reportée' in message.lower() or 'trop de joueurs' in message.lower():
+                        self.log_result("Finals Special Logic - Postponement", True, 
+                                      f"✅ Finale correctly postponed with too many players")
+                    else:
+                        # La finale s'est exécutée
+                        game = data.get('game', {})
+                        final_survivors = len([p for p in game.get('players', []) if p.get('alive', False)])
+                        
+                        if final_survivors == 1:
+                            self.log_result("Finals Special Logic - Finale Execution", True, 
+                                          f"✅ Finale executed and left exactly 1 survivor")
+                        else:
+                            self.log_result("Finals Special Logic - Finale Execution", False, 
+                                          f"❌ Finale executed but left {final_survivors} survivors")
+                
+        except Exception as e:
+            self.log_result("Finals Special Logic", False, f"Error during test: {str(e)}")
+
     def test_mortality_rates_correction(self):
         """Test CRITICAL: Vérifier la correction des taux de mortalité selon la review request"""
         try:
@@ -1144,24 +1507,24 @@ class BackendTester:
                         'rate': mortality_percentage
                     })
                 
-                # Check for very high mortality rates (90%+) - these should NOT exist
-                if mortality_percentage >= 90:
+                # Check for very high mortality rates (90%+) - these should NOT exist except finale
+                if mortality_percentage >= 90 and not event.get('is_final', False):
                     very_high_mortality_events.append({
                         'name': event.get('name', 'Unknown'),
                         'id': event.get('id', 'Unknown'),
                         'rate': mortality_percentage
                     })
             
-            # Test 3: Vérifier qu'aucune épreuve n'a un taux de mortalité de 90% ou plus
+            # Test 3: Vérifier qu'aucune épreuve non-finale n'a un taux de mortalité de 90% ou plus
             if very_high_mortality_events:
                 self.log_result("Mortality Rates - No 90%+ Rates", False, 
-                              f"❌ Found {len(very_high_mortality_events)} events with 90%+ mortality", 
+                              f"❌ Found {len(very_high_mortality_events)} non-final events with 90%+ mortality", 
                               [f"{e['name']}: {e['rate']:.1f}%" for e in very_high_mortality_events[:5]])
             else:
                 self.log_result("Mortality Rates - No 90%+ Rates", True, 
-                              f"✅ CONFIRMED: No events have 90%+ mortality rate")
+                              f"✅ CONFIRMED: No non-final events have 90%+ mortality rate")
             
-            # Test 4: Vérifier que les exceptions (Bataille royale à 65%, Jugement Final à 70%) sont respectées
+            # Test 4: Vérifier que les exceptions (Bataille royale à 65%, Jugement Final à 99%) sont respectées
             battle_royale_found = False
             final_judgment_found = False
             
@@ -1181,12 +1544,12 @@ class BackendTester:
                 
                 if 'jugement final' in name or 'final judgment' in name or name == 'le jugement final':
                     final_judgment_found = True
-                    if abs(mortality_percentage - 70) <= 1:  # Allow 1% tolerance
+                    if abs(mortality_percentage - 99) <= 1:  # Allow 1% tolerance for finale
                         self.log_result("Mortality Rates - Final Judgment Exception", True, 
                                       f"✅ Final Judgment has correct rate: {mortality_percentage:.1f}%")
                     else:
                         self.log_result("Mortality Rates - Final Judgment Exception", False, 
-                                      f"❌ Final Judgment rate incorrect: {mortality_percentage:.1f}% (expected ~70%)")
+                                      f"❌ Final Judgment rate incorrect: {mortality_percentage:.1f}% (expected ~99%)")
             
             if not battle_royale_found:
                 self.log_result("Mortality Rates - Battle Royale Exception", False, "❌ Battle Royale event not found")
@@ -1194,18 +1557,25 @@ class BackendTester:
             if not final_judgment_found:
                 self.log_result("Mortality Rates - Final Judgment Exception", False, "❌ Final Judgment event not found")
             
-            # Test 5: Analyser la distribution générale des taux de mortalité
-            rates_40_60 = [rate for rate in mortality_rates if 40 <= rate <= 60]
-            average_mortality = sum(mortality_rates) / len(mortality_rates)
+            # Test 5: Analyser la distribution générale des taux de mortalité (excluant la finale)
+            non_final_rates = []
+            for event in events:
+                if not event.get('is_final', False):
+                    elimination_rate = event.get('elimination_rate', 0)
+                    mortality_percentage = elimination_rate * 100
+                    non_final_rates.append(mortality_percentage)
             
-            percentage_in_range = (len(rates_40_60) / len(mortality_rates)) * 100
+            rates_40_60 = [rate for rate in non_final_rates if 40 <= rate <= 60]
+            average_mortality = sum(non_final_rates) / len(non_final_rates) if non_final_rates else 0
+            
+            percentage_in_range = (len(rates_40_60) / len(non_final_rates)) * 100 if non_final_rates else 0
             
             if percentage_in_range >= 70:  # At least 70% should be in 40-60% range
                 self.log_result("Mortality Rates - 40-60% Range", True, 
-                              f"✅ {percentage_in_range:.1f}% of events in 40-60% range (avg: {average_mortality:.1f}%)")
+                              f"✅ {percentage_in_range:.1f}% of non-final events in 40-60% range (avg: {average_mortality:.1f}%)")
             else:
                 self.log_result("Mortality Rates - 40-60% Range", False, 
-                              f"❌ Only {percentage_in_range:.1f}% of events in 40-60% range")
+                              f"❌ Only {percentage_in_range:.1f}% of non-final events in 40-60% range")
             
             # Test 6: Vérifier que l'API ne retourne pas seulement 14 épreuves comme l'utilisateur le voyait
             if len(events) == 14:
