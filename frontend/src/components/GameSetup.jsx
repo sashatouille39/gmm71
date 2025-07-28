@@ -805,7 +805,7 @@ const GameSetup = ({ gameState, onStartGame }) => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Épreuves:</span>
-                        <span className="text-green-400">${(selectedEvents.length * 500).toLocaleString()}</span>
+                        <span className="text-green-400">${(selectedEvents.length * 5000).toLocaleString()}</span>
                       </div>
                       <Separator className="bg-gray-600" />
                       <div className="flex justify-between text-lg font-bold">
