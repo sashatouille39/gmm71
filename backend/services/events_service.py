@@ -8,10 +8,10 @@ class EventsService:
     # 80+ épreuves organisées par catégories
     GAME_EVENTS = [
         # ================================
-        # ÉPREUVES CLASSIQUES SQUID GAME (5)
+        # ÉPREUVES CLASSIQUES (5)
         # ================================
         GameEvent(
-            id=1, name="Feu rouge, Feu vert", type=EventType.AGILITE, difficulty=3,
+            id=1, name="Feu rouge, Feu vert", type=EventType.AGILITE, category=EventCategory.CLASSIQUES, difficulty=3,
             description="Avancez quand c'est vert, arrêtez-vous au rouge sinon vous mourrez",
             decor="Grande cour d'école avec poupée géante aux yeux laser",
             death_animations=[
@@ -26,7 +26,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=2, name="Pont de verre", type=EventType.INTELLIGENCE, difficulty=8,
+            id=2, name="Pont de verre", type=EventType.INTELLIGENCE, category=EventCategory.CLASSIQUES, difficulty=8,
             description="Traversez le pont en choisissant les bonnes plaques de verre",
             decor="Pont suspendu au-dessus d'un abîme de 50 mètres",
             death_animations=[
