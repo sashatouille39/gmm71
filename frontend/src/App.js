@@ -187,62 +187,75 @@ function App() {
 
   return (
     <div className="App min-h-screen bg-gradient-to-br from-gray-900 via-red-900 to-black">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={
-            <MainMenu 
-              gameState={gameState}
-              hasActiveGame={!!currentGame}
-            />
-          } />
-          <Route path="/game-setup" element={
-            <GameSetup 
-              gameState={gameState}
-              onStartGame={startNewGame}
-            />
-          } />
-          <Route path="/player-creator" element={
-            <PlayerCreator 
-              gameState={gameState}
-              updateGameState={updateGameState}
-            />
-          } />
-          <Route path="/game-arena" element={
-            <GameArena 
-              currentGame={currentGame}
-              setCurrentGame={setCurrentGame}
-              gameState={gameState}
-              updateGameState={updateGameState}
-            />
-          } />
-          <Route path="/statistics" element={
-            <Statistics 
-              gameState={gameState}
-            />
-          } />
-          <Route path="/uniform-customization" element={
-            <UniformCustomization 
-              gameState={gameState}
-              updateGameState={updateGameState}
-            />
-          } />
-          <Route path="/vip-salon" element={
-            <VipSalon 
-              gameState={gameState}
-              updateGameState={updateGameState}
-            />
-          } />
-          <Route path="/settings" element={
-            <Settings 
-              gameState={gameState}
-              updateGameState={updateGameState}
-            />
-          } />
-          <Route path="/final-ranking/:gameId" element={
-            <FinalRanking />
-          } />
-        </Routes>
-      </BrowserRouter>
+      {isLoadingGameState ? (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-white text-lg">Chargement du Game Master Manager...</p>
+            <p className="text-gray-400 text-sm mt-2">Synchronisation avec le serveur</p>
+          </div>
+        </div>
+      ) : (
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={
+              <MainMenu 
+                gameState={gameState}
+                hasActiveGame={!!currentGame}
+                onRefreshGameState={loadGameStateFromBackend}
+              />
+            } />
+            <Route path="/game-setup" element={
+              <GameSetup 
+                gameState={gameState}
+                onStartGame={startNewGame}
+                onRefreshGameState={loadGameStateFromBackend}
+              />
+            } />
+            <Route path="/player-creator" element={
+              <PlayerCreator 
+                gameState={gameState}
+                updateGameState={updateGameState}
+              />
+            } />
+            <Route path="/game-arena" element={
+              <GameArena 
+                currentGame={currentGame}
+                setCurrentGame={setCurrentGame}
+                gameState={gameState}
+                updateGameState={updateGameState}
+                onRefreshGameState={loadGameStateFromBackend}
+              />
+            } />
+            <Route path="/statistics" element={
+              <Statistics 
+                gameState={gameState}
+              />
+            } />
+            <Route path="/uniform-customization" element={
+              <UniformCustomization 
+                gameState={gameState}
+                updateGameState={updateGameState}
+              />
+            } />
+            <Route path="/vip-salon" element={
+              <VipSalon 
+                gameState={gameState}
+                updateGameState={updateGameState}
+              />
+            } />
+            <Route path="/settings" element={
+              <Settings 
+                gameState={gameState}
+                updateGameState={updateGameState}
+              />
+            } />
+            <Route path="/final-ranking/:gameId" element={
+              <FinalRanking />
+            } />
+          </Routes>
+        </BrowserRouter>
+      )}
     </div>
   );
 }
