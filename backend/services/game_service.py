@@ -337,10 +337,7 @@ class GameService:
                 'M': ['Mehmet', 'Mustafa', 'Ahmed', 'Ali', 'Hasan', 'İbrahim', 'Osman', 'Süleyman'],
                 'F': ['Fatma', 'Ayşe', 'Emine', 'Hatice', 'Zeynep', 'Elif', 'Meryem', 'Özlem']
             },
-            'Ukrainienne': {
-                'M': ['Oleksandr', 'Sergiy', 'Andriy', 'Volodymyr', 'Oleksiy', 'Vitaliy', 'Igor', 'Yuriy'],
-                'F': ['Oksana', 'Natalya', 'Olena', 'Iryna', 'Tetyana', 'Lyudmyla', 'Svitlana', 'Mariya']
-            },
+
             'Américaine': {
                 'M': ['John', 'Michael', 'David', 'James', 'Robert', 'William', 'Christopher', 'Matthew'],
                 'F': ['Mary', 'Jennifer', 'Linda', 'Patricia', 'Susan', 'Jessica', 'Sarah', 'Karen']
