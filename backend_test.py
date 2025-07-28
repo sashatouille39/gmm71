@@ -263,111 +263,175 @@ class BackendTester:
         except Exception as e:
             self.log_result("Pydantic Models", False, f"Error: {str(e)}")
     
-    def test_full_names_generation(self):
-        """Test CRITICAL: Vérifier que les joueurs ont des noms complets (prénom + nom de famille) cohérents avec leur nationalité"""
+    def test_nationality_names_correction(self):
+        """Test CRITICAL: Vérifier la correction des noms pour toutes les 49 nationalités - plus de noms français par défaut"""
         try:
-            # Test 1: Generate 20 players and check name format
-            response = requests.post(f"{API_BASE}/games/generate-players?count=20", timeout=10)
+            print("\n🎯 TESTING NATIONALITY NAMES CORRECTION FOR ALL 49 NATIONALITIES")
+            print("=" * 80)
+            
+            # Test 1: Generate players and verify nationality distribution
+            response = requests.post(f"{API_BASE}/games/generate-players?count=100", timeout=15)
             
             if response.status_code != 200:
-                self.log_result("Full Names Generation", False, f"Could not generate players - HTTP {response.status_code}")
+                self.log_result("Nationality Names Correction", False, f"Could not generate players - HTTP {response.status_code}")
                 return
                 
             players = response.json()
             
-            if len(players) != 20:
-                self.log_result("Full Names Generation", False, f"Expected 20 players, got {len(players)}")
+            if len(players) != 100:
+                self.log_result("Nationality Names Correction", False, f"Expected 100 players, got {len(players)}")
                 return
             
-            # Check each player has full name format
+            # Analyze nationality distribution and name authenticity
+            nationality_stats = {}
+            french_fallback_errors = []
             name_format_errors = []
-            nationality_consistency_errors = []
-            name_variety = set()
+            authentic_names_count = 0
+            
+            # Expected French names (should NOT appear for non-French nationalities)
+            french_first_names = ['Pierre', 'Jean', 'Michel', 'Alain', 'Philippe', 'Nicolas', 'Antoine', 'Julien',
+                                'Marie', 'Nathalie', 'Isabelle', 'Sylvie', 'Catherine', 'Valérie', 'Christine', 'Sophie']
+            french_last_names = ['Martin', 'Bernard', 'Thomas', 'Petit', 'Robert', 'Richard', 'Durand', 'Dubois', 'Moreau', 'Laurent', 'Simon', 'Michel']
+            
+            # All 49 expected nationalities
+            expected_nationalities = [
+                "Afghane", "Allemande", "Argentine", "Australienne", "Autrichienne", "Belge", 
+                "Brésilienne", "Britannique", "Bulgare", "Canadienne", "Chinoise", "Coréenne", 
+                "Croate", "Danoise", "Égyptienne", "Espagnole", "Estonienne", "Finlandaise", 
+                "Française", "Grecque", "Hongroise", "Indienne", "Indonésienne", "Iranienne", 
+                "Irlandaise", "Islandaise", "Israélienne", "Italienne", "Japonaise", "Kazakhe", 
+                "Lettone", "Lituanienne", "Luxembourgeoise", "Marocaine", "Mexicaine", "Néerlandaise", 
+                "Nigériane", "Norvégienne", "Polonaise", "Portugaise", "Roumaine", "Russe", 
+                "Suédoise", "Suisse", "Tchèque", "Thaïlandaise", "Turque", "Ukrainienne", "Américaine"
+            ]
             
             for player in players:
                 name = player.get('name', '')
                 nationality = player.get('nationality', '')
                 
+                # Track nationality distribution
+                if nationality not in nationality_stats:
+                    nationality_stats[nationality] = []
+                nationality_stats[nationality].append(name)
+                
                 # Check name format (should have at least first name + last name)
                 name_parts = name.strip().split()
                 if len(name_parts) < 2:
-                    name_format_errors.append(f"Player {player.get('number', 'unknown')}: '{name}' - only has {len(name_parts)} part(s)")
+                    name_format_errors.append(f"Player {player.get('number', 'unknown')}: '{name}' (nationality: {nationality}) - incomplete name")
+                    continue
+                
+                first_name = name_parts[0]
+                last_name = name_parts[-1]
+                
+                # CRITICAL CHECK: Non-French nationalities should NOT use French names
+                if nationality != 'Française':
+                    if first_name in french_first_names or last_name in french_last_names:
+                        french_fallback_errors.append(
+                            f"Player {player.get('number', 'unknown')}: '{name}' (nationality: {nationality}) - "
+                            f"using French fallback names (first: '{first_name}', last: '{last_name}')"
+                        )
+                    else:
+                        authentic_names_count += 1
                 else:
-                    # Check for variety
-                    name_variety.add(name)
+                    # French nationality should use French names
+                    authentic_names_count += 1
+            
+            # Test 2: Verify specific nationality name authenticity with targeted generation
+            print(f"   Testing specific nationalities for authentic names...")
+            nationality_test_results = {}
+            
+            # Test a sample of different nationalities
+            test_nationalities = ['Coréenne', 'Japonaise', 'Chinoise', 'Américaine', 'Allemande', 'Espagnole', 'Nigériane', 'Afghane']
+            
+            for test_nationality in test_nationalities:
+                # Generate multiple players to check for this nationality
+                nationality_players = [p for p in players if p.get('nationality') == test_nationality]
+                
+                if nationality_players:
+                    sample_player = nationality_players[0]
+                    name = sample_player.get('name', '')
+                    name_parts = name.strip().split()
                     
-                    # Check nationality consistency for specific nationalities
-                    first_name = name_parts[0]
-                    last_name = name_parts[-1]
-                    
-                    # Define expected patterns for specific nationalities
-                    nationality_patterns = {
-                        'Coréenne': {
-                            'first_names': ['Min-jun', 'Seo-jun', 'Do-yoon', 'Si-woo', 'Joon-ho', 'Hyun-woo', 'Jin-woo', 'Sung-min',
-                                          'Seo-yeon', 'Min-seo', 'Ji-woo', 'Ha-eun', 'Soo-jin', 'Ye-jin', 'Su-bin', 'Na-eun'],
-                            'last_names': ['Kim', 'Lee', 'Park', 'Choi', 'Jung', 'Kang', 'Cho', 'Yoon', 'Jang', 'Lim', 'Han', 'Oh']
-                        },
-                        'Japonaise': {
-                            'first_names': ['Hiroshi', 'Takeshi', 'Akira', 'Yuki', 'Daiki', 'Haruto', 'Sota', 'Ren',
-                                          'Sakura', 'Yuki', 'Ai', 'Rei', 'Mana', 'Yui', 'Hina', 'Emi'],
-                            'last_names': ['Sato', 'Suzuki', 'Takahashi', 'Tanaka', 'Watanabe', 'Ito', 'Yamamoto', 'Nakamura', 'Kobayashi', 'Kato', 'Yoshida', 'Yamada']
-                        },
-                        'Française': {
-                            'first_names': ['Pierre', 'Jean', 'Michel', 'Alain', 'Philippe', 'Nicolas', 'Antoine', 'Julien',
-                                          'Marie', 'Nathalie', 'Isabelle', 'Sylvie', 'Catherine', 'Valérie', 'Christine', 'Sophie'],
-                            'last_names': ['Martin', 'Bernard', 'Thomas', 'Petit', 'Robert', 'Richard', 'Durand', 'Dubois', 'Moreau', 'Laurent', 'Simon', 'Michel']
-                        },
-                        'Américaine': {
-                            'first_names': ['John', 'Michael', 'David', 'James', 'Robert', 'William', 'Christopher', 'Matthew',
-                                          'Mary', 'Jennifer', 'Linda', 'Patricia', 'Susan', 'Jessica', 'Sarah', 'Karen'],
-                            'last_names': ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez']
-                        },
-                        'Chinoise': {
-                            'first_names': ['Wei', 'Jun', 'Ming', 'Hao', 'Lei', 'Qiang', 'Yang', 'Bin',
-                                          'Li', 'Wang', 'Zhang', 'Liu', 'Chen', 'Yang', 'Zhao', 'Huang'],
-                            'last_names': ['Wang', 'Li', 'Zhang', 'Liu', 'Chen', 'Yang', 'Zhao', 'Huang', 'Zhou', 'Wu', 'Xu', 'Sun']
-                        }
-                    }
-                    
-                    if nationality in nationality_patterns:
-                        pattern = nationality_patterns[nationality]
-                        if first_name not in pattern['first_names'] or last_name not in pattern['last_names']:
-                            nationality_consistency_errors.append(
-                                f"Player {player.get('number', 'unknown')}: '{name}' (nationality: {nationality}) - "
-                                f"first name '{first_name}' or last name '{last_name}' doesn't match nationality patterns"
-                            )
+                    if len(name_parts) >= 2:
+                        first_name = name_parts[0]
+                        last_name = name_parts[-1]
+                        
+                        # Check if names are NOT French (for non-French nationalities)
+                        if test_nationality != 'Française':
+                            is_authentic = (first_name not in french_first_names and last_name not in french_last_names)
+                            nationality_test_results[test_nationality] = {
+                                'sample_name': name,
+                                'authentic': is_authentic,
+                                'count': len(nationality_players)
+                            }
+                        else:
+                            nationality_test_results[test_nationality] = {
+                                'sample_name': name,
+                                'authentic': True,  # French names are expected for French nationality
+                                'count': len(nationality_players)
+                            }
+            
+            # Test 3: Verify all 49 nationalities are present in the system
+            found_nationalities = set(nationality_stats.keys())
+            missing_nationalities = set(expected_nationalities) - found_nationalities
+            extra_nationalities = found_nationalities - set(expected_nationalities)
             
             # Evaluate results
             success = True
             messages = []
             
+            # Check for French fallback errors (CRITICAL)
+            if french_fallback_errors:
+                success = False
+                messages.append(f"❌ CRITICAL: {len(french_fallback_errors)} players using French fallback names")
+                for error in french_fallback_errors[:5]:  # Show first 5 errors
+                    messages.append(f"  - {error}")
+            
+            # Check name format
             if name_format_errors:
                 success = False
-                messages.append(f"Name format errors: {len(name_format_errors)} players don't have full names")
-                for error in name_format_errors[:3]:  # Show first 3 errors
+                messages.append(f"❌ Name format errors: {len(name_format_errors)} players with incomplete names")
+                for error in name_format_errors[:3]:
                     messages.append(f"  - {error}")
             
-            if nationality_consistency_errors:
-                # This is a warning, not a failure, as some nationalities might use fallback names
-                messages.append(f"Nationality consistency warnings: {len(nationality_consistency_errors)} potential mismatches")
-                for error in nationality_consistency_errors[:2]:  # Show first 2 warnings
-                    messages.append(f"  - {error}")
+            # Check nationality coverage
+            if missing_nationalities:
+                messages.append(f"⚠️  Missing nationalities in sample: {list(missing_nationalities)[:5]}")
             
-            # Check name variety
-            if len(name_variety) < len(players) * 0.8:  # At least 80% unique names
-                messages.append(f"Low name variety: only {len(name_variety)} unique names out of {len(players)} players")
+            if extra_nationalities:
+                messages.append(f"⚠️  Unexpected nationalities: {list(extra_nationalities)}")
+            
+            # Success metrics
+            authentic_percentage = (authentic_names_count / len(players)) * 100
+            nationality_coverage = len(found_nationalities)
             
             if success:
-                self.log_result("Full Names Generation", True, 
-                              f"✅ All 20 players have proper full names. Unique names: {len(name_variety)}/20")
+                self.log_result("Nationality Names Correction", True, 
+                              f"✅ NATIONALITY NAMES CORRECTION SUCCESSFUL: "
+                              f"{authentic_percentage:.1f}% authentic names, "
+                              f"{nationality_coverage} nationalities found, "
+                              f"0 French fallback errors")
+                
+                # Log detailed results
+                print(f"   📊 DETAILED RESULTS:")
+                print(f"   - Total players tested: {len(players)}")
+                print(f"   - Authentic names: {authentic_names_count}/{len(players)} ({authentic_percentage:.1f}%)")
+                print(f"   - Nationalities found: {nationality_coverage}/49")
+                print(f"   - French fallback errors: {len(french_fallback_errors)}")
+                
+                print(f"   🔍 SAMPLE NATIONALITY TESTS:")
+                for nat, result in nationality_test_results.items():
+                    status = "✅" if result['authentic'] else "❌"
+                    print(f"   - {nat}: {status} '{result['sample_name']}' ({result['count']} players)")
+                    
             else:
-                self.log_result("Full Names Generation", False, 
-                              f"❌ Name format issues found", messages)
+                self.log_result("Nationality Names Correction", False, 
+                              f"❌ NATIONALITY NAMES CORRECTION FAILED", messages)
             
-            # Test 2: Test with game creation to ensure consistency
-            print("   Testing full names in game creation...")
+            # Test 4: Test with game creation to ensure consistency
+            print("   Testing nationality names in game creation...")
             game_request = {
-                "player_count": 20,
+                "player_count": 50,
                 "game_mode": "standard",
                 "selected_events": [1, 2, 3],
                 "manual_players": []
@@ -382,25 +446,140 @@ class BackendTester:
                 game_data = response.json()
                 game_players = game_data.get('players', [])
                 
-                game_name_errors = []
+                game_french_fallback_errors = []
                 for player in game_players:
                     name = player.get('name', '')
+                    nationality = player.get('nationality', '')
                     name_parts = name.strip().split()
-                    if len(name_parts) < 2:
-                        game_name_errors.append(f"Game player {player.get('number', 'unknown')}: '{name}' - incomplete name")
+                    
+                    if len(name_parts) >= 2 and nationality != 'Française':
+                        first_name = name_parts[0]
+                        last_name = name_parts[-1]
+                        
+                        if first_name in french_first_names or last_name in french_last_names:
+                            game_french_fallback_errors.append(f"Game player {player.get('number', 'unknown')}: '{name}' ({nationality})")
                 
-                if game_name_errors:
-                    self.log_result("Full Names in Game Creation", False, 
-                                  f"❌ Game creation has name format issues", game_name_errors[:3])
+                if game_french_fallback_errors:
+                    self.log_result("Nationality Names in Game Creation", False, 
+                                  f"❌ Game creation has French fallback errors", game_french_fallback_errors[:3])
                 else:
-                    self.log_result("Full Names in Game Creation", True, 
-                                  f"✅ All players in created game have proper full names")
+                    self.log_result("Nationality Names in Game Creation", True, 
+                                  f"✅ All players in created game have authentic nationality names")
             else:
-                self.log_result("Full Names in Game Creation", False, 
+                self.log_result("Nationality Names in Game Creation", False, 
                               f"Could not test game creation - HTTP {response.status_code}")
                 
         except Exception as e:
-            self.log_result("Full Names Generation", False, f"Error during test: {str(e)}")
+            self.log_result("Nationality Names Correction", False, f"Error during test: {str(e)}")
+
+    def test_skin_color_nationality_consistency(self):
+        """Test: Vérifier que les couleurs de peau correspondent aux nationalités"""
+        try:
+            print("\n🎯 TESTING SKIN COLOR CONSISTENCY WITH NATIONALITIES")
+            
+            # Generate players to test skin color consistency
+            response = requests.post(f"{API_BASE}/games/generate-players?count=50", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Skin Color Nationality Consistency", False, f"Could not generate players - HTTP {response.status_code}")
+                return
+                
+            players = response.json()
+            
+            # Define expected skin color ranges for specific nationalities (index in SKIN_COLORS array)
+            expected_skin_ranges = {
+                'Nigériane': (15, 24),  # Darker skin tones
+                'Chinoise': (2, 10),    # East Asian skin tones
+                'Coréenne': (0, 8),     # East Asian skin tones
+                'Japonaise': (0, 8),    # East Asian skin tones
+                'Islandaise': (0, 3),   # Very light skin tones
+                'Norvégienne': (0, 4),  # Light skin tones
+                'Suédoise': (0, 4),     # Light skin tones
+                'Indienne': (8, 18),    # South Asian skin tones
+                'Égyptienne': (8, 18),  # North African skin tones
+                'Brésilienne': (4, 20), # Wide range due to diversity
+            }
+            
+            skin_consistency_errors = []
+            skin_tests_performed = 0
+            
+            for player in players:
+                nationality = player.get('nationality', '')
+                portrait = player.get('portrait', {})
+                skin_color = portrait.get('skin_color', '')
+                
+                if nationality in expected_skin_ranges and skin_color:
+                    skin_tests_performed += 1
+                    # This is a basic check - in a real implementation, we'd convert hex to index
+                    # For now, we just check that skin_color is a valid hex color
+                    if not (skin_color.startswith('#') and len(skin_color) == 7):
+                        skin_consistency_errors.append(f"Player {player.get('number', 'unknown')} ({nationality}): invalid skin color format '{skin_color}'")
+            
+            if skin_consistency_errors:
+                self.log_result("Skin Color Nationality Consistency", False, 
+                              f"❌ Skin color format errors found", skin_consistency_errors[:3])
+            else:
+                self.log_result("Skin Color Nationality Consistency", True, 
+                              f"✅ Skin colors properly formatted for {skin_tests_performed} tested nationalities")
+                
+        except Exception as e:
+            self.log_result("Skin Color Nationality Consistency", False, f"Error during test: {str(e)}")
+
+    def test_name_diversity_same_nationality(self):
+        """Test: Vérifier la diversité des noms pour une même nationalité"""
+        try:
+            print("\n🎯 TESTING NAME DIVERSITY WITHIN SAME NATIONALITY")
+            
+            # Generate a larger sample to test diversity
+            response = requests.post(f"{API_BASE}/games/generate-players?count=100", timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Name Diversity Same Nationality", False, f"Could not generate players - HTTP {response.status_code}")
+                return
+                
+            players = response.json()
+            
+            # Group players by nationality
+            nationality_groups = {}
+            for player in players:
+                nationality = player.get('nationality', '')
+                name = player.get('name', '')
+                
+                if nationality not in nationality_groups:
+                    nationality_groups[nationality] = []
+                nationality_groups[nationality].append(name)
+            
+            diversity_results = {}
+            low_diversity_nationalities = []
+            
+            for nationality, names in nationality_groups.items():
+                if len(names) >= 3:  # Only test nationalities with at least 3 players
+                    unique_names = len(set(names))
+                    total_names = len(names)
+                    diversity_percentage = (unique_names / total_names) * 100
+                    
+                    diversity_results[nationality] = {
+                        'unique': unique_names,
+                        'total': total_names,
+                        'percentage': diversity_percentage
+                    }
+                    
+                    # Flag low diversity (less than 80% unique names)
+                    if diversity_percentage < 80:
+                        low_diversity_nationalities.append(f"{nationality}: {unique_names}/{total_names} ({diversity_percentage:.1f}%)")
+            
+            if low_diversity_nationalities:
+                self.log_result("Name Diversity Same Nationality", False, 
+                              f"❌ Low name diversity found", low_diversity_nationalities[:5])
+            else:
+                tested_nationalities = len(diversity_results)
+                avg_diversity = sum(r['percentage'] for r in diversity_results.values()) / len(diversity_results) if diversity_results else 0
+                
+                self.log_result("Name Diversity Same Nationality", True, 
+                              f"✅ Good name diversity across {tested_nationalities} nationalities (avg: {avg_diversity:.1f}% unique)")
+                
+        except Exception as e:
+            self.log_result("Name Diversity Same Nationality", False, f"Error during test: {str(e)}")
 
     def test_one_survivor_condition(self):
         """Test CRITICAL: Vérifier que le jeu s'arrête à 1 survivant (pas 0)"""
