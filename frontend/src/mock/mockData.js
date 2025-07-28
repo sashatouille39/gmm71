@@ -463,25 +463,45 @@ export const generateRandomPlayer = (id) => {
 };
 
 const generateRandomName = (nationality, gender) => {
-  const names = {
+  const firstNames = {
     'Coréenne': {
-      M: ['Min-jun', 'Seo-jun', 'Do-yoon', 'Si-woo', 'Joon-ho'],
-      F: ['Seo-yeon', 'Min-seo', 'Ji-woo', 'Ha-eun', 'Soo-jin']
+      M: ['Min-jun', 'Seo-jun', 'Do-yoon', 'Si-woo', 'Joon-ho', 'Hyun-woo', 'Jin-woo', 'Sung-min'],
+      F: ['Seo-yeon', 'Min-seo', 'Ji-woo', 'Ha-eun', 'Soo-jin', 'Ye-jin', 'Su-bin', 'Na-eun']
     },
     'Japonaise': {
-      M: ['Hiroshi', 'Takeshi', 'Akira', 'Yuki', 'Daiki'],
-      F: ['Sakura', 'Yuki', 'Ai', 'Rei', 'Mana']
+      M: ['Hiroshi', 'Takeshi', 'Akira', 'Yuki', 'Daiki', 'Haruto', 'Sota', 'Ren'],
+      F: ['Sakura', 'Yuki', 'Ai', 'Rei', 'Mana', 'Yui', 'Hina', 'Emi']
     },
     'Française': {
-      M: ['Pierre', 'Jean', 'Michel', 'Alain', 'Philippe'],
-      F: ['Marie', 'Nathalie', 'Isabelle', 'Sylvie', 'Catherine']
+      M: ['Pierre', 'Jean', 'Michel', 'Alain', 'Philippe', 'Nicolas', 'Antoine', 'Julien'],
+      F: ['Marie', 'Nathalie', 'Isabelle', 'Sylvie', 'Catherine', 'Valérie', 'Christine', 'Sophie']
     },
-    // Ajouter plus de noms par nationalité...
+    'Américaine': {
+      M: ['John', 'Michael', 'David', 'James', 'Robert', 'William', 'Christopher', 'Matthew'],
+      F: ['Mary', 'Jennifer', 'Linda', 'Patricia', 'Susan', 'Jessica', 'Sarah', 'Karen']
+    },
+    'Chinoise': {
+      M: ['Wei', 'Jun', 'Ming', 'Hao', 'Lei', 'Qiang', 'Yang', 'Bin'],
+      F: ['Li', 'Wang', 'Zhang', 'Liu', 'Chen', 'Yang', 'Zhao', 'Huang']
+    }
+  };
+
+  const lastNames = {
+    'Coréenne': ['Kim', 'Lee', 'Park', 'Choi', 'Jung', 'Kang', 'Cho', 'Yoon', 'Jang', 'Lim', 'Han', 'Oh'],
+    'Japonaise': ['Sato', 'Suzuki', 'Takahashi', 'Tanaka', 'Watanabe', 'Ito', 'Yamamoto', 'Nakamura', 'Kobayashi', 'Kato', 'Yoshida', 'Yamada'],
+    'Française': ['Martin', 'Bernard', 'Thomas', 'Petit', 'Robert', 'Richard', 'Durand', 'Dubois', 'Moreau', 'Laurent', 'Simon', 'Michel'],
+    'Américaine': ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez'],
+    'Chinoise': ['Wang', 'Li', 'Zhang', 'Liu', 'Chen', 'Yang', 'Zhao', 'Huang', 'Zhou', 'Wu', 'Xu', 'Sun']
   };
   
-  const nationalityNames = names[nationality] || names['Française'];
-  const genderNames = nationalityNames[gender];
-  return genderNames[Math.floor(Math.random() * genderNames.length)];
+  const nationalityFirstNames = firstNames[nationality] || firstNames['Française'];
+  const nationalityLastNames = lastNames[nationality] || lastNames['Française'];
+  
+  const genderFirstNames = nationalityFirstNames[gender] || nationalityFirstNames['M'];
+  const firstName = genderFirstNames[Math.floor(Math.random() * genderFirstNames.length)];
+  const lastName = nationalityLastNames[Math.floor(Math.random() * nationalityLastNames.length)];
+  
+  return `${firstName} ${lastName}`;
 };
 
 const generatePortraitData = (nationality) => {
