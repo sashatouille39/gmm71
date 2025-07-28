@@ -66,6 +66,7 @@ class GameEvent(BaseModel):
     id: int
     name: str
     type: EventType
+    category: EventCategory = EventCategory.CLASSIQUES
     difficulty: int = Field(..., ge=1, le=10)
     description: str
     decor: str = "Décor standard"
@@ -74,6 +75,8 @@ class GameEvent(BaseModel):
     survival_time_max: int = 300  # secondes maximum
     elimination_rate: float = Field(..., ge=0.1, le=0.99)  # taux d'élimination
     special_mechanics: List[str] = []
+    is_final: bool = False  # Épreuve finale (2-4 joueurs, 1 seul gagnant)
+    min_players_for_final: int = 2  # Nombre min de joueurs pour déclencher une finale
 
 class EventResult(BaseModel):
     event_id: int
