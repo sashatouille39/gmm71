@@ -96,7 +96,27 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState }) 
   };
 
   // Fonction pour mettre à jour les stats des célébrités après un jeu
-  const updateCelebrityStats = async (finalPlayers) => {
+  const updateCelebrityStats = async (celebrityIdOrPlayers, stats) => {
+    // Si appelé avec un seul celebrityId et des stats
+    if (typeof celebrityIdOrPlayers === 'string' && stats) {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      
+      try {
+        await fetch(`${backendUrl}/api/celebrities/${celebrityIdOrPlayers}/participation`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(stats)
+        });
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour des stats de célébrité:', error);
+      }
+      return;
+    }
+
+    // Si appelé avec une liste de joueurs (comportement original)
+    const finalPlayers = celebrityIdOrPlayers;
     const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
     
     for (const player of finalPlayers) {
