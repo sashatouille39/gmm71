@@ -280,10 +280,7 @@ class GameService:
 
 
 
-            'Luxembourgeoise': {
-                'M': ['Jean', 'Pierre', 'Marc', 'Alain', 'Claude', 'Michel', 'André', 'François'],
-                'F': ['Marie', 'Anne', 'Monique', 'Josée', 'Christiane', 'Nicole', 'Martine', 'Françoise']
-            },
+
             'Marocaine': {
                 'M': ['Mohamed', 'Ahmed', 'Ali', 'Hassan', 'Omar', 'Youssef', 'Khalid', 'Abdelkader'],
                 'F': ['Fatima', 'Aisha', 'Khadija', 'Zahra', 'Amina', 'Nadia', 'Malika', 'Samira']
