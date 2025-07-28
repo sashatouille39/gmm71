@@ -88,6 +88,22 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState }) 
     }
   };
 
+  // Fonction pour enregistrer une victoire de célébrité
+  const updateCelebrityVictory = async (celebrityId) => {
+    const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+    
+    try {
+      await fetch(`${backendUrl}/api/celebrities/${celebrityId}/victory`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'enregistrement de la victoire:', error);
+    }
+  };
+
   const completeEvent = () => {
     const survivors = [];
     const eliminated = [];
