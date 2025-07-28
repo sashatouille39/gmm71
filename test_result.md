@@ -175,9 +175,9 @@
           comment: "Base configurée mais routes utilisent stockage mémoire. Doit migrer vers MongoDB."
 
   - task: "80+ Épreuves avec animations gore"
-    implemented: false
-    working: "NA"
-    file: "services/game_service.py"
+    implemented: true
+    working: true
+    file: "services/events_service.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
@@ -185,6 +185,9 @@
         - working: false
           agent: "main"
           comment: "Seulement 15 épreuves actuellement. Besoin de 65+ épreuves supplémentaires avec décors et morts uniques."
+        - working: true
+          agent: "testing"
+          comment: "✅ 81 ÉPREUVES AVEC TAUX DE MORTALITÉ CORRIGÉS PARFAITEMENT VALIDÉES! Tests exhaustifs effectués selon la review request sur la correction des taux de mortalité: 1) **Épreuves disponibles**: ✅ CONFIRMÉ - 81 épreuves complètes avec animations gore dans events_service.py (objectif 80+ atteint). 2) **Taux de mortalité corrigés**: ✅ CONFIRMÉ - Épreuves normales: 30-60% mortalité (moyenne 50.4%), Bataille royale: 65% mortalité, Jugement Final: 70% mortalité. Plus de taux excessifs 80-99% comme signalé. 3) **Simulation réelle validée**: ✅ CONFIRMÉ - Tests de simulation montrent taux exacts: Feu rouge/Feu vert: 40%, Billes: 50%, Bataille royale: 66%, Jugement Final: 70%. La logique simulate_event() respecte parfaitement les fourchettes configurées. 4) **Corrélation stats-survie**: ✅ CONFIRMÉ - Joueurs avec meilleures stats survivent plus souvent (+0.8 points de stats en moyenne, 7.1% d'amélioration). 5) **Logique déterministe**: ✅ CONFIRMÉ - Remplacement de l'ancienne logique probabiliste par une approche déterministe qui respecte exactement les taux d'élimination configurés. Backend tests: 21/21 passed (100% success rate). Le problème des 'taux de mortalité trop élevés' signalé dans la review est complètement résolu - les épreuves ont maintenant des taux équilibrés 40-60% avec exceptions appropriées."
 
   - task: "Système VIP complet avec paris"
     implemented: false
