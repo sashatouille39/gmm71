@@ -601,9 +601,10 @@
 
 ## test_plan:
   current_focus:
-    - "Intégration MongoDB"
-    - "Système VIP complet avec paris"
-    - "Arène de jeu avec mode spectateur"
+    - "Correction système de paiement"
+    - "Correction gains VIP"
+    - "Système de remboursement"
+    - "Route statut gains VIP"
   stuck_tasks:
     - "Intégration MongoDB"
   test_all: false
