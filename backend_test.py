@@ -722,9 +722,15 @@ class BackendTester:
         # Test 4: Player generation
         self.test_generate_players()
         
-        # Test 5: CRITICAL - Full names generation (NEW TEST)
-        print("\n🎯 Testing CRITICAL fix: Full names with nationality consistency...")
-        self.test_full_names_generation()
+        # Test 5: CRITICAL - Nationality names correction (NEW COMPREHENSIVE TEST)
+        print("\n🎯 Testing CRITICAL fix: Nationality names correction for all 49 nationalities...")
+        self.test_nationality_names_correction()
+        
+        # Test 6: Skin color consistency with nationalities
+        self.test_skin_color_nationality_consistency()
+        
+        # Test 7: Name diversity within same nationality
+        self.test_name_diversity_same_nationality()
         
         # Test 6: Game creation
         game_id = self.test_create_game()
