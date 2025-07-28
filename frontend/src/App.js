@@ -28,15 +28,82 @@ function App() {
     setGameState(prev => ({ ...prev, ...updates }));
   };
 
-  const startNewGame = (players, selectedEvents) => {
-    setCurrentGame({
-      id: Date.now(),
-      players,
-      events: selectedEvents,
-      currentEventIndex: 0,
-      startTime: new Date(),
-      completed: false
-    });
+  const startNewGame = async (players, selectedEvents) => {
+    try {
+      // Créer la partie via l'API backend
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      
+      // Séparer les joueurs manuels des autres
+      const manualPlayers = players.filter(p => p.isCustom || p.isCelebrity);
+      const playerCount = players.length;
+      
+      // Préparer les données pour l'API backend
+      const gameRequest = {
+        player_count: playerCount,
+        manual_players: manualPlayers.map(player => ({
+          name: player.name,
+          nationality: player.nationality,
+          gender: player.gender,
+          role: player.role,
+          stats: player.stats,
+          portrait: player.portrait,
+          uniform: player.uniform || {
+            style: 'Standard',
+            color: '#FF0000',
+            pattern: 'Uni'
+          }
+        })),
+        selected_events: selectedEvents.map(event => event.id),
+        game_mode: 'standard'
+      };
+
+      const response = await fetch(`${backendUrl}/api/games/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(gameRequest)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erreur API: ${response.status}`);
+      }
+
+      const game = await response.json();
+      
+      // Adapter le format de jeu pour le frontend
+      setCurrentGame({
+        id: game.id,
+        players: game.players,
+        events: game.events,
+        current_event_index: game.current_event_index || 0,
+        start_time: game.start_time,
+        completed: game.completed || false,
+        winner: game.winner || null,
+        earnings: game.earnings || 0,
+        event_results: game.event_results || []
+      });
+      
+      console.log('Partie créée avec succès:', {
+        id: game.id,
+        playersCount: game.players.length,
+        eventsCount: game.events.length
+      });
+      
+    } catch (error) {
+      console.error('Erreur lors de la création de la partie:', error);
+      alert(`Erreur lors de la création de la partie: ${error.message}`);
+      
+      // Fallback vers création locale en cas d'erreur
+      setCurrentGame({
+        id: `local_${Date.now()}`,
+        players,
+        events: selectedEvents,
+        current_event_index: 0,
+        start_time: new Date(),
+        completed: false
+      });
+    }
   };
 
   return (
