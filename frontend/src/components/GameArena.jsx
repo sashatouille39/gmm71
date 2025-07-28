@@ -38,6 +38,71 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
     }
   }, [currentGame]);
 
+  // Fonction pour collecter automatiquement les gains VIP quand le jeu se termine
+  const collectVipEarningsAutomatically = async (gameId) => {
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      
+      // Vérifier d'abord le statut des gains VIP
+      const statusResponse = await fetch(`${backendUrl}/api/games/${gameId}/vip-earnings-status`);
+      if (!statusResponse.ok) {
+        console.error('Erreur lors de la vérification du statut VIP');
+        return;
+      }
+      
+      const statusData = await statusResponse.json();
+      console.log('Statut des gains VIP:', statusData);
+      
+      // Si le jeu est terminé et qu'il y a des gains à collecter
+      if (statusData.completed && statusData.can_collect && statusData.earnings_available > 0) {
+        const collectResponse = await fetch(`${backendUrl}/api/games/${gameId}/collect-vip-earnings`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+        
+        if (collectResponse.ok) {
+          const collectData = await collectResponse.json();
+          console.log('Gains VIP collectés automatiquement:', collectData);
+          
+          // Afficher une notification à l'utilisateur
+          const notification = document.createElement('div');
+          notification.innerHTML = `
+            <div class="fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-3 animate-fade-in">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+              </svg>
+              <div>
+                <div class="font-bold">💰 Gains VIP collectés !</div>
+                <div class="text-sm">+$${collectData.earnings_collected.toLocaleString()}</div>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(notification.firstElementChild);
+          
+          // Supprimer la notification après 5 secondes
+          setTimeout(() => {
+            const notif = document.querySelector('.fixed.top-4.right-4');
+            if (notif) notif.remove();
+          }, 5000);
+          
+          // Recharger le gameState depuis le backend pour synchroniser le nouveau solde
+          if (onRefreshGameState) {
+            await onRefreshGameState();
+          }
+        } else {
+          console.error('Erreur lors de la collecte des gains VIP');
+        }
+      } else {
+        console.log('Pas de gains VIP à collecter ou jeu non terminé');
+      }
+      
+    } catch (error) {
+      console.error('Erreur lors de la collecte automatique des gains VIP:', error);
+    }
+  };
+
   const simulateEvent = async () => {
     setIsPlaying(true);
     setAnimationPhase('preparation');
