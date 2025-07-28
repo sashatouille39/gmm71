@@ -264,9 +264,9 @@ class BackendTester:
             self.log_result("Pydantic Models", False, f"Error: {str(e)}")
     
     def test_nationality_names_correction(self):
-        """Test CRITICAL: Vérifier la correction des noms pour toutes les 49 nationalités - plus de noms français par défaut"""
+        """Test CRITICAL: Vérifier la correction des noms pour toutes les 43 nationalités - plus de noms français par défaut"""
         try:
-            print("\n🎯 TESTING NATIONALITY NAMES CORRECTION FOR ALL 49 NATIONALITIES")
+            print("\n🎯 TESTING NATIONALITY NAMES CORRECTION FOR ALL 43 NATIONALITIES")
             print("=" * 80)
             
             # Test 1: Generate players and verify nationality distribution
@@ -287,16 +287,15 @@ class BackendTester:
             name_format_errors = []
             authentic_names_count = 0
             
-            # All 49 expected nationalities
+            # All 43 expected nationalities (18 original + 25 new as per user request)
             expected_nationalities = [
                 "Afghane", "Allemande", "Argentine", "Australienne", "Autrichienne", "Belge", 
                 "Brésilienne", "Britannique", "Bulgare", "Canadienne", "Chinoise", "Coréenne", 
                 "Croate", "Danoise", "Égyptienne", "Espagnole", "Estonienne", "Finlandaise", 
                 "Française", "Grecque", "Hongroise", "Indienne", "Indonésienne", "Iranienne", 
-                "Irlandaise", "Islandaise", "Israélienne", "Italienne", "Japonaise", "Kazakhe", 
-                "Lettone", "Lituanienne", "Luxembourgeoise", "Marocaine", "Mexicaine", "Néerlandaise", 
-                "Nigériane", "Norvégienne", "Polonaise", "Portugaise", "Roumaine", "Russe", 
-                "Suédoise", "Suisse", "Tchèque", "Thaïlandaise", "Turque", "Ukrainienne", "Américaine"
+                "Irlandaise", "Islandaise", "Italienne", "Japonaise", "Marocaine", "Mexicaine", 
+                "Néerlandaise", "Nigériane", "Norvégienne", "Polonaise", "Portugaise", "Roumaine", 
+                "Russe", "Suédoise", "Suisse", "Tchèque", "Thaïlandaise", "Turque", "Américaine"
             ]
             
             for player in players:
