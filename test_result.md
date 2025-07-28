@@ -215,16 +215,19 @@
           comment: "Interface de base avec toutes les sections requises (Jouer/Stats/Uniformes/VIP/Paramètres)"
 
   - task: "Créateur de joueur manuel complet"
-    implemented: false
-    working: "NA"
+    implemented: true
+    working: true
     file: "components/PlayerCreator.jsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
         - working: false
           agent: "main"
           comment: "Base présente mais manque personnalisation complète (15+ visages, 25+ couleurs peau, 80+ coiffures)"
+        - working: true
+          agent: "main"
+          comment: "PROBLÈME RÉSOLU: Créateur de joueur complet avec toutes les options de personnalisation (15+ formes de visage, 25+ couleurs de peau, 80+ coiffures, onglets portrait/stats/infos). Fix majeur du bug de persistance localStorage: suppression du race condition dans useCustomPlayers hook qui causait la perte des données lors de navigation. Joueurs créés manuellement apparaissent maintenant correctement dans la liste et persistent après rechargement."
 
   - task: "Arène de jeu avec mode spectateur"
     implemented: false
