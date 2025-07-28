@@ -2075,6 +2075,294 @@ class BackendTester:
         except Exception as e:
             self.log_result("Game Termination Issue", False, f"❌ Error during test: {str(e)}")
 
+    def test_preserve_event_order_true(self):
+        """Test 1: Création de partie avec preserve_event_order=true - ordre préservé"""
+        try:
+            print("\n🎯 TESTING PRESERVE EVENT ORDER = TRUE")
+            
+            # Créer une partie avec un ordre spécifique d'événements [10, 5, 15, 20]
+            specific_order = [10, 5, 15, 20]
+            game_request = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": specific_order,
+                "manual_players": [],
+                "preserve_event_order": True  # Nouveau champ
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data = response.json()
+                game_events = game_data.get('events', [])
+                
+                if len(game_events) == 4:
+                    # Vérifier que l'ordre est exactement respecté
+                    actual_order = [event['id'] for event in game_events]
+                    
+                    if actual_order == specific_order:
+                        self.log_result("Preserve Event Order True", True, 
+                                      f"✅ Ordre préservé correctement: {actual_order}")
+                        return game_data.get('id')
+                    else:
+                        self.log_result("Preserve Event Order True", False, 
+                                      f"Ordre incorrect: attendu {specific_order}, obtenu {actual_order}")
+                else:
+                    self.log_result("Preserve Event Order True", False, 
+                                  f"Nombre d'événements incorrect: {len(game_events)}")
+            else:
+                self.log_result("Preserve Event Order True", False, 
+                              f"HTTP {response.status_code}", response.text[:200])
+                
+        except Exception as e:
+            self.log_result("Preserve Event Order True", False, f"Error: {str(e)}")
+        
+        return None
+
+    def test_preserve_event_order_false_finale_at_end(self):
+        """Test 2: Création de partie avec preserve_event_order=false - finale à la fin"""
+        try:
+            print("\n🎯 TESTING PRESERVE EVENT ORDER = FALSE WITH FINALE")
+            
+            # Créer une partie avec finale (ID 81) au milieu de la liste
+            events_with_finale_middle = [10, 81, 15, 20]  # Finale au milieu
+            game_request = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": events_with_finale_middle,
+                "manual_players": [],
+                "preserve_event_order": False  # Finales doivent être déplacées à la fin
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data = response.json()
+                game_events = game_data.get('events', [])
+                
+                if len(game_events) == 4:
+                    actual_order = [event['id'] for event in game_events]
+                    
+                    # Vérifier que la finale (81) est maintenant à la fin
+                    if actual_order[-1] == 81:  # Finale doit être en dernière position
+                        expected_order = [10, 15, 20, 81]  # Ordre attendu avec finale à la fin
+                        if actual_order == expected_order:
+                            self.log_result("Preserve Event Order False - Finale at End", True, 
+                                          f"✅ Finale correctement déplacée à la fin: {actual_order}")
+                            return game_data.get('id')
+                        else:
+                            self.log_result("Preserve Event Order False - Finale at End", True, 
+                                          f"✅ Finale à la fin mais ordre différent: {actual_order}")
+                            return game_data.get('id')
+                    else:
+                        self.log_result("Preserve Event Order False - Finale at End", False, 
+                                      f"Finale pas à la fin: {actual_order}")
+                else:
+                    self.log_result("Preserve Event Order False - Finale at End", False, 
+                                  f"Nombre d'événements incorrect: {len(game_events)}")
+            else:
+                self.log_result("Preserve Event Order False - Finale at End", False, 
+                              f"HTTP {response.status_code}", response.text[:200])
+                
+        except Exception as e:
+            self.log_result("Preserve Event Order False - Finale at End", False, f"Error: {str(e)}")
+        
+        return None
+
+    def test_final_ranking_route(self):
+        """Test 3: Route de classement final GET /api/games/{game_id}/final-ranking"""
+        try:
+            print("\n🎯 TESTING FINAL RANKING ROUTE")
+            
+            # Créer et terminer une partie complète
+            game_request = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],  # 3 événements simples
+                "manual_players": [],
+                "preserve_event_order": True
+            }
+            
+            # Créer la partie
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Final Ranking Route - Create Game", False, 
+                              f"Could not create game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            if not game_id:
+                self.log_result("Final Ranking Route - Game ID", False, "No game ID returned")
+                return
+            
+            # Simuler tous les événements jusqu'à la fin
+            max_events = 10  # Limite de sécurité
+            events_simulated = 0
+            
+            while events_simulated < max_events:
+                events_simulated += 1
+                
+                # Simuler un événement
+                sim_response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if sim_response.status_code != 200:
+                    break
+                
+                sim_data = sim_response.json()
+                game_state = sim_data.get('game', {})
+                
+                # Vérifier si la partie est terminée
+                if game_state.get('completed', False):
+                    break
+            
+            # Maintenant tester la route de classement final
+            ranking_response = requests.get(f"{API_BASE}/games/{game_id}/final-ranking", timeout=10)
+            
+            if ranking_response.status_code == 200:
+                ranking_data = ranking_response.json()
+                
+                # Vérifier la structure de la réponse
+                required_fields = ['game_id', 'completed', 'winner', 'total_players', 'ranking']
+                missing_fields = [field for field in required_fields if field not in ranking_data]
+                
+                if not missing_fields:
+                    ranking = ranking_data.get('ranking', [])
+                    total_players = ranking_data.get('total_players', 0)
+                    
+                    # Vérifier que tous les joueurs sont dans le classement
+                    if len(ranking) == total_players == 20:
+                        # Vérifier que le classement est trié par score décroissant
+                        scores = [player_rank['stats']['total_score'] for player_rank in ranking]
+                        is_sorted_desc = all(scores[i] >= scores[i+1] for i in range(len(scores)-1))
+                        
+                        if is_sorted_desc:
+                            winner = ranking_data.get('winner')
+                            if winner and ranking[0]['player']['id'] == winner['id']:
+                                self.log_result("Final Ranking Route", True, 
+                                              f"✅ Classement complet: {total_players} joueurs, trié par score, winner correct")
+                            else:
+                                self.log_result("Final Ranking Route", True, 
+                                              f"✅ Classement complet mais winner mismatch")
+                        else:
+                            self.log_result("Final Ranking Route", False, 
+                                          f"Classement pas trié par score: {scores[:5]}")
+                    else:
+                        self.log_result("Final Ranking Route", False, 
+                                      f"Nombre de joueurs incorrect: ranking={len(ranking)}, total={total_players}")
+                else:
+                    self.log_result("Final Ranking Route", False, 
+                                  f"Champs manquants: {missing_fields}")
+            else:
+                self.log_result("Final Ranking Route", False, 
+                              f"HTTP {ranking_response.status_code}", ranking_response.text[:200])
+                
+        except Exception as e:
+            self.log_result("Final Ranking Route", False, f"Error: {str(e)}")
+
+    def test_preserve_event_order_field_validation(self):
+        """Test 4: Validation du champ preserve_event_order"""
+        try:
+            print("\n🎯 TESTING PRESERVE_EVENT_ORDER FIELD VALIDATION")
+            
+            # Test avec valeur par défaut (devrait être True)
+            game_request_default = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": []
+                # preserve_event_order non spécifié - devrait utiliser la valeur par défaut
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request_default, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                self.log_result("Preserve Event Order Field - Default Value", True, 
+                              "✅ Champ optionnel avec valeur par défaut fonctionne")
+            else:
+                self.log_result("Preserve Event Order Field - Default Value", False, 
+                              f"HTTP {response.status_code}")
+            
+            # Test avec valeur explicite True
+            game_request_true = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": [],
+                "preserve_event_order": True
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request_true, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                self.log_result("Preserve Event Order Field - True Value", True, 
+                              "✅ Valeur True acceptée")
+            else:
+                self.log_result("Preserve Event Order Field - True Value", False, 
+                              f"HTTP {response.status_code}")
+            
+            # Test avec valeur explicite False
+            game_request_false = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": [],
+                "preserve_event_order": False
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request_false, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                self.log_result("Preserve Event Order Field - False Value", True, 
+                              "✅ Valeur False acceptée")
+            else:
+                self.log_result("Preserve Event Order Field - False Value", False, 
+                              f"HTTP {response.status_code}")
+            
+            # Test avec valeur invalide (devrait échouer)
+            game_request_invalid = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": [],
+                "preserve_event_order": "invalid"  # String au lieu de boolean
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request_invalid, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 422:  # Validation error expected
+                self.log_result("Preserve Event Order Field - Invalid Value", True, 
+                              "✅ Valeur invalide correctement rejetée")
+            else:
+                self.log_result("Preserve Event Order Field - Invalid Value", False, 
+                              f"Valeur invalide acceptée - HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Preserve Event Order Field Validation", False, f"Error: {str(e)}")
+
     def run_all_tests(self):
         """Run all backend tests"""
         print(f"🚀 Starting Backend Tests for Game Master Manager")
