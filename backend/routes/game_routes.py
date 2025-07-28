@@ -315,6 +315,24 @@ async def simulate_event(game_id: str):
     games_db[game_id] = game
     return {"result": result, "game": game}
 
+@router.get("/{game_id}/vip-earnings-status")
+async def get_vip_earnings_status(game_id: str):
+    """Obtient le statut des gains VIP d'une partie"""
+    if game_id not in games_db:
+        raise HTTPException(status_code=404, detail="Partie non trouvée")
+    
+    game = games_db[game_id]
+    
+    return {
+        "game_id": game_id,
+        "completed": game.completed,
+        "earnings_available": game.earnings,
+        "can_collect": game.completed and game.earnings > 0,
+        "winner": game.winner.name if game.winner else None,
+        "total_players": len(game.players),
+        "alive_players": len([p for p in game.players if p.alive])
+    }
+
 @router.post("/{game_id}/collect-vip-earnings")
 async def collect_vip_earnings(game_id: str, user_id: str = "default_user"):
     """NOUVEAU : Collecte les gains VIP d'une partie terminée et les ajoute au gamestate"""
