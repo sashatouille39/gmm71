@@ -51,6 +51,32 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState }) 
     }, 100);
   };
 
+  // Fonction pour mettre à jour les stats des célébrités après un jeu
+  const updateCelebrityStats = async (finalPlayers) => {
+    const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+    
+    for (const player of finalPlayers) {
+      if (player.isCelebrity && player.celebrityId) {
+        try {
+          // Si la célébrité a survécu et a gagné, enregistrer une victoire
+          if (player.alive && player === currentGame.winner) {
+            await fetch(`${backendUrl}/api/celebrities/${player.celebrityId}/victory`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              }
+            });
+          }
+          
+          // Mettre à jour les stats générales de la célébrité
+          // (ici on pourrait ajouter plus de logique pour mettre à jour les stats)
+        } catch (error) {
+          console.error('Erreur lors de la mise à jour des stats de célébrité:', error);
+        }
+      }
+    }
+  };
+
   const completeEvent = () => {
     const survivors = [];
     const eliminated = [];
@@ -113,12 +139,28 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState }) 
     
     // Condition d'arrêt : 1 survivant OU tous les événements terminés
     if (alivePlayers.length <= 1 || nextEventIndex >= currentGame.events.length) {
+      // Déterminer le gagnant
+      let winner = null;
+      if (alivePlayers.length === 1) {
+        winner = alivePlayers[0];
+      } else if (alivePlayers.length > 1) {
+        winner = alivePlayers.reduce((prev, current) => 
+          prev.totalScore > current.totalScore ? prev : current
+        );
+      }
+
       // Fin de la partie
+      const finalPlayers = [...survivors, ...eliminated];
       setCurrentGame(prev => ({ 
         ...prev, 
         completed: true,
-        players: [...survivors, ...eliminated]
+        winner: winner,
+        players: finalPlayers
       }));
+
+      // Mettre à jour les stats des célébrités
+      updateCelebrityStats(finalPlayers);
+
       updateGameState({
         money: gameState.money + calculateWinnings(survivors.length),
         gameStats: {
