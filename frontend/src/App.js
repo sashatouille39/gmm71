@@ -13,20 +13,96 @@ import FinalRanking from './components/FinalRanking';
 import { INITIAL_GAME_STATE } from './mock/mockData';
 
 function App() {
-  const [gameState, setGameState] = useState(() => {
-    const saved = localStorage.getItem('gamemaster-state');
-    return saved ? JSON.parse(saved) : INITIAL_GAME_STATE;
-  });
-
+  const [gameState, setGameState] = useState(INITIAL_GAME_STATE);
   const [currentGame, setCurrentGame] = useState(null);
+  const [isLoadingGameState, setIsLoadingGameState] = useState(true);
 
-  // Sauvegarde automatique
+  // Charger le gameState depuis le backend au démarrage
   useEffect(() => {
-    localStorage.setItem('gamemaster-state', JSON.stringify(gameState));
-  }, [gameState]);
+    loadGameStateFromBackend();
+  }, []);
 
-  const updateGameState = (updates) => {
+  const loadGameStateFromBackend = async () => {
+    setIsLoadingGameState(true);
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      const response = await fetch(`${backendUrl}/api/gamestate/`);
+      
+      if (!response.ok) {
+        throw new Error(`Erreur API: ${response.status}`);
+      }
+      
+      const backendGameState = await response.json();
+      
+      // Adapter le format backend vers frontend
+      const adaptedGameState = {
+        money: backendGameState.money,
+        vipSalonLevel: backendGameState.vip_salon_level,
+        unlockedUniforms: backendGameState.unlocked_uniforms || [],
+        unlockedPatterns: backendGameState.unlocked_patterns || [],
+        ownedCelebrities: backendGameState.owned_celebrities || [],
+        gameStats: {
+          totalGamesPlayed: backendGameState.game_stats.total_games_played || 0,
+          totalKills: backendGameState.game_stats.total_kills || 0,
+          totalBetrayals: backendGameState.game_stats.total_betrayals || 0,
+          totalEarnings: backendGameState.game_stats.total_earnings || 0,
+          zeroAppearances: backendGameState.game_stats.zero_appearances || 0,
+          favoriteCelebrity: backendGameState.game_stats.favorite_celebrity || null
+        }
+      };
+      
+      setGameState(adaptedGameState);
+      console.log('GameState chargé depuis le backend:', adaptedGameState);
+      
+    } catch (error) {
+      console.error('Erreur lors du chargement du gameState:', error);
+      // Fallback vers état initial si erreur backend
+      setGameState(INITIAL_GAME_STATE);
+    }
+    setIsLoadingGameState(false);
+  };
+
+  const updateGameState = async (updates) => {
+    // Mettre à jour localement d'abord pour la réactivité
     setGameState(prev => ({ ...prev, ...updates }));
+    
+    // Puis synchroniser avec le backend
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      
+      // Adapter les updates pour le format backend
+      const backendUpdates = {};
+      if (updates.money !== undefined) backendUpdates.money = updates.money;
+      if (updates.vipSalonLevel !== undefined) backendUpdates.vip_salon_level = updates.vipSalonLevel;
+      if (updates.unlockedUniforms !== undefined) backendUpdates.unlocked_uniforms = updates.unlockedUniforms;
+      if (updates.unlockedPatterns !== undefined) backendUpdates.unlocked_patterns = updates.unlockedPatterns;
+      if (updates.ownedCelebrities !== undefined) backendUpdates.owned_celebrities = updates.ownedCelebrities;
+      if (updates.gameStats !== undefined) {
+        backendUpdates.game_stats = {
+          total_games_played: updates.gameStats.totalGamesPlayed,
+          total_kills: updates.gameStats.totalKills,
+          total_betrayals: updates.gameStats.totalBetrayals,
+          total_earnings: updates.gameStats.totalEarnings,
+          zero_appearances: updates.gameStats.zeroAppearances,
+          favorite_celebrity: updates.gameStats.favoriteCelebrity
+        };
+      }
+      
+      await fetch(`${backendUrl}/api/gamestate/`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(backendUpdates)
+      });
+      
+      console.log('GameState synchronisé avec le backend:', backendUpdates);
+      
+    } catch (error) {
+      console.error('Erreur lors de la synchronisation du gameState:', error);
+      // En cas d'erreur, on garde les changements locaux mais on alerte
+      alert('Erreur de synchronisation avec le serveur. Vos changements sont temporaires.');
+    }
   };
 
   const startNewGame = async (players, selectedEvents, gameOptions = {}) => {
