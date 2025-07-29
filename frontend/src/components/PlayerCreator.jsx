@@ -12,6 +12,8 @@ import { ArrowLeft, Save, Eye, RotateCcw, CheckCircle } from 'lucide-react';
 import { useCustomPlayers } from '../hooks/useCustomPlayers';
 import { 
   NATIONALITIES, 
+  getNationalityKeys,
+  getNationalityDisplay,
   FACE_SHAPES, 
   SKIN_COLORS, 
   HAIRSTYLES, 
