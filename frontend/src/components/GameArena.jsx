@@ -454,6 +454,13 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
     return basePayout + participantBonus;
   };
 
+  const handleKillsClick = (player, kills) => {
+    if (kills > 0) {
+      setSelectedPlayer(player);
+      setShowEliminatedModal(true);
+    }
+  };
+
   // Fonction pour quitter la partie avec remboursement automatique si non terminée
   const handleQuitGame = async () => {
     if (!currentGame) {
