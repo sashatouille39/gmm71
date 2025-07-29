@@ -112,8 +112,8 @@ async def record_celebrity_victory(celebrity_id: str):
             celebrity.stats.intelligence += 1
         elif celebrity.stats.force < 10:
             celebrity.stats.force += 1
-        elif celebrity.stats.agilite < 10:
-            celebrity.stats.agilite += 1
+        elif celebrity.stats.agilité < 10:
+            celebrity.stats.agilité += 1
     
     return {
         "message": f"Victoire enregistrée pour {celebrity.name}",
