@@ -685,28 +685,28 @@ class GameService:
                 stats = PlayerStats(
                     intelligence=random.randint(7, 10),
                     force=random.randint(6, 9),
-                    agilite=random.randint(7, 10)
+                    agilité=random.randint(7, 10)
                 )
                 wins = random.randint(1, 3)
             elif category == "Sportif":
                 stats = PlayerStats(
                     intelligence=random.randint(4, 7),
                     force=random.randint(8, 10),
-                    agilite=random.randint(8, 10)
+                    agilité=random.randint(8, 10)
                 )
                 wins = 0
             elif category == "Scientifique":
                 stats = PlayerStats(
                     intelligence=random.randint(9, 10),
                     force=random.randint(2, 5),
-                    agilite=random.randint(3, 6)
+                    agilité=random.randint(3, 6)
                 )
                 wins = 0
             else:
                 stats = PlayerStats(
                     intelligence=random.randint(4, 8),
                     force=random.randint(3, 7),
-                    agilite=random.randint(4, 8)
+                    agilité=random.randint(4, 8)
                 )
                 wins = 0
             
