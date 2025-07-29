@@ -64,6 +64,33 @@ class Player(BaseModel):
     group_id: Optional[str] = None  # ID du groupe auquel appartient ce joueur
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
+class PlayerGroup(BaseModel):
+    """Modèle pour les groupes de joueurs qui s'aident mutuellement"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str  # Nom du groupe (ex: "Groupe 1", "Les Alliés", etc.)
+    member_ids: List[str] = []  # IDs des joueurs membres
+    allow_betrayals: bool = False  # Si les trahisons sont autorisées dans ce groupe
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class GroupCreateRequest(BaseModel):
+    """Requête pour créer un groupe"""
+    name: str
+    member_ids: List[str]
+    allow_betrayals: bool = False
+
+class GroupUpdateRequest(BaseModel):
+    """Requête pour modifier un groupe"""
+    name: Optional[str] = None
+    member_ids: Optional[List[str]] = None
+    allow_betrayals: Optional[bool] = None
+
+class AutoGroupRequest(BaseModel):
+    """Requête pour créer des groupes automatiquement"""
+    num_groups: int = Field(..., ge=1, le=20)  # Nombre de groupes à créer
+    min_members: int = Field(default=2, ge=2, le=8)  # Minimum de membres par groupe
+    max_members: int = Field(default=8, ge=2, le=8)  # Maximum de membres par groupe
+    allow_betrayals: bool = Field(default=False)  # Trahisons autorisées par défaut
+
 class GameEvent(BaseModel):
     id: int
     name: str
