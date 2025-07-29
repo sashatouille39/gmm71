@@ -852,7 +852,11 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
                         I:{player.stats.intelligence} F:{player.stats.force} A:{player.stats.agilité}
                       </div>
                       {player.kills > 0 && (
-                        <Badge variant="outline" className="text-xs text-red-400 border-red-400">
+                        <Badge 
+                          variant="outline" 
+                          className="text-xs text-red-400 border-red-400 cursor-pointer hover:bg-red-900/20"
+                          onClick={() => handleKillsClick(player, player.kills)}
+                        >
                           {player.kills} kills
                         </Badge>
                       )}
