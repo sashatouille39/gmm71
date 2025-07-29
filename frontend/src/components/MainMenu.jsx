@@ -12,7 +12,8 @@ import {
   LogOut,
   Users,
   Skull,
-  DollarSign
+  DollarSign,
+  RefreshCw
 } from 'lucide-react';
 
 const MainMenu = ({ gameState, hasActiveGame, onRefreshGameState }) => {
