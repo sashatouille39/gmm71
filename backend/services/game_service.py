@@ -521,7 +521,7 @@ class GameService:
     
     @classmethod
     def simulate_event(cls, players: List[Player], event: GameEvent, groups: Dict[str, Any] = None) -> EventResult:
-        """Simule une épreuve et retourne les résultats avec animations de mort - VERSION CORRIGÉE"""
+        """Simule une épreuve et retourne les résultats avec animations de mort - VERSION CORRIGÉE avec support des groupes"""
         alive_players = [p for p in players if p.alive]
         survivors = []
         eliminated = []
@@ -534,6 +534,9 @@ class GameService:
                 eliminated=[],
                 total_participants=0
             )
+        
+        # Traiter les groupes si fournis
+        groups_dict = groups or {}
         
         # Logique spéciale pour les épreuves finales
         if event.is_final:
