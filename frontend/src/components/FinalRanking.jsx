@@ -271,7 +271,14 @@ const FinalRanking = () => {
                         {entry.stats.total_score} pts
                       </div>
                       <div className="text-xs text-gray-400">
-                        {entry.stats.survived_events} épreuves • {entry.stats.kills} K • {entry.stats.betrayals} T
+                        <span 
+                          className={`${entry.stats.kills > 0 ? 'cursor-pointer hover:text-red-300' : ''}`}
+                          onClick={() => handleKillsClick(entry.player, entry.stats.kills)}
+                        >
+                          {entry.stats.survived_events} épreuves • {entry.stats.kills} K
+                        </span>
+                        {' • '}
+                        {entry.stats.betrayals} T
                       </div>
                     </div>
                   </div>
