@@ -748,7 +748,9 @@ class GameService:
                 wins = 0
             
             name = f"{random.choice(first_names)} {random.choice(last_names)}"
-            nationality = random.choice(cls.NATIONALITIES)
+            nationality_key = random.choice(list(cls.NATIONALITIES.keys()))
+            gender = random.choice(['M', 'F'])
+            nationality_display = cls.NATIONALITIES[nationality_key][gender]
             
             biography = cls._generate_biography(category, name)
             
@@ -757,7 +759,7 @@ class GameService:
                 category=category,
                 stars=stars,
                 price=price,
-                nationality=nationality,
+                nationality=nationality_display,
                 wins=wins,
                 stats=stats,
                 biography=biography
