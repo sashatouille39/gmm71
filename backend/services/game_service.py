@@ -157,7 +157,7 @@ class GameService:
         return PlayerStats(
             intelligence=max(0, min(10, intelligence)),
             force=max(0, min(10, force)),
-            agilite=max(0, min(10, agilite))
+            agilité=max(0, min(10, agilite))
         )
     
     @classmethod
