@@ -592,6 +592,26 @@ class GameService:
                 "event_name": event.name
             })
         
+        # Attribuer les éliminés aux survivants qui ont fait des kills
+        survivors_with_kills = [(s, s["event_kills"]) for s in survivors if s["event_kills"] > 0]
+        if survivors_with_kills and eliminated:
+            # Créer une liste de tous les kills à attribuer
+            kill_assignments = []
+            for survivor_data, kill_count in survivors_with_kills:
+                for _ in range(kill_count):
+                    kill_assignments.append(survivor_data["player"])
+            
+            # Attribuer aléatoirement les éliminés aux survivants qui ont fait des kills
+            eliminated_copy = eliminated.copy()
+            random.shuffle(eliminated_copy)
+            
+            for i, eliminated_player_data in enumerate(eliminated_copy):
+                if i < len(kill_assignments):
+                    killer = kill_assignments[i]
+                    eliminated_player = eliminated_player_data["player"]
+                    # Ajouter l'ID du joueur éliminé à la liste des kills du tueur
+                    killer.killed_players.append(eliminated_player.id)
+        
         # Trier les survivants par score d'événement
         survivors.sort(key=lambda x: x["score"], reverse=True)
         
