@@ -15,6 +15,7 @@ from routes.game_routes import router as game_router
 from routes.gamestate_routes import router as gamestate_router
 from routes.celebrities_routes import router as celebrities_router
 from routes.vip_routes import router as vip_router
+from routes.group_routes import router as group_router
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
