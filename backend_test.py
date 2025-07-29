@@ -120,7 +120,7 @@ class BackendTester:
                     if not missing_fields:
                         # Check stats structure
                         stats = first_player.get('stats', {})
-                        stats_fields = ['intelligence', 'force', 'agilite']
+                        stats_fields = ['intelligence', 'force', 'agilité']
                         missing_stats = [field for field in stats_fields if field not in stats]
                         
                         if not missing_stats:
