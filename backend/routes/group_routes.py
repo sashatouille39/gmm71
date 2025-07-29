@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, Field
 import random
 from typing import List, Dict, Any
 from models.game_models import (
