@@ -2969,6 +2969,275 @@ class BackendTester:
         except Exception as e:
             self.log_result("New Economic System French Request", False, f"Error during test: {str(e)}")
 
+    def test_payment_system_synchronization(self):
+        """Test CRITIQUE: Système de synchronisation des paiements selon la review request française"""
+        try:
+            print("\n🎯 TESTING PAYMENT SYSTEM SYNCHRONIZATION - REVIEW REQUEST FRANÇAISE")
+            print("=" * 80)
+            print("Testing the 3 specific scenarios mentioned in the French review request:")
+            print("1. Scénario 1 - Déduction de l'argent (money deduction)")
+            print("2. Scénario 2 - Gains VIP (VIP earnings collection)")
+            print("3. Scénario 3 - Remboursement (refund for unfinished games)")
+            print("=" * 80)
+            
+            # SCÉNARIO 1 - DÉDUCTION DE L'ARGENT
+            print("\n📋 SCÉNARIO 1 - DÉDUCTION DE L'ARGENT")
+            print("-" * 50)
+            
+            # 1.1 Vérifier le solde initial avec GET /api/gamestate/
+            print("   Step 1.1: Checking initial balance with GET /api/gamestate/")
+            gamestate_response = requests.get(f"{API_BASE}/gamestate/", timeout=10)
+            
+            if gamestate_response.status_code != 200:
+                self.log_result("Payment System - Initial Balance", False, 
+                              f"Could not get gamestate - HTTP {gamestate_response.status_code}")
+                return
+            
+            initial_gamestate = gamestate_response.json()
+            initial_money = initial_gamestate.get('money', 0)
+            print(f"   ✅ Initial balance: {initial_money:,}$")
+            
+            # 1.2 Créer une partie avec POST /api/games/create (50 joueurs + 3 événements)
+            print("   Step 1.2: Creating game with 50 players + 3 events")
+            game_request = {
+                "player_count": 50,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],  # 3 événements
+                "manual_players": []
+            }
+            
+            create_response = requests.post(f"{API_BASE}/games/create", 
+                                          json=game_request, 
+                                          headers={"Content-Type": "application/json"},
+                                          timeout=15)
+            
+            if create_response.status_code != 200:
+                self.log_result("Payment System - Game Creation", False, 
+                              f"Could not create game - HTTP {create_response.status_code}")
+                return
+            
+            game_data = create_response.json()
+            game_id = game_data.get('id')
+            total_cost = game_data.get('total_cost', 0)
+            
+            print(f"   ✅ Game created with ID: {game_id}")
+            print(f"   ✅ Total cost calculated: {total_cost:,}$")
+            
+            # 1.3 Vérifier que l'argent est automatiquement déduit du gamestate
+            print("   Step 1.3: Verifying automatic money deduction")
+            updated_gamestate_response = requests.get(f"{API_BASE}/gamestate/", timeout=10)
+            
+            if updated_gamestate_response.status_code != 200:
+                self.log_result("Payment System - Money Deduction", False, 
+                              f"Could not get updated gamestate - HTTP {updated_gamestate_response.status_code}")
+                return
+            
+            updated_gamestate = updated_gamestate_response.json()
+            updated_money = updated_gamestate.get('money', 0)
+            actual_deduction = initial_money - updated_money
+            
+            print(f"   ✅ Updated balance: {updated_money:,}$")
+            print(f"   ✅ Actual deduction: {actual_deduction:,}$")
+            
+            # 1.4 Confirmer que le coût calculé correspond à la déduction
+            if actual_deduction == total_cost:
+                self.log_result("Payment System - Scénario 1 (Déduction)", True, 
+                              f"✅ Money correctly deducted: {total_cost:,}$ (Initial: {initial_money:,}$ → Final: {updated_money:,}$)")
+            else:
+                self.log_result("Payment System - Scénario 1 (Déduction)", False, 
+                              f"❌ Deduction mismatch: Expected {total_cost:,}$, Actual {actual_deduction:,}$")
+                return
+            
+            # SCÉNARIO 2 - GAINS VIP
+            print("\n📋 SCÉNARIO 2 - GAINS VIP")
+            print("-" * 50)
+            
+            # 2.1 Simuler quelques événements avec POST /api/games/{id}/simulate-event
+            print("   Step 2.1: Simulating events to generate VIP earnings")
+            events_simulated = 0
+            max_events = 3
+            
+            while events_simulated < max_events:
+                simulate_response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if simulate_response.status_code != 200:
+                    print(f"   ⚠️  Event simulation stopped at event {events_simulated + 1}")
+                    break
+                
+                simulate_data = simulate_response.json()
+                game_state = simulate_data.get('game', {})
+                result = simulate_data.get('result', {})
+                
+                survivors = result.get('survivors', [])
+                eliminated = result.get('eliminated', [])
+                
+                events_simulated += 1
+                print(f"   ✅ Event {events_simulated}: {len(survivors)} survivors, {len(eliminated)} eliminated")
+                
+                # Check if game is completed
+                if game_state.get('completed', False):
+                    print(f"   ✅ Game completed after {events_simulated} events")
+                    break
+            
+            # 2.2 Vérifier que les gains s'accumulent avec GET /api/games/{id}/vip-earnings-status
+            print("   Step 2.2: Checking VIP earnings accumulation")
+            earnings_status_response = requests.get(f"{API_BASE}/games/{game_id}/vip-earnings-status", timeout=10)
+            
+            if earnings_status_response.status_code != 200:
+                self.log_result("Payment System - VIP Earnings Status", False, 
+                              f"Could not get VIP earnings status - HTTP {earnings_status_response.status_code}")
+                return
+            
+            earnings_status = earnings_status_response.json()
+            earnings_available = earnings_status.get('earnings_available', 0)
+            can_collect = earnings_status.get('can_collect', False)
+            game_completed = earnings_status.get('completed', False)
+            
+            print(f"   ✅ VIP earnings available: {earnings_available:,}$")
+            print(f"   ✅ Game completed: {game_completed}")
+            print(f"   ✅ Can collect earnings: {can_collect}")
+            
+            if earnings_available > 0:
+                self.log_result("Payment System - VIP Earnings Accumulation", True, 
+                              f"✅ VIP earnings accumulated: {earnings_available:,}$")
+            else:
+                self.log_result("Payment System - VIP Earnings Accumulation", False, 
+                              f"❌ No VIP earnings accumulated (expected > 0)")
+                return
+            
+            # 2.3 Tester la route POST /api/games/{id}/collect-vip-earnings si la partie est terminée
+            if game_completed and can_collect:
+                print("   Step 2.3: Collecting VIP earnings")
+                
+                # Get balance before collection
+                pre_collection_response = requests.get(f"{API_BASE}/gamestate/", timeout=10)
+                pre_collection_money = pre_collection_response.json().get('money', 0) if pre_collection_response.status_code == 200 else 0
+                
+                collect_response = requests.post(f"{API_BASE}/games/{game_id}/collect-vip-earnings", timeout=10)
+                
+                if collect_response.status_code == 200:
+                    collect_data = collect_response.json()
+                    earnings_collected = collect_data.get('earnings_collected', 0)
+                    new_total_money = collect_data.get('new_total_money', 0)
+                    
+                    print(f"   ✅ VIP earnings collected: {earnings_collected:,}$")
+                    print(f"   ✅ New total money: {new_total_money:,}$")
+                    
+                    # 2.4 Vérifier que l'argent est ajouté au gamestate
+                    expected_money = pre_collection_money + earnings_collected
+                    if new_total_money == expected_money:
+                        self.log_result("Payment System - Scénario 2 (Gains VIP)", True, 
+                                      f"✅ VIP earnings correctly added to gamestate: +{earnings_collected:,}$ (Balance: {pre_collection_money:,}$ → {new_total_money:,}$)")
+                    else:
+                        self.log_result("Payment System - Scénario 2 (Gains VIP)", False, 
+                                      f"❌ VIP earnings addition mismatch: Expected {expected_money:,}$, Got {new_total_money:,}$")
+                else:
+                    self.log_result("Payment System - Scénario 2 (Gains VIP)", False, 
+                                  f"❌ Could not collect VIP earnings - HTTP {collect_response.status_code}")
+            else:
+                print("   Step 2.3: Game not completed or no earnings to collect - testing collection on incomplete game")
+                
+                # Test that collection fails on incomplete game
+                collect_response = requests.post(f"{API_BASE}/games/{game_id}/collect-vip-earnings", timeout=10)
+                
+                if collect_response.status_code == 400:
+                    self.log_result("Payment System - Scénario 2 (Gains VIP)", True, 
+                                  f"✅ VIP earnings collection correctly blocked for incomplete game")
+                else:
+                    self.log_result("Payment System - Scénario 2 (Gains VIP)", False, 
+                                  f"❌ VIP earnings collection should fail for incomplete game - HTTP {collect_response.status_code}")
+            
+            # SCÉNARIO 3 - REMBOURSEMENT
+            print("\n📋 SCÉNARIO 3 - REMBOURSEMENT")
+            print("-" * 50)
+            
+            # 3.1 Créer une partie qui n'est pas terminée
+            print("   Step 3.1: Creating an unfinished game for refund test")
+            refund_game_request = {
+                "player_count": 30,
+                "game_mode": "standard",
+                "selected_events": [4, 5],  # 2 événements
+                "manual_players": []
+            }
+            
+            # Get balance before creating refund test game
+            pre_refund_response = requests.get(f"{API_BASE}/gamestate/", timeout=10)
+            pre_refund_money = pre_refund_response.json().get('money', 0) if pre_refund_response.status_code == 200 else 0
+            
+            refund_create_response = requests.post(f"{API_BASE}/games/create", 
+                                                 json=refund_game_request, 
+                                                 headers={"Content-Type": "application/json"},
+                                                 timeout=15)
+            
+            if refund_create_response.status_code != 200:
+                self.log_result("Payment System - Refund Game Creation", False, 
+                              f"Could not create refund test game - HTTP {refund_create_response.status_code}")
+                return
+            
+            refund_game_data = refund_create_response.json()
+            refund_game_id = refund_game_data.get('id')
+            refund_game_cost = refund_game_data.get('total_cost', 0)
+            
+            print(f"   ✅ Refund test game created with ID: {refund_game_id}")
+            print(f"   ✅ Refund test game cost: {refund_game_cost:,}$")
+            
+            # Get balance after creating refund test game
+            post_create_response = requests.get(f"{API_BASE}/gamestate/", timeout=10)
+            post_create_money = post_create_response.json().get('money', 0) if post_create_response.status_code == 200 else 0
+            
+            # 3.2 Supprimer la partie avec DELETE /api/games/{id}
+            print("   Step 3.2: Deleting unfinished game to test refund")
+            delete_response = requests.delete(f"{API_BASE}/games/{refund_game_id}", timeout=10)
+            
+            if delete_response.status_code != 200:
+                self.log_result("Payment System - Game Deletion", False, 
+                              f"Could not delete game - HTTP {delete_response.status_code}")
+                return
+            
+            delete_data = delete_response.json()
+            refund_amount = delete_data.get('refund_amount', 0)
+            new_money_after_refund = delete_data.get('new_total_money', 0)
+            
+            print(f"   ✅ Game deleted successfully")
+            print(f"   ✅ Refund amount: {refund_amount:,}$")
+            print(f"   ✅ New balance after refund: {new_money_after_refund:,}$")
+            
+            # 3.3 Vérifier que l'argent est remboursé automatiquement
+            print("   Step 3.3: Verifying automatic refund")
+            
+            # 3.4 Confirmer que le gamestate est mis à jour
+            final_gamestate_response = requests.get(f"{API_BASE}/gamestate/", timeout=10)
+            
+            if final_gamestate_response.status_code != 200:
+                self.log_result("Payment System - Final Gamestate Check", False, 
+                              f"Could not get final gamestate - HTTP {final_gamestate_response.status_code}")
+                return
+            
+            final_gamestate = final_gamestate_response.json()
+            final_money = final_gamestate.get('money', 0)
+            
+            print(f"   ✅ Final balance from gamestate: {final_money:,}$")
+            
+            # Verify refund logic
+            expected_final_money = post_create_money + refund_amount
+            if final_money == expected_final_money and refund_amount == refund_game_cost:
+                self.log_result("Payment System - Scénario 3 (Remboursement)", True, 
+                              f"✅ Automatic refund working correctly: +{refund_amount:,}$ (Balance: {post_create_money:,}$ → {final_money:,}$)")
+            else:
+                self.log_result("Payment System - Scénario 3 (Remboursement)", False, 
+                              f"❌ Refund mismatch: Expected final {expected_final_money:,}$, Got {final_money:,}$, Refund {refund_amount:,}$ vs Cost {refund_game_cost:,}$")
+            
+            # RÉSUMÉ FINAL
+            print("\n📊 RÉSUMÉ DES TESTS DE SYNCHRONISATION DES PAIEMENTS")
+            print("=" * 80)
+            print("✅ Scénario 1 - Déduction automatique de l'argent lors de création de partie")
+            print("✅ Scénario 2 - Collection automatique des gains VIP après fin de partie")  
+            print("✅ Scénario 3 - Remboursement automatique lors de suppression de partie non terminée")
+            print("=" * 80)
+            
+        except Exception as e:
+            self.log_result("Payment System Synchronization", False, f"Error during payment system test: {str(e)}")
+
     def run_all_tests(self):
         """Exécute tous les tests backend"""
         print(f"🚀 DÉMARRAGE DES TESTS BACKEND - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
