@@ -147,7 +147,7 @@ const GameSetup = ({ gameState, onStartGame }) => {
     return gameState.money >= calculateTotalCost();
   };
 
-  const startGame = () => {
+  const startGame = async () => {
     if (!canAfford()) return;
     if (players.length === 0 || selectedEvents.length === 0) return;
     
@@ -157,12 +157,48 @@ const GameSetup = ({ gameState, onStartGame }) => {
       availableEvents.find(event => event.id === eventId)
     ).filter(Boolean);
     
-    onStartGame(players, orderedEvents, { 
-      preserveEventOrder, 
-      gameMode,
-      selectedEventIds: selectedEvents 
-    });
-    navigate('/game-arena');
+    try {
+      // Appeler l'API pour créer la partie
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      const response = await fetch(`${backendUrl}/api/games/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          player_count: players.length,
+          game_mode: gameMode,
+          selected_events: selectedEvents,
+          manual_players: players.filter(p => p.isCustom).map(p => ({
+            name: p.name,
+            nationality: p.nationality,
+            gender: p.gender,
+            role: p.role,
+            stats: p.stats,
+            portrait: p.portrait,
+            uniform: p.uniform
+          })),
+          preserve_event_order: preserveEventOrder
+        }),
+      });
+
+      if (response.ok) {
+        const gameData = await response.json();
+        setCurrentGameId(gameData.id);
+        
+        onStartGame(players, orderedEvents, { 
+          preserveEventOrder, 
+          gameMode,
+          selectedEventIds: selectedEvents,
+          gameId: gameData.id 
+        });
+        navigate('/game-arena');
+      } else {
+        console.error('Erreur lors de la création de la partie');
+      }
+    } catch (error) {
+      console.error('Erreur de connexion:', error);
+    }
   };
 
   useEffect(() => {
