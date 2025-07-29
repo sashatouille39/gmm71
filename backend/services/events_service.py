@@ -71,7 +71,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=5, name="Gaufres au sucre", type=EventType.AGILITE, category=EventCategory.CLASSIQUES, difficulty=5,
+            id=5, name="Gaufres au sucre", type=EventType.AGILITÉ, category=EventCategory.CLASSIQUES, difficulty=5,
             description="Découpez la forme sans la casser en 10 minutes",
             decor="Salle de classe sinistre avec bureaux et aiguilles",
             death_animations=[
