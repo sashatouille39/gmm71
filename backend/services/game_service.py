@@ -9,16 +9,52 @@ from services.events_service import EventsService
 
 class GameService:
     
-    # Données statiques pour la génération
-    NATIONALITIES = [
-        "Afghane", "Allemande", "Argentine", "Australienne", "Autrichienne", "Belge", 
-        "Brésilienne", "Britannique", "Bulgare", "Canadienne", "Chinoise", "Coréenne", 
-        "Croate", "Danoise", "Égyptienne", "Espagnole", "Estonienne", "Finlandaise", 
-        "Française", "Grecque", "Hongroise", "Indienne", "Indonésienne", "Iranienne", 
-        "Irlandaise", "Islandaise", "Italienne", "Japonaise", "Marocaine", "Mexicaine", 
-        "Néerlandaise", "Nigériane", "Norvégienne", "Polonaise", "Portugaise", "Roumaine", 
-        "Russe", "Suédoise", "Suisse", "Tchèque", "Thaïlandaise", "Turque", "Américaine"
-    ]
+    # Données statiques pour la génération - Nationalités avec formes masculines et féminines
+    NATIONALITIES = {
+        "Afghan": {"M": "Afghan", "F": "Afghane"},
+        "Allemand": {"M": "Allemand", "F": "Allemande"},
+        "Argentin": {"M": "Argentin", "F": "Argentine"},
+        "Australien": {"M": "Australien", "F": "Australienne"},
+        "Autrichien": {"M": "Autrichien", "F": "Autrichienne"},
+        "Belge": {"M": "Belge", "F": "Belge"},
+        "Brésilien": {"M": "Brésilien", "F": "Brésilienne"},
+        "Britannique": {"M": "Britannique", "F": "Britannique"},
+        "Bulgare": {"M": "Bulgare", "F": "Bulgare"},
+        "Canadien": {"M": "Canadien", "F": "Canadienne"},
+        "Chinois": {"M": "Chinois", "F": "Chinoise"},
+        "Coréen": {"M": "Coréen", "F": "Coréenne"},
+        "Croate": {"M": "Croate", "F": "Croate"},
+        "Danois": {"M": "Danois", "F": "Danoise"},
+        "Égyptien": {"M": "Égyptien", "F": "Égyptienne"},
+        "Espagnol": {"M": "Espagnol", "F": "Espagnole"},
+        "Estonien": {"M": "Estonien", "F": "Estonienne"},
+        "Finlandais": {"M": "Finlandais", "F": "Finlandaise"},
+        "Français": {"M": "Français", "F": "Française"},
+        "Grec": {"M": "Grec", "F": "Grecque"},
+        "Hongrois": {"M": "Hongrois", "F": "Hongroise"},
+        "Indien": {"M": "Indien", "F": "Indienne"},
+        "Indonésien": {"M": "Indonésien", "F": "Indonésienne"},
+        "Iranien": {"M": "Iranien", "F": "Iranienne"},
+        "Irlandais": {"M": "Irlandais", "F": "Irlandaise"},
+        "Islandais": {"M": "Islandais", "F": "Islandaise"},
+        "Italien": {"M": "Italien", "F": "Italienne"},
+        "Japonais": {"M": "Japonais", "F": "Japonaise"},
+        "Marocain": {"M": "Marocain", "F": "Marocaine"},
+        "Mexicain": {"M": "Mexicain", "F": "Mexicaine"},
+        "Néerlandais": {"M": "Néerlandais", "F": "Néerlandaise"},
+        "Nigérian": {"M": "Nigérian", "F": "Nigériane"},
+        "Norvégien": {"M": "Norvégien", "F": "Norvégienne"},
+        "Polonais": {"M": "Polonais", "F": "Polonaise"},
+        "Portugais": {"M": "Portugais", "F": "Portugaise"},
+        "Roumain": {"M": "Roumain", "F": "Roumaine"},
+        "Russe": {"M": "Russe", "F": "Russe"},
+        "Suédois": {"M": "Suédois", "F": "Suédoise"},
+        "Suisse": {"M": "Suisse", "F": "Suisse"},
+        "Tchèque": {"M": "Tchèque", "F": "Tchèque"},
+        "Thaïlandais": {"M": "Thaïlandais", "F": "Thaïlandaise"},
+        "Turc": {"M": "Turc", "F": "Turque"},
+        "Américain": {"M": "Américain", "F": "Américaine"}
+    }
     
     FACE_SHAPES = [
         "Ovale", "Rond", "Carré", "Rectangulaire", "Triangulaire", "Cœur", 
