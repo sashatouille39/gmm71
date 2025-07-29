@@ -123,20 +123,21 @@ class GameService:
                 selected_role = role
                 break
         
-        nationality = random.choice(cls.NATIONALITIES)
+        nationality_key = random.choice(list(cls.NATIONALITIES.keys()))
         gender = random.choice(['M', 'F'])
+        nationality_display = cls.NATIONALITIES[nationality_key][gender]
         
         # Génération des stats selon le rôle
         stats = cls._generate_stats_by_role(selected_role)
         
         return Player(
             number=str(player_id).zfill(3),
-            name=cls._generate_random_name(nationality, gender),
-            nationality=nationality,
+            name=cls._generate_random_name(nationality_key, gender),
+            nationality=nationality_display,
             gender=gender,
             role=selected_role,
             stats=stats,
-            portrait=cls._generate_portrait(nationality),
+            portrait=cls._generate_portrait(nationality_key),
             uniform=cls._generate_uniform()
         )
     
