@@ -521,7 +521,7 @@ async def get_final_ranking(game_id: str):
             "player_stats": {
                 "intelligence": player.stats.intelligence,
                 "force": player.stats.force,
-                "agilite": player.stats.agilite
+                "agilité": player.stats.agilité
             }
         })
     
