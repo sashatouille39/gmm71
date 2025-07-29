@@ -201,23 +201,23 @@ class GameService:
     def _generate_random_name(cls, nationality: str, gender: str) -> str:
         """Génère un nom complet aléatoire selon la nationalité et le genre"""
         first_names = {
-            'Afghane': {
+            'Afghan': {
                 'M': ['Ahmad', 'Mohammed', 'Abdul', 'Hassan', 'Omar', 'Ali', 'Mahmud', 'Rashid'],
                 'F': ['Fatima', 'Aisha', 'Zara', 'Maryam', 'Layla', 'Nadia', 'Soraya', 'Jamila']
             },
-            'Allemande': {
+            'Allemand': {
                 'M': ['Hans', 'Klaus', 'Jürgen', 'Wolfgang', 'Dieter', 'Günter', 'Helmut', 'Manfred'],
                 'F': ['Ursula', 'Ingrid', 'Gisela', 'Christa', 'Helga', 'Monika', 'Renate', 'Brigitte']
             },
-            'Argentine': {
+            'Argentin': {
                 'M': ['Carlos', 'Juan', 'José', 'Luis', 'Miguel', 'Jorge', 'Roberto', 'Diego'],
                 'F': ['María', 'Ana', 'Carmen', 'Rosa', 'Isabel', 'Teresa', 'Cristina', 'Patricia']
             },
-            'Australienne': {
+            'Australien': {
                 'M': ['Jack', 'William', 'James', 'Benjamin', 'Luke', 'Henry', 'Alexander', 'Mason'],
                 'F': ['Charlotte', 'Ruby', 'Lily', 'Sophie', 'Emily', 'Chloe', 'Mia', 'Grace']
             },
-            'Autrichienne': {
+            'Autrichien': {
                 'M': ['Johann', 'Franz', 'Karl', 'Josef', 'Georg', 'Anton', 'Heinrich', 'Paul'],
                 'F': ['Maria', 'Anna', 'Elisabeth', 'Theresia', 'Johanna', 'Franziska', 'Katharina', 'Barbara']
             },
@@ -225,7 +225,7 @@ class GameService:
                 'M': ['Jean', 'Pierre', 'Marc', 'Philippe', 'Michel', 'Paul', 'Luc', 'André'],
                 'F': ['Marie', 'Anne', 'Catherine', 'Martine', 'Françoise', 'Monique', 'Christine', 'Isabelle']
             },
-            'Brésilienne': {
+            'Brésilien': {
                 'M': ['João', 'José', 'Carlos', 'Paulo', 'Pedro', 'Francisco', 'Luiz', 'Marcos'],
                 'F': ['Maria', 'Ana', 'Francisca', 'Antônia', 'Adriana', 'Juliana', 'Márcia', 'Fernanda']
             },
@@ -237,15 +237,15 @@ class GameService:
                 'M': ['Georgi', 'Ivan', 'Dimitar', 'Nikolai', 'Stoyan', 'Petar', 'Hristo', 'Stefan'],
                 'F': ['Maria', 'Elena', 'Valentina', 'Gergana', 'Daniela', 'Svetlana', 'Milena', 'Tsveta']
             },
-            'Canadienne': {
+            'Canadien': {
                 'M': ['Liam', 'Noah', 'William', 'James', 'Logan', 'Benjamin', 'Mason', 'Ethan'],
                 'F': ['Emma', 'Olivia', 'Ava', 'Isabella', 'Sophia', 'Charlotte', 'Mia', 'Amelia']
             },
-            'Chinoise': {
+            'Chinois': {
                 'M': ['Wei', 'Jun', 'Ming', 'Hao', 'Lei', 'Qiang', 'Yang', 'Bin'],
                 'F': ['Li', 'Wang', 'Zhang', 'Liu', 'Chen', 'Yang', 'Zhao', 'Huang']
             },
-            'Coréenne': {
+            'Coréen': {
                 'M': ['Min-jun', 'Seo-jun', 'Do-yoon', 'Si-woo', 'Joon-ho', 'Hyun-woo', 'Jin-woo', 'Sung-min'],
                 'F': ['Seo-yeon', 'Min-seo', 'Ji-woo', 'Ha-eun', 'Soo-jin', 'Ye-jin', 'Su-bin', 'Na-eun']
             },
@@ -253,100 +253,95 @@ class GameService:
                 'M': ['Marko', 'Ante', 'Josip', 'Ivan', 'Luka', 'Matej', 'Tomislav', 'Petar'],
                 'F': ['Ana', 'Marija', 'Petra', 'Marijana', 'Ivana', 'Katarina', 'Nikolina', 'Sara']
             },
-            'Danoise': {
+            'Danois': {
                 'M': ['Lars', 'Niels', 'Jens', 'Peter', 'Henrik', 'Thomas', 'Christian', 'Martin'],
                 'F': ['Anne', 'Kirsten', 'Mette', 'Hanne', 'Lene', 'Susanne', 'Camilla', 'Maria']
             },
-            'Égyptienne': {
+            'Égyptien': {
                 'M': ['Mohamed', 'Ahmed', 'Mahmoud', 'Omar', 'Ali', 'Hassan', 'Khaled', 'Amr'],
                 'F': ['Fatima', 'Aisha', 'Maryam', 'Zeinab', 'Nour', 'Salma', 'Yasmin', 'Nadia']
             },
-            'Espagnole': {
+            'Espagnol': {
                 'M': ['Antonio', 'José', 'Francisco', 'David', 'Juan', 'Javier', 'Daniel', 'Carlos'],
                 'F': ['Carmen', 'María', 'Josefa', 'Isabel', 'Ana', 'Pilar', 'Mercedes', 'Dolores']
             },
-            'Estonienne': {
+            'Estonien': {
                 'M': ['Jaan', 'Toomas', 'Andres', 'Mart', 'Ants', 'Peeter', 'Kalev', 'Rein'],
                 'F': ['Kadri', 'Kristiina', 'Liis', 'Mari', 'Karin', 'Helen', 'Piret', 'Anne']
             },
-            'Finlandaise': {
+            'Finlandais': {
                 'M': ['Jukka', 'Mikael', 'Juha', 'Matti', 'Pekka', 'Antti', 'Jari', 'Heikki'],
                 'F': ['Maria', 'Helena', 'Johanna', 'Anna', 'Kaarina', 'Kristiina', 'Margareta', 'Elisabeth']
             },
-            'Française': {
+            'Français': {
                 'M': ['Pierre', 'Jean', 'Michel', 'Alain', 'Philippe', 'Nicolas', 'Antoine', 'Julien'],
                 'F': ['Marie', 'Nathalie', 'Isabelle', 'Sylvie', 'Catherine', 'Valérie', 'Christine', 'Sophie']
             },
-            'Grecque': {
+            'Grec': {
                 'M': ['Georgios', 'Ioannis', 'Konstantinos', 'Dimitrios', 'Nikolaos', 'Panagiotis', 'Vasileios', 'Christos'],
                 'F': ['Maria', 'Eleni', 'Aikaterini', 'Vasiliki', 'Sofia', 'Angeliki', 'Georgia', 'Dimitra']
             },
-            'Hongroise': {
+            'Hongrois': {
                 'M': ['László', 'József', 'János', 'Zoltán', 'Sándor', 'Gábor', 'Ferenc', 'Attila'],
                 'F': ['Mária', 'Erzsébet', 'Katalin', 'Ilona', 'Éva', 'Anna', 'Zsuzsanna', 'Margit']
             },
-            'Indienne': {
+            'Indien': {
                 'M': ['Rahul', 'Amit', 'Raj', 'Vikash', 'Sunil', 'Ravi', 'Anil', 'Sanjay'],
                 'F': ['Priya', 'Sunita', 'Pooja', 'Kavita', 'Neetu', 'Rekha', 'Geeta', 'Seema']
             },
-            'Indonésienne': {
+            'Indonésien': {
                 'M': ['Budi', 'Ahmad', 'Agus', 'Andi', 'Bambang', 'Dedi', 'Eko', 'Hadi'],
                 'F': ['Sari', 'Sri', 'Indira', 'Dewi', 'Rina', 'Maya', 'Lestari', 'Wati']
             },
-            'Iranienne': {
+            'Iranien': {
                 'M': ['Mohammad', 'Ali', 'Hassan', 'Hossein', 'Reza', 'Ahmad', 'Mehdi', 'Abbas'],
                 'F': ['Fatima', 'Zahra', 'Maryam', 'Narges', 'Somayeh', 'Fatemeh', 'Leila', 'Nasrin']
             },
-            'Irlandaise': {
+            'Irlandais': {
                 'M': ['Sean', 'Patrick', 'Michael', 'John', 'David', 'Daniel', 'Paul', 'Mark'],
                 'F': ['Mary', 'Margaret', 'Catherine', 'Bridget', 'Anne', 'Patricia', 'Helen', 'Elizabeth']
             },
-            'Islandaise': {
+            'Islandais': {
                 'M': ['Jón', 'Sigurdur', 'Guðmundur', 'Gunnar', 'Ólafur', 'Einar', 'Kristján', 'Magnús'],
                 'F': ['Guðrún', 'Anna', 'Kristín', 'Margrét', 'Sigríður', 'Helga', 'Ragnhildur', 'Jóhanna']
             },
-
-            'Italienne': {
+            'Italien': {
                 'M': ['Giuseppe', 'Antonio', 'Giovanni', 'Mario', 'Francesco', 'Luigi', 'Angelo', 'Vincenzo'],
                 'F': ['Maria', 'Anna', 'Giuseppina', 'Rosa', 'Angela', 'Giovanna', 'Teresa', 'Lucia']
             },
-            'Japonaise': {
+            'Japonais': {
                 'M': ['Hiroshi', 'Takeshi', 'Akira', 'Yuki', 'Daiki', 'Haruto', 'Sota', 'Ren'],
                 'F': ['Sakura', 'Yuki', 'Ai', 'Rei', 'Mana', 'Yui', 'Hina', 'Emi']
             },
-
-
-
-
-            'Marocaine': {
+            'Marocain': {
                 'M': ['Mohamed', 'Ahmed', 'Ali', 'Hassan', 'Omar', 'Youssef', 'Khalid', 'Abdelkader'],
                 'F': ['Fatima', 'Aisha', 'Khadija', 'Zahra', 'Amina', 'Nadia', 'Malika', 'Samira']
             },
-            'Mexicaine': {
+            'Mexicain': {
                 'M': ['José', 'Juan', 'Antonio', 'Jesús', 'Miguel', 'Pedro', 'Alejandro', 'Manuel'],
                 'F': ['María', 'Guadalupe', 'Juana', 'Margarita', 'Francisca', 'Rosa', 'Isabel', 'Teresa']
             },
-            'Néerlandaise': {
+            'Néerlandais': {
                 'M': ['Johannes', 'Gerrit', 'Jan', 'Pieter', 'Cornelis', 'Hendrikus', 'Jacobus', 'Adrianus'],
                 'F': ['Maria', 'Anna', 'Johanna', 'Cornelia', 'Elisabeth', 'Catharina', 'Geertruida', 'Margaretha']
             },
-            'Nigériane': {
+            'Nigérian': {
                 'M': ['Chukwu', 'Emeka', 'Ikechukwu', 'Nnamdi', 'Obinna', 'Chijioke', 'Kelechi', 'Chidi'],
                 'F': ['Ngozi', 'Chioma', 'Ifeoma', 'Adaeze', 'Chinwe', 'Nneka', 'Chiamaka', 'Uchechi']
             },
-            'Norvégienne': {
+            'Norvégien': {
                 'M': ['Ole', 'Lars', 'Nils', 'Erik', 'Hans', 'Knut', 'Magnus', 'Bjørn'],
                 'F': ['Anna', 'Marie', 'Ingrid', 'Karen', 'Astrid', 'Solveig', 'Kari', 'Liv']
             },
-            'Polonaise': {
+            'Polonais': {
                 'M': ['Jan', 'Andrzej', 'Krzysztof', 'Stanisław', 'Tomasz', 'Paweł', 'Józef', 'Marcin'],
                 'F': ['Anna', 'Maria', 'Katarzyna', 'Małgorzata', 'Agnieszka', 'Barbara', 'Ewa', 'Elżbieta']
             },
-            'Portugaise': {
+            'Portugais': {
                 'M': ['José', 'António', 'João', 'Manuel', 'Francisco', 'Carlos', 'Joaquim', 'Luís'],
                 'F': ['Maria', 'Ana', 'Manuela', 'Helena', 'Fernanda', 'Isabel', 'Paula', 'Conceição']
             },
-            'Roumaine': {
+            'Roumain': {
                 'M': ['Ion', 'Gheorghe', 'Nicolae', 'Vasile', 'Dumitru', 'Petre', 'Florin', 'Marian'],
                 'F': ['Maria', 'Ana', 'Elena', 'Ioana', 'Mihaela', 'Cristina', 'Daniela', 'Andreea']
             },
@@ -354,7 +349,7 @@ class GameService:
                 'M': ['Aleksandr', 'Sergei', 'Vladimir', 'Dmitri', 'Andrei', 'Alexei', 'Nikolai', 'Ivan'],
                 'F': ['Elena', 'Olga', 'Irina', 'Tatyana', 'Svetlana', 'Natasha', 'Marina', 'Lyudmila']
             },
-            'Suédoise': {
+            'Suédois': {
                 'M': ['Lars', 'Karl', 'Nils', 'Erik', 'Anders', 'Johan', 'Per', 'Olof'],
                 'F': ['Anna', 'Maria', 'Margareta', 'Elisabeth', 'Eva', 'Birgitta', 'Kristina', 'Karin']
             },
@@ -366,16 +361,15 @@ class GameService:
                 'M': ['Jan', 'Pavel', 'Petr', 'Tomáš', 'Jiří', 'Josef', 'Miroslav', 'Zdeněk'],
                 'F': ['Marie', 'Jiřina', 'Anna', 'Věra', 'Alena', 'Lenka', 'Hana', 'Jaroslava']
             },
-            'Thaïlandaise': {
+            'Thaïlandais': {
                 'M': ['Somchai', 'Surasak', 'Sombat', 'Suwan', 'Prasert', 'Wichai', 'Pornchai', 'Thawatchai'],
                 'F': ['Siriporn', 'Sunisa', 'Pranee', 'Suwanna', 'Malee', 'Pimchai', 'Wanna', 'Sirikul']
             },
-            'Turque': {
+            'Turc': {
                 'M': ['Mehmet', 'Mustafa', 'Ahmed', 'Ali', 'Hasan', 'İbrahim', 'Osman', 'Süleyman'],
                 'F': ['Fatma', 'Ayşe', 'Emine', 'Hatice', 'Zeynep', 'Elif', 'Meryem', 'Özlem']
             },
-
-            'Américaine': {
+            'Américain': {
                 'M': ['John', 'Michael', 'David', 'James', 'Robert', 'William', 'Christopher', 'Matthew'],
                 'F': ['Mary', 'Jennifer', 'Linda', 'Patricia', 'Susan', 'Jessica', 'Sarah', 'Karen']
             }
