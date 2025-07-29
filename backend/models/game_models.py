@@ -61,6 +61,7 @@ class Player(BaseModel):
     betrayals: int = 0
     survived_events: int = 0
     total_score: int = 0
+    group_id: Optional[str] = None  # ID du groupe auquel appartient ce joueur
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class GameEvent(BaseModel):
