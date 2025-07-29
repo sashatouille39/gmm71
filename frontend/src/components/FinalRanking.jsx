@@ -50,6 +50,13 @@ const FinalRanking = () => {
     }
   };
 
+  const handleKillsClick = (player, kills) => {
+    if (kills > 0) {
+      setSelectedPlayer(player);
+      setShowEliminatedModal(true);
+    }
+  };
+
   const getRankingIcon = (position) => {
     switch (position) {
       case 1: return <Trophy className="w-6 h-6 text-yellow-500" />;
