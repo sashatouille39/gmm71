@@ -990,7 +990,7 @@ class BackendTester:
             test_celebrity = None
             for celebrity in celebrities:
                 stats = celebrity['stats']
-                if (stats['intelligence'] < 10 or stats['force'] < 10 or stats['agilite'] < 10):
+                if (stats['intelligence'] < 10 or stats['force'] < 10 or stats['agilité'] < 10):
                     test_celebrity = celebrity
                     break
             
@@ -1021,7 +1021,7 @@ class BackendTester:
                 stats_unchanged = (
                     stats_after_poor['intelligence'] == original_stats['intelligence'] and
                     stats_after_poor['force'] == original_stats['force'] and
-                    stats_after_poor['agilite'] == original_stats['agilite']
+                    stats_after_poor['agilité'] == original_stats['agilité']
                 )
                 
                 if stats_unchanged:
@@ -1050,7 +1050,7 @@ class BackendTester:
                 stats_improved = (
                     stats_after_good['intelligence'] > original_stats['intelligence'] or
                     stats_after_good['force'] > original_stats['force'] or
-                    stats_after_good['agilite'] > original_stats['agilite']
+                    stats_after_good['agilité'] > original_stats['agilité']
                 )
                 
                 if stats_improved:
@@ -1061,7 +1061,7 @@ class BackendTester:
                     all_stats_max = (
                         original_stats['intelligence'] == 10 and
                         original_stats['force'] == 10 and
-                        original_stats['agilite'] == 10
+                        original_stats['agilité'] == 10
                     )
                     
                     if all_stats_max:
@@ -1092,7 +1092,7 @@ class BackendTester:
                     victory_stats_improved = (
                         final_stats['intelligence'] > original_stats['intelligence'] or
                         final_stats['force'] > original_stats['force'] or
-                        final_stats['agilite'] > original_stats['agilite']
+                        final_stats['agilité'] > original_stats['agilité']
                     )
                     
                     if victory_stats_improved:
@@ -1104,6 +1104,300 @@ class BackendTester:
                 
         except Exception as e:
             self.log_result("Celebrity Stats Improvement Rules", False, f"Error: {str(e)}")
+
+    def test_agilite_field_correction(self):
+        """Test REVIEW REQUEST 1: Vérifier que la route /api/games/{game_id}/final-ranking retourne bien 'agilité' dans player_stats"""
+        try:
+            print("\n🎯 TESTING AGILITÉ FIELD CORRECTION - REVIEW REQUEST 1")
+            print("=" * 80)
+            
+            # Créer une partie pour tester
+            game_request = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Agilité Field Correction", False, f"Could not create test game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            if not game_id:
+                self.log_result("Agilité Field Correction", False, "No game ID returned from creation")
+                return
+            
+            # Simuler quelques événements pour terminer la partie
+            max_events = 10
+            event_count = 0
+            
+            while event_count < max_events:
+                event_count += 1
+                
+                response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if response.status_code != 200:
+                    self.log_result("Agilité Field Correction", False, 
+                                  f"Event simulation failed at event {event_count} - HTTP {response.status_code}")
+                    return
+                
+                data = response.json()
+                game = data.get('game', {})
+                
+                if game.get('completed', False):
+                    print(f"   Game completed after {event_count} events")
+                    break
+            
+            # Maintenant tester la route final-ranking
+            response = requests.get(f"{API_BASE}/games/{game_id}/final-ranking", timeout=10)
+            
+            if response.status_code == 200:
+                ranking_data = response.json()
+                
+                # Vérifier la structure de la réponse
+                required_fields = ['game_id', 'completed', 'ranking']
+                missing_fields = [field for field in required_fields if field not in ranking_data]
+                
+                if missing_fields:
+                    self.log_result("Agilité Field Correction", False, 
+                                  f"Final ranking response missing fields: {missing_fields}")
+                    return
+                
+                ranking = ranking_data.get('ranking', [])
+                if not ranking:
+                    self.log_result("Agilité Field Correction", False, "No ranking data returned")
+                    return
+                
+                # Vérifier que chaque joueur dans le ranking a le champ 'agilité' (avec accent)
+                agilite_field_found = True
+                agilite_without_accent_found = False
+                
+                for player_rank in ranking:
+                    player_stats = player_rank.get('player_stats', {})
+                    
+                    # Vérifier que 'agilité' (avec accent) est présent
+                    if 'agilité' not in player_stats:
+                        agilite_field_found = False
+                        print(f"   ❌ Player {player_rank.get('position', 'unknown')} missing 'agilité' field")
+                    
+                    # Vérifier que 'agilite' (sans accent) n'est PAS présent
+                    if 'agilite' in player_stats:
+                        agilite_without_accent_found = True
+                        print(f"   ❌ Player {player_rank.get('position', 'unknown')} has old 'agilite' field (should be 'agilité')")
+                
+                if agilite_field_found and not agilite_without_accent_found:
+                    self.log_result("Agilité Field Correction", True, 
+                                  f"✅ CORRECTION VALIDÉE: Route final-ranking retourne bien 'agilité' (avec accent) pour tous les {len(ranking)} joueurs")
+                elif not agilite_field_found:
+                    self.log_result("Agilité Field Correction", False, 
+                                  "❌ PROBLÈME: Champ 'agilité' manquant dans player_stats")
+                elif agilite_without_accent_found:
+                    self.log_result("Agilité Field Correction", False, 
+                                  "❌ PROBLÈME: Ancien champ 'agilite' (sans accent) encore présent")
+                else:
+                    self.log_result("Agilité Field Correction", False, 
+                                  "❌ PROBLÈME: Problème de cohérence dans les champs agilité")
+                    
+            else:
+                self.log_result("Agilité Field Correction", False, 
+                              f"Final ranking request failed - HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Agilité Field Correction", False, f"Error during test: {str(e)}")
+
+    def test_eliminated_players_tracking(self):
+        """Test REVIEW REQUEST 2: Vérifier le nouveau système de suivi des éliminations"""
+        try:
+            print("\n🎯 TESTING ELIMINATED PLAYERS TRACKING - REVIEW REQUEST 2")
+            print("=" * 80)
+            
+            # Créer une partie pour tester
+            game_request = {
+                "player_count": 30,  # Plus de joueurs pour avoir plus d'éliminations
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3, 4],  # Plus d'événements
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Eliminated Players Tracking", False, f"Could not create test game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            initial_players = game_data.get('players', [])
+            
+            if not game_id:
+                self.log_result("Eliminated Players Tracking", False, "No game ID returned from creation")
+                return
+            
+            print(f"   Created game with {len(initial_players)} players")
+            
+            # Vérifier que les joueurs ont le champ killed_players initialisé
+            killed_players_field_present = True
+            for player in initial_players:
+                if 'killed_players' not in player:
+                    killed_players_field_present = False
+                    break
+            
+            if not killed_players_field_present:
+                self.log_result("Eliminated Players Tracking - Field Initialization", False, 
+                              "❌ PROBLÈME: Champ 'killed_players' manquant dans le modèle Player")
+                return
+            else:
+                self.log_result("Eliminated Players Tracking - Field Initialization", True, 
+                              "✅ Champ 'killed_players' présent dans tous les joueurs")
+            
+            # Simuler quelques événements pour avoir des éliminations
+            events_simulated = 0
+            total_eliminations = 0
+            players_with_kills = []
+            
+            while events_simulated < 3:  # Simuler 3 événements
+                events_simulated += 1
+                
+                response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if response.status_code != 200:
+                    self.log_result("Eliminated Players Tracking", False, 
+                                  f"Event simulation failed at event {events_simulated} - HTTP {response.status_code}")
+                    return
+                
+                data = response.json()
+                result = data.get('result', {})
+                game_state = data.get('game', {})
+                
+                eliminated = result.get('eliminated', [])
+                survivors = result.get('survivors', [])
+                
+                total_eliminations += len(eliminated)
+                
+                print(f"   Event {events_simulated}: {len(survivors)} survivors, {len(eliminated)} eliminated")
+                
+                # Récupérer l'état actuel du jeu pour vérifier les killed_players
+                game_response = requests.get(f"{API_BASE}/games/{game_id}", timeout=5)
+                if game_response.status_code == 200:
+                    current_game = game_response.json()
+                    current_players = current_game.get('players', [])
+                    
+                    # Vérifier que certains joueurs ont des killed_players mis à jour
+                    for player in current_players:
+                        killed_players = player.get('killed_players', [])
+                        if killed_players:
+                            players_with_kills.append({
+                                'player_id': player['id'],
+                                'player_name': player['name'],
+                                'killed_count': len(killed_players)
+                            })
+                
+                if game_state.get('completed', False):
+                    print(f"   Game completed after {events_simulated} events")
+                    break
+            
+            print(f"   Total eliminations across all events: {total_eliminations}")
+            print(f"   Players with recorded kills: {len(players_with_kills)}")
+            
+            # Test de la nouvelle route GET /api/games/{game_id}/player/{player_id}/eliminated-players
+            if players_with_kills:
+                test_player = players_with_kills[0]  # Prendre le premier joueur avec des kills
+                player_id = test_player['player_id']
+                
+                print(f"   Testing new route with player: {test_player['player_name']} (kills: {test_player['killed_count']})")
+                
+                response = requests.get(f"{API_BASE}/games/{game_id}/player/{player_id}/eliminated-players", timeout=10)
+                
+                if response.status_code == 200:
+                    eliminated_data = response.json()
+                    
+                    # Vérifier la structure de la réponse
+                    required_fields = ['killer', 'eliminated_players']
+                    missing_fields = [field for field in required_fields if field not in eliminated_data]
+                    
+                    if missing_fields:
+                        self.log_result("Eliminated Players Tracking - New Route", False, 
+                                      f"New route response missing fields: {missing_fields}")
+                        return
+                    
+                    killer_info = eliminated_data.get('killer', {})
+                    eliminated_players = eliminated_data.get('eliminated_players', [])
+                    
+                    # Vérifier que les données du killer sont correctes
+                    if (killer_info.get('id') == player_id and 
+                        killer_info.get('name') == test_player['player_name']):
+                        
+                        # Vérifier que la liste des éliminés n'est pas vide
+                        if eliminated_players:
+                            # Vérifier la structure des joueurs éliminés
+                            first_eliminated = eliminated_players[0]
+                            eliminated_required_fields = ['id', 'name', 'number', 'nationality', 'role', 'stats']
+                            eliminated_missing_fields = [field for field in eliminated_required_fields if field not in first_eliminated]
+                            
+                            if not eliminated_missing_fields:
+                                # Vérifier que les stats contiennent 'agilité' (avec accent)
+                                stats = first_eliminated.get('stats', {})
+                                if 'agilité' in stats:
+                                    self.log_result("Eliminated Players Tracking - New Route", True, 
+                                                  f"✅ NOUVELLE ROUTE FONCTIONNELLE: Retourne {len(eliminated_players)} joueurs éliminés par {killer_info.get('name')}")
+                                else:
+                                    self.log_result("Eliminated Players Tracking - New Route", False, 
+                                                  "❌ PROBLÈME: Stats des joueurs éliminés manquent le champ 'agilité'")
+                            else:
+                                self.log_result("Eliminated Players Tracking - New Route", False, 
+                                              f"Eliminated player data missing fields: {eliminated_missing_fields}")
+                        else:
+                            self.log_result("Eliminated Players Tracking - New Route", False, 
+                                          "❌ PROBLÈME: Aucun joueur éliminé retourné malgré les kills enregistrés")
+                    else:
+                        self.log_result("Eliminated Players Tracking - New Route", False, 
+                                      "❌ PROBLÈME: Informations du killer incorrectes dans la réponse")
+                        
+                elif response.status_code == 404:
+                    self.log_result("Eliminated Players Tracking - New Route", False, 
+                                  "❌ PROBLÈME: Nouvelle route non trouvée (404) - pas implémentée?")
+                else:
+                    self.log_result("Eliminated Players Tracking - New Route", False, 
+                                  f"New route failed - HTTP {response.status_code}")
+            else:
+                self.log_result("Eliminated Players Tracking - New Route", False, 
+                              "❌ PROBLÈME: Aucun joueur avec des kills pour tester la nouvelle route")
+            
+            # Test final: Vérifier que le champ killed_players est bien mis à jour
+            final_game_response = requests.get(f"{API_BASE}/games/{game_id}", timeout=5)
+            if final_game_response.status_code == 200:
+                final_game = final_game_response.json()
+                final_players = final_game.get('players', [])
+                
+                players_with_updated_kills = 0
+                total_recorded_kills = 0
+                
+                for player in final_players:
+                    killed_players = player.get('killed_players', [])
+                    if killed_players:
+                        players_with_updated_kills += 1
+                        total_recorded_kills += len(killed_players)
+                
+                if players_with_updated_kills > 0:
+                    self.log_result("Eliminated Players Tracking - Field Updates", True, 
+                                  f"✅ CHAMP KILLED_PLAYERS MIS À JOUR: {players_with_updated_kills} joueurs ont des kills enregistrés ({total_recorded_kills} total)")
+                else:
+                    self.log_result("Eliminated Players Tracking - Field Updates", False, 
+                                  "❌ PROBLÈME: Aucun joueur n'a le champ killed_players mis à jour")
+            
+        except Exception as e:
+            self.log_result("Eliminated Players Tracking", False, f"Error during test: {str(e)}")
 
     def test_game_end_logic_and_scoring(self):
         """Test CRITICAL: Tester spécifiquement la logique de fin de jeu et les scores selon la review request"""
