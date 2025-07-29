@@ -435,73 +435,67 @@ class GameService:
         """Génère un portrait cohérent avec la nationalité"""
         skin_color_ranges = {
             # Asie de l'Est
-            'Chinoise': (2, 10),
-            'Coréenne': (0, 8),
-            'Japonaise': (0, 8),
+            'Chinois': (2, 10),
+            'Coréen': (0, 8),
+            'Japonais': (0, 8),
             
             # Europe du Nord
             'Britannique': (0, 5),
-            'Danoise': (0, 4),
-            'Finlandaise': (0, 4),
-            'Irlandaise': (0, 5),
-            'Islandaise': (0, 3),
-            'Norvégienne': (0, 4),
-            'Suédoise': (0, 4),
+            'Danois': (0, 4),
+            'Finlandais': (0, 4),
+            'Irlandais': (0, 5),
+            'Islandais': (0, 3),
+            'Norvégien': (0, 4),
+            'Suédois': (0, 4),
             
             # Europe de l'Ouest
-            'Allemande': (0, 5),
-            'Autrichienne': (0, 5),
+            'Allemand': (0, 5),
+            'Autrichien': (0, 5),
             'Belge': (0, 5),
-            'Française': (0, 5),
-
-            'Néerlandaise': (0, 5),
+            'Français': (0, 5),
+            'Néerlandais': (0, 5),
             'Suisse': (0, 5),
             
             # Europe du Sud
-            'Espagnole': (2, 8),
-            'Grecque': (3, 9),
-            'Italienne': (2, 8),
-            'Portugaise': (2, 8),
+            'Espagnol': (2, 8),
+            'Grec': (3, 9),
+            'Italien': (2, 8),
+            'Portugais': (2, 8),
             
             # Europe de l'Est
             'Bulgare': (1, 7),
             'Croate': (1, 7),
-            'Estonienne': (0, 4),
-            'Hongroise': (1, 7),
-
-
-            'Polonaise': (0, 6),
-            'Roumaine': (1, 7),
+            'Estonien': (0, 4),
+            'Hongrois': (1, 7),
+            'Polonais': (0, 6),
+            'Roumain': (1, 7),
             'Russe': (0, 6),
             'Tchèque': (0, 6),
-
             
             # Moyen-Orient
-            'Afghane': (6, 16),
-            'Iranienne': (5, 15),
-
-            'Turque': (4, 12),
+            'Afghan': (6, 16),
+            'Iranien': (5, 15),
+            'Turc': (4, 12),
             
             # Afrique du Nord
-            'Égyptienne': (8, 18),
-            'Marocaine': (6, 16),
+            'Égyptien': (8, 18),
+            'Marocain': (6, 16),
             
             # Afrique sub-saharienne
-            'Nigériane': (15, 24),
+            'Nigérian': (15, 24),
             
             # Asie du Sud et du Sud-Est
-            'Indienne': (8, 18),
-            'Indonésienne': (6, 16),
-            'Thaïlandaise': (4, 14),
-
+            'Indien': (8, 18),
+            'Indonésien': (6, 16),
+            'Thaïlandais': (4, 14),
             
             # Amériques
-            'Américaine': (0, 15),
-            'Argentine': (2, 10),
-            'Australienne': (0, 8),
-            'Brésilienne': (4, 20),
-            'Canadienne': (0, 12),
-            'Mexicaine': (6, 16),
+            'Américain': (0, 15),
+            'Argentin': (2, 10),
+            'Australien': (0, 8),
+            'Brésilien': (4, 20),
+            'Canadien': (0, 12),
+            'Mexicain': (6, 16),
         }
         
         skin_range = skin_color_ranges.get(nationality, (0, 15))
