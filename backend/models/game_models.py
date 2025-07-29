@@ -57,6 +57,7 @@ class Player(BaseModel):
     uniform: PlayerUniform
     alive: bool = True
     kills: int = 0
+    killed_players: List[str] = []  # IDs des joueurs éliminés par ce joueur
     betrayals: int = 0
     survived_events: int = 0
     total_score: int = 0
