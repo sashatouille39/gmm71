@@ -10,27 +10,60 @@ export const PLAYER_ROLES = {
   zero: { probability: 0.01, name: "Le Zéro", baseStats: "aléatoires 4-10", bonus: ["très manipulateur"], bonusStats: {}, special: true }
 };
 
-// Nationalités cohérentes (50+ pays)
-export const NATIONALITIES = [
-  "Coréenne", "Japonaise", "Chinoise", "Américaine", "Française", "Allemande", 
-  "Britannique", "Italienne", "Espagnole", "Russe", "Brésilienne", "Indienne",
-  "Australienne", "Canadienne", "Mexicaine", "Turque", "Égyptienne", "Nigériane",
-  "Suédoise", "Norvégienne", "Danoise", "Finlandaise", "Polonaise", "Hollandaise",
-  "Belge", "Suisse", "Autrichienne", "Portugaise", "Grecque", "Tchèque",
-  "Hongroise", "Roumaine", "Bulgare", "Croate", "Serbe", "Slovaque",
-  "Ukrainienne", "Lituanienne", "Lettone", "Estonienne", "Slovène", "Bosniaque",
-  "Argentine", "Chilienne", "Péruvienne", "Colombienne", "Vénézuélienne", "Équatorienne",
-  "Bolivienne", "Paraguayenne", "Uruguayenne", "Thaïlandaise", "Vietnamienne", "Philippienne",
-  "Indonésienne", "Malaisienne", "Singapourienne", "Sud-coréenne", "Bangladaise", "Pakistanaise",
-  "Sri-lankaise", "Népalaise", "Afghane", "Iranienne", "Irakienne", "Syrienne",
-  "Libanaise", "Jordanie", "Israélienne", "Saoudienne", "Émirienne", "Qatarie",
-  "Koweïtienne", "Bahreïnienne", "Omanaise", "Yéménite", "Marocaine", "Algérienne",
-  "Tunisienne", "Libyenne", "Soudanaise", "Éthiopienne", "Kényane", "Tanzanienne",
-  "Ougandaise", "Rwandaise", "Congolaise", "Camerounaise", "Ivoirienne", "Ghanéenne",
-  "Sénégalaise", "Malienne", "Burkinabé", "Nigerienne", "Tchadienne", "Centrafricaine",
-  "Gabonaise", "Équato-guinéenne", "Sud-africaine", "Zimbabwéenne", "Botswanienne", "Namibienne",
-  "Zambienne", "Malawienne", "Mozambicaine", "Malgache", "Mauricienne", "Seychelloise"
-];
+// Nationalités avec formes masculines et féminines
+export const NATIONALITIES = {
+  "Afghan": {"M": "Afghan", "F": "Afghane"},
+  "Allemand": {"M": "Allemand", "F": "Allemande"},
+  "Argentin": {"M": "Argentin", "F": "Argentine"},
+  "Australien": {"M": "Australien", "F": "Australienne"},
+  "Autrichien": {"M": "Autrichien", "F": "Autrichienne"},
+  "Belge": {"M": "Belge", "F": "Belge"},
+  "Brésilien": {"M": "Brésilien", "F": "Brésilienne"},
+  "Britannique": {"M": "Britannique", "F": "Britannique"},
+  "Bulgare": {"M": "Bulgare", "F": "Bulgare"},
+  "Canadien": {"M": "Canadien", "F": "Canadienne"},
+  "Chinois": {"M": "Chinois", "F": "Chinoise"},
+  "Coréen": {"M": "Coréen", "F": "Coréenne"},
+  "Croate": {"M": "Croate", "F": "Croate"},
+  "Danois": {"M": "Danois", "F": "Danoise"},
+  "Égyptien": {"M": "Égyptien", "F": "Égyptienne"},
+  "Espagnol": {"M": "Espagnol", "F": "Espagnole"},
+  "Estonien": {"M": "Estonien", "F": "Estonienne"},
+  "Finlandais": {"M": "Finlandais", "F": "Finlandaise"},
+  "Français": {"M": "Français", "F": "Française"},
+  "Grec": {"M": "Grec", "F": "Grecque"},
+  "Hongrois": {"M": "Hongrois", "F": "Hongroise"},
+  "Indien": {"M": "Indien", "F": "Indienne"},
+  "Indonésien": {"M": "Indonésien", "F": "Indonésienne"},
+  "Iranien": {"M": "Iranien", "F": "Iranienne"},
+  "Irlandais": {"M": "Irlandais", "F": "Irlandaise"},
+  "Islandais": {"M": "Islandais", "F": "Islandaise"},
+  "Italien": {"M": "Italien", "F": "Italienne"},
+  "Japonais": {"M": "Japonais", "F": "Japonaise"},
+  "Marocain": {"M": "Marocain", "F": "Marocaine"},
+  "Mexicain": {"M": "Mexicain", "F": "Mexicaine"},
+  "Néerlandais": {"M": "Néerlandais", "F": "Néerlandaise"},
+  "Nigérian": {"M": "Nigérian", "F": "Nigériane"},
+  "Norvégien": {"M": "Norvégien", "F": "Norvégienne"},
+  "Polonais": {"M": "Polonais", "F": "Polonaise"},
+  "Portugais": {"M": "Portugais", "F": "Portugaise"},
+  "Roumain": {"M": "Roumain", "F": "Roumaine"},
+  "Russe": {"M": "Russe", "F": "Russe"},
+  "Suédois": {"M": "Suédois", "F": "Suédoise"},
+  "Suisse": {"M": "Suisse", "F": "Suisse"},
+  "Tchèque": {"M": "Tchèque", "F": "Tchèque"},
+  "Thaïlandais": {"M": "Thaïlandais", "F": "Thaïlandaise"},
+  "Turc": {"M": "Turc", "F": "Turque"},
+  "Américain": {"M": "Américain", "F": "Américaine"}
+};
+
+// Fonction utilitaire pour obtenir la liste des nationalités (clés seulement) 
+export const getNationalityKeys = () => Object.keys(NATIONALITIES);
+
+// Fonction utilitaire pour obtenir la forme genrée d'une nationalité
+export const getNationalityDisplay = (nationalityKey, gender) => {
+  return NATIONALITIES[nationalityKey]?.[gender] || nationalityKey;
+};
 
 // Formes de visages (15+)
 export const FACE_SHAPES = [
