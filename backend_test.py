@@ -3264,6 +3264,36 @@ class BackendTester:
         
         # Résumé final
         self.print_summary()
+    
+    def print_summary(self):
+        """Affiche le résumé des tests"""
+        print("\n" + "=" * 80)
+        print("📊 RÉSUMÉ DES TESTS BACKEND - REVIEW REQUEST FRANÇAISE")
+        print("=" * 80)
+        
+        success_rate = (self.passed_tests / self.total_tests * 100) if self.total_tests > 0 else 0
+        
+        print(f"Total des tests: {self.total_tests}")
+        print(f"Tests réussis: {self.passed_tests}")
+        print(f"Tests échoués: {self.total_tests - self.passed_tests}")
+        print(f"Taux de réussite: {success_rate:.1f}%")
+        
+        if success_rate >= 90:
+            print("🎉 EXCELLENT - Système de paiement parfaitement synchronisé!")
+        elif success_rate >= 75:
+            print("✅ BON - Système de paiement majoritairement fonctionnel")
+        elif success_rate >= 50:
+            print("⚠️  MOYEN - Quelques problèmes de synchronisation à résoudre")
+        else:
+            print("❌ CRITIQUE - Problèmes majeurs de synchronisation détectés")
+        
+        print("\n📋 DÉTAILS DES RÉSULTATS:")
+        for result in self.results:
+            print(f"{result['status']}: {result['test']}")
+            if result['details'] and result['status'] == "❌ FAIL":
+                print(f"   → {result['details']}")
+        
+        print("=" * 80)
         
         # PRIORITY TEST: Mortality rates correction (as per review request)
         print("\n🎯 PRIORITY TEST: Testing mortality rates correction as per review request...")
