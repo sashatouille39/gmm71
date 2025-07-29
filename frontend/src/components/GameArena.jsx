@@ -25,6 +25,8 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
   const [currentEvent, setCurrentEvent] = useState(null);
   const [eventResults, setEventResults] = useState([]);
   const [spectatorMode, setSpectatorMode] = useState(false);
+  const [showEliminatedModal, setShowEliminatedModal] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [eventProgress, setEventProgress] = useState(0);
   const [animationPhase, setAnimationPhase] = useState('idle');
 
