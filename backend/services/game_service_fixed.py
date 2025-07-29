@@ -607,9 +607,9 @@ class GameService:
         elif event.type == EventType.FORCE:
             return player.stats.force
         elif event.type == EventType.AGILITÉ:
-            return player.stats.agilite
+            return player.stats.agilité
         else:
-            return (player.stats.intelligence + player.stats.force + player.stats.agilite) // 3
+            return (player.stats.intelligence + player.stats.force + player.stats.agilité) // 3
     
     @classmethod
     def _get_role_bonus_for_event(cls, player: Player, event: GameEvent) -> float:
