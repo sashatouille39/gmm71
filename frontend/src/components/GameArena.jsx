@@ -914,6 +914,15 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
             </CardContent>
           </Card>
         )}
+
+        {/* Modal pour afficher les joueurs éliminés */}
+        <EliminatedPlayersModal
+          isOpen={showEliminatedModal}
+          onClose={() => setShowEliminatedModal(false)}
+          gameId={currentGame?.id}
+          playerId={selectedPlayer?.id}
+          playerName={selectedPlayer?.name}
+        />
       </div>
     </div>
   );
