@@ -16,6 +16,7 @@ router = APIRouter(prefix="/api/games", tags=["games"])
 
 # Stockage temporaire en mémoire (à remplacer par MongoDB plus tard)
 games_db = {}
+groups_db = {}  # Stockage des groupes par partie
 game_states_db = {}
 celebrities_db = []
 vips_db = []
