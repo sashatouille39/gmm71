@@ -548,7 +548,7 @@ class GameService:
             # S'assurer qu'il y a au moins 1 survivant
             target_survivors = max(1, target_survivors)
         
-        # Calculer un score de survie pour chaque joueur (stats + rôle + aléatoire)
+        # Calculer un score de survie pour chaque joueur (stats + rôle + aléatoire + bonus groupe)
         player_scores = []
         for player in alive_players:
             # Bonus de stats selon le type d'épreuve
@@ -557,11 +557,18 @@ class GameService:
             # Bonus de rôle
             role_bonus = cls._get_role_bonus_for_event(player, event)
             
+            # Bonus de groupe (coopération)
+            group_bonus = 0
+            if player.group_id and player.group_id in groups_dict:
+                # Compter les alliés vivants dans le groupe
+                allies_alive = sum(1 for p in alive_players if p.group_id == player.group_id and p.id != player.id)
+                group_bonus = allies_alive * 0.5  # Bonus de coopération
+            
             # Malus de difficulté
             difficulty_malus = (event.difficulty - 5) * 0.5
             
             # Score de base + bonus - malus + facteur aléatoire
-            survival_score = stat_bonus + (role_bonus * 10) - difficulty_malus + random.uniform(0, 5)
+            survival_score = stat_bonus + (role_bonus * 10) + group_bonus - difficulty_malus + random.uniform(0, 5)
             
             player_scores.append((player, survival_score))
         
