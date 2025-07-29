@@ -318,6 +318,15 @@ const FinalRanking = () => {
             Voir les statistiques
           </Button>
         </div>
+
+        {/* Modal pour afficher les joueurs éliminés */}
+        <EliminatedPlayersModal
+          isOpen={showEliminatedModal}
+          onClose={() => setShowEliminatedModal(false)}
+          gameId={gameId}
+          playerId={selectedPlayer?.id}
+          playerName={selectedPlayer?.name}
+        />
       </div>
     </div>
   );
