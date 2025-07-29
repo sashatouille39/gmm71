@@ -11,7 +11,7 @@ class EventsService:
         # ÉPREUVES CLASSIQUES (5)
         # ================================
         GameEvent(
-            id=1, name="Feu rouge, Feu vert", type=EventType.AGILITE, category=EventCategory.CLASSIQUES, difficulty=3,
+            id=1, name="Feu rouge, Feu vert", type=EventType.AGILITÉ, category=EventCategory.CLASSIQUES, difficulty=3,
             description="Avancez quand c'est vert, arrêtez-vous au rouge sinon vous mourrez",
             decor="Grande cour d'école avec poupée géante aux yeux laser",
             death_animations=[
