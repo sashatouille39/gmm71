@@ -15,7 +15,7 @@ import {
   DollarSign
 } from 'lucide-react';
 
-const MainMenu = ({ gameState, hasActiveGame }) => {
+const MainMenu = ({ gameState, hasActiveGame, onRefreshGameState }) => {
   const navigate = useNavigate();
   const [hoveredCard, setHoveredCard] = useState(null);
 
