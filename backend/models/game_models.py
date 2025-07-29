@@ -15,7 +15,7 @@ class PlayerRole(str, Enum):
 class EventType(str, Enum):
     INTELLIGENCE = "intelligence"
     FORCE = "force"
-    AGILITE = "agilité"
+    AGILITÉ = "agilité"
 
 class EventCategory(str, Enum):
     CLASSIQUES = "classiques"
