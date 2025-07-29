@@ -127,7 +127,19 @@ const MainMenu = ({ gameState, hasActiveGame, onRefreshGameState }) => {
       <div className="flex gap-6 mb-12 z-10">
         <Card className="bg-black/50 border-red-500/30 backdrop-blur-sm">
           <CardContent className="p-4 text-center">
-            <DollarSign className="w-6 h-6 text-green-400 mx-auto mb-2" />
+            <div className="flex items-center justify-between mb-2">
+              <DollarSign className="w-6 h-6 text-green-400" />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleRefreshGameState}
+                disabled={isRefreshing}
+                className="h-6 w-6 p-0 text-green-400 hover:text-green-300"
+                title="Synchroniser le solde"
+              >
+                <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              </Button>
+            </div>
             <div className="text-2xl font-bold text-white">${gameState.money.toLocaleString()}</div>
             <div className="text-sm text-gray-400">Budget</div>
           </CardContent>
