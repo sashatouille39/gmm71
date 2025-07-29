@@ -141,8 +141,8 @@ async def record_celebrity_participation(celebrity_id: str, participation_data: 
                 celebrity.stats.intelligence += 1
             elif celebrity.stats.force < 10:
                 celebrity.stats.force += 1
-            elif celebrity.stats.agilite < 10:
-                celebrity.stats.agilite += 1
+            elif celebrity.stats.agilité < 10:
+                celebrity.stats.agilité += 1
     
     return {
         "message": f"Participation enregistrée pour {celebrity.name}",
