@@ -544,3 +544,50 @@ async def get_final_ranking(game_id: str):
             "earnings": game.earnings
         }
     }
+
+@router.get("/{game_id}/player/{player_id}/eliminated-players")
+async def get_eliminated_players(game_id: str, player_id: str):
+    """Récupère la liste des joueurs éliminés par un joueur spécifique"""
+    if game_id not in games_db:
+        raise HTTPException(status_code=404, detail="Partie non trouvée")
+    
+    game = games_db[game_id]
+    
+    # Trouver le joueur
+    killer_player = None
+    for player in game.players:
+        if player.id == player_id:
+            killer_player = player
+            break
+    
+    if not killer_player:
+        raise HTTPException(status_code=404, detail="Joueur non trouvé")
+    
+    # Récupérer les joueurs éliminés
+    eliminated_players = []
+    for eliminated_player_id in killer_player.killed_players:
+        for player in game.players:
+            if player.id == eliminated_player_id:
+                eliminated_players.append({
+                    "id": player.id,
+                    "name": player.name,
+                    "number": player.number,
+                    "nationality": player.nationality,
+                    "role": player.role,
+                    "stats": {
+                        "intelligence": player.stats.intelligence,
+                        "force": player.stats.force,
+                        "agilité": player.stats.agilité
+                    }
+                })
+                break
+    
+    return {
+        "killer": {
+            "id": killer_player.id,
+            "name": killer_player.name,
+            "number": killer_player.number,
+            "total_kills": killer_player.kills
+        },
+        "eliminated_players": eliminated_players
+    }
