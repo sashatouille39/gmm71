@@ -244,8 +244,9 @@ async def simulate_event(game_id: str):
                 # Récursivement essayer le prochain événement
                 return await simulate_event(game_id)
     
-    # Simuler l'événement
-    result = GameService.simulate_event(game.players, current_event)
+    # Simuler l'événement avec support des groupes
+    game_groups = {gid: g for gid, g in groups_db.items() if gid.startswith(f"{game_id}_")}
+    result = GameService.simulate_event(game.players, current_event, game_groups)
     game.event_results.append(result)
     
     # Mettre à jour les joueurs dans la partie
