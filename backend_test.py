@@ -3239,64 +3239,31 @@ class BackendTester:
             self.log_result("Payment System Synchronization", False, f"Error during payment system test: {str(e)}")
 
     def run_all_tests(self):
-        """Exécute tous les tests backend"""
-        print(f"🚀 DÉMARRAGE DES TESTS BACKEND - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        """Exécute tous les tests backend selon la review request française"""
+        print(f"🚀 STARTING BACKEND TESTS - REVIEW REQUEST FRANÇAISE - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"Backend URL: {BACKEND_URL}")
         print(f"API Base: {API_BASE}")
         print("=" * 80)
+        print("🎯 FOCUS: Testing payment system synchronization as requested in French review")
+        print("=" * 80)
         
-        # Tests de base
+        # Test de base pour vérifier que l'API fonctionne
         if not self.test_server_startup():
-            print("❌ Serveur non accessible, arrêt des tests")
+            print("❌ Server startup failed - stopping tests")
             return
         
-        # TEST PRIORITAIRE: Corrections économiques françaises
-        self.test_economic_system_french_corrections()
+        # TEST PRINCIPAL: Système de synchronisation des paiements selon la review request
+        self.test_payment_system_synchronization()
         
+        # Tests complémentaires pour valider le contexte
         self.test_basic_routes()
         self.test_game_events_available()
-        self.test_generate_players()
         
-        # Test de création de partie et simulation
-        game_id = self.test_create_game()
-        if game_id:
-            self.test_simulate_event(game_id)
-        
-        self.test_pydantic_models()
-        
-        # Tests spécialisés
-        self.test_nationality_names_correction()
-        self.test_skin_color_nationality_consistency()
-        self.test_name_diversity_same_nationality()
-        self.test_one_survivor_condition()
-        
-        # Tests des nouvelles fonctionnalités célébrités
-        self.test_celebrity_participation_route()
-        self.test_celebrity_victory_route()
-        self.test_celebrity_stats_summary_route()
-        self.test_celebrity_owned_list_route()
-        self.test_celebrity_stats_improvement_rules()
-        
-        # Test critique de la logique de fin de jeu
-        self.test_game_end_logic_and_scoring()
-        
-        # Vérification des logs
+        # Vérifier les logs
         self.check_backend_logs()
         
         # Résumé final
-        self.print_final_summary()
-        
-        # Test 1: Ordre des événements préservé
-        self.test_preserve_event_order_true()
-        
-        # Test 2: Finales automatiquement à la fin
-        self.test_preserve_event_order_false_finale_at_end()
-        
-        # Test 3: Route de classement final
-        self.test_final_ranking_route()
-        
-        # Test 4: Validation du nouveau champ
-        self.test_preserve_event_order_field_validation()
+        self.print_summary()
         
         # PRIORITY TEST: Mortality rates correction (as per review request)
         print("\n🎯 PRIORITY TEST: Testing mortality rates correction as per review request...")
