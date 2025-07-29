@@ -240,7 +240,7 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
                 
                 <div className="grid grid-cols-2 gap-2">
                   <Badge variant="outline" className="text-gray-300 text-xs">
-                    {player.nationality || 'Aucune'}
+                    {player.nationality ? getNationalityDisplay(player.nationality, player.gender) : 'Aucune'}
                   </Badge>
                   <Badge variant="outline" className="text-gray-300 text-xs">
                     {player.age} ans
