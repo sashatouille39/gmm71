@@ -214,7 +214,14 @@ const FinalRanking = () => {
                       {entry.stats.survived_events} épreuves survécues
                     </div>
                     <div className="text-sm text-gray-400">
-                      {entry.stats.kills} éliminations • {entry.stats.betrayals} trahisons
+                      <span 
+                        className={`${entry.stats.kills > 0 ? 'cursor-pointer hover:text-red-300 hover:underline' : ''}`}
+                        onClick={() => handleKillsClick(entry.player, entry.stats.kills)}
+                      >
+                        {entry.stats.kills} éliminations
+                      </span>
+                      {' • '}
+                      {entry.stats.betrayals} trahisons
                     </div>
                     <div className="text-xs text-gray-500">
                       Int: {entry.player_stats.intelligence} | For: {entry.player_stats.force} | Agi: {entry.player_stats.agilité}
