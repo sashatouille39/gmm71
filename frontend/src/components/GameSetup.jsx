@@ -414,10 +414,12 @@ const GameSetup = ({ gameState, onStartGame }) => {
           {/* Gestion des groupes */}
           <TabsContent value="groups" className="space-y-6">
             <GroupManager 
+              gameId={currentGameId}
               players={players}
-              currentGameId={currentGameId}
+              onGroupsCreated={(groups) => {
+                console.log('Groups created:', groups);
+              }}
               onGroupsUpdated={(groups) => {
-                // Handle groups update if needed
                 console.log('Groups updated:', groups);
               }}
             />
