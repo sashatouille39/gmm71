@@ -373,9 +373,9 @@ const PlayerCreator = ({ gameState, updateGameState }) => {
                           <SelectValue placeholder="Choisir..." />
                         </SelectTrigger>
                         <SelectContent className="max-h-40">
-                          {NATIONALITIES.map((nationality) => (
-                            <SelectItem key={nationality} value={nationality}>
-                              {nationality}
+                          {getNationalityKeys().map((nationalityKey) => (
+                            <SelectItem key={nationalityKey} value={nationalityKey}>
+                              {getNationalityDisplay(nationalityKey, player.gender)}
                             </SelectItem>
                           ))}
                         </SelectContent>
