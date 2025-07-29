@@ -520,7 +520,7 @@ class GameService:
         )
     
     @classmethod
-    def simulate_event(cls, players: List[Player], event: GameEvent) -> EventResult:
+    def simulate_event(cls, players: List[Player], event: GameEvent, groups: Dict[str, Any] = None) -> EventResult:
         """Simule une épreuve et retourne les résultats avec animations de mort - VERSION CORRIGÉE"""
         alive_players = [p for p in players if p.alive]
         survivors = []
