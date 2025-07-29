@@ -317,7 +317,7 @@ class EventsService:
         # ÉPREUVES D'AGILITÉ (15)
         # ================================
         GameEvent(
-            id=21, name="Course d'obstacles mortels", type=EventType.AGILITE, category=EventCategory.ATHLETIQUE, difficulty=7,
+            id=21, name="Course d'obstacles mortels", type=EventType.AGILITÉ, category=EventCategory.ATHLETIQUE, difficulty=7,
             description="Parcours d'obstacles avec pièges mortels",
             decor="Parcours militaire avec lames rotatives et fosses",
             death_animations=[
@@ -332,7 +332,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=22, name="Parkour de la mort", type=EventType.AGILITE, category=EventCategory.ATHLETIQUE, difficulty=8,
+            id=22, name="Parkour de la mort", type=EventType.AGILITÉ, category=EventCategory.ATHLETIQUE, difficulty=8,
             description="Parcours urbain avec pièges et snipers",
             decor="Ville en ruine avec bâtiments piégés",
             death_animations=[
@@ -347,7 +347,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=23, name="Labyrinthe tournant", type=EventType.AGILITE, difficulty=6,
+            id=23, name="Labyrinthe tournant", type=EventType.AGILITÉ, difficulty=6,
             description="Labyrinthe dont les murs bougent et écrasent",
             decor="Labyrinthe mécanique avec murs mobiles",
             death_animations=[
@@ -362,7 +362,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=24, name="Saut de la mort", type=EventType.AGILITE, difficulty=8,
+            id=24, name="Saut de la mort", type=EventType.AGILITÉ, difficulty=8,
             description="Sautez de plateforme en plateforme au-dessus du vide",
             decor="Série de plateformes suspendues au-dessus d'un abîme",
             death_animations=[
@@ -377,7 +377,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=25, name="Tunnel rampant", type=EventType.AGILITE, difficulty=5,
+            id=25, name="Tunnel rampant", type=EventType.AGILITÉ, difficulty=5,
             description="Ramper dans tunnels avec gaz toxique qui monte",
             decor="Réseau de tunnels étroits avec ventilation toxique",
             death_animations=[
@@ -392,7 +392,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=26, name="Escalade mortelle", type=EventType.AGILITE, difficulty=7,
+            id=26, name="Escalade mortelle", type=EventType.AGILITÉ, difficulty=7,
             description="Escaladez la tour pendant qu'elle s'effondre",
             decor="Tour en construction qui s'effondre progressivement",
             death_animations=[
@@ -407,7 +407,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=27, name="Course de voitures", type=EventType.AGILITE, difficulty=6,
+            id=27, name="Course de voitures", type=EventType.AGILITÉ, difficulty=6,
             description="Course-poursuite avec voitures piégées",
             decor="Circuit de course avec véhicules explosifs",
             death_animations=[
@@ -422,7 +422,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=28, name="Tyrolienne de l'enfer", type=EventType.AGILITE, difficulty=7,
+            id=28, name="Tyrolienne de l'enfer", type=EventType.AGILITÉ, difficulty=7,
             description="Traversez sur tyrolienne avec cordes qui se coupent",
             decor="Canyon profond avec tyroliennes qui se sectionnent",
             death_animations=[
@@ -437,7 +437,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=29, name="Surf sur lave", type=EventType.AGILITE, difficulty=9,
+            id=29, name="Surf sur lave", type=EventType.AGILITÉ, difficulty=9,
             description="Surfez sur planches au-dessus de lave en fusion",
             decor="Volcan artificiel avec rivières de lave",
             death_animations=[
@@ -452,7 +452,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=30, name="Slalom explosif", type=EventType.AGILITE, difficulty=6,
+            id=30, name="Slalom explosif", type=EventType.AGILITÉ, difficulty=6,
             description="Slalom entre mines antipersonnel",
             decor="Champ de mines avec parcours balisé",
             death_animations=[
@@ -467,7 +467,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=31, name="Swing de la jungle", type=EventType.AGILITE, difficulty=7,
+            id=31, name="Swing de la jungle", type=EventType.AGILITÉ, difficulty=7,
             description="Balancez-vous de liane en liane au-dessus de crocodiles",
             decor="Jungle artificielle avec bassin de crocodiles",
             death_animations=[
@@ -482,7 +482,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=32, name="Fuite dans égouts", type=EventType.AGILITE, difficulty=5,
+            id=32, name="Fuite dans égouts", type=EventType.AGILITÉ, difficulty=5,
             description="Fuyez dans égouts avec eau qui monte",
             decor="Réseau d'égouts avec niveau d'eau montant",
             death_animations=[
@@ -497,7 +497,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=33, name="Trampolines mortels", type=EventType.AGILITE, difficulty=6,
+            id=33, name="Trampolines mortels", type=EventType.AGILITÉ, difficulty=6,
             description="Sautez de trampoline en trampoline avec pièges",
             decor="Parc de trampolines avec lames et fosses",
             death_animations=[
@@ -512,7 +512,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=34, name="Course de drones", type=EventType.AGILITE, category=EventCategory.TECHNOLOGIQUE, difficulty=8,
+            id=34, name="Course de drones", type=EventType.AGILITÉ, category=EventCategory.TECHNOLOGIQUE, difficulty=8,
             description="Évitez les drones tueurs en courant",
             decor="Terrain découvert avec essaim de drones armés",
             death_animations=[
@@ -527,7 +527,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=35, name="Patinage sur glace mortelle", type=EventType.AGILITE, category=EventCategory.EXTREME, difficulty=7,
+            id=35, name="Patinage sur glace mortelle", type=EventType.AGILITÉ, category=EventCategory.EXTREME, difficulty=7,
             description="Patinez sur glace qui se brise avec requins dessous",
             decor="Patinoire au-dessus d'aquarium à requins",
             death_animations=[
@@ -818,7 +818,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=54, name="Chambre des horreurs", type=EventType.AGILITE, difficulty=7,
+            id=54, name="Chambre des horreurs", type=EventType.AGILITÉ, difficulty=7,
             description="Traversez chambre remplie de pièges sadiques",
             decor="Manoir hanté avec pièges psychologiques",
             death_animations=[
@@ -863,7 +863,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=57, name="Danse macabre", type=EventType.AGILITE, difficulty=5,
+            id=57, name="Danse macabre", type=EventType.AGILITÉ, difficulty=5,
             description="Dansez parfaitement ou soyez exécuté",
             decor="Salle de bal gothique avec orchestred'squelettes",
             death_animations=[
@@ -878,7 +878,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=58, name="Aquarium de la mort", type=EventType.AGILITE, difficulty=7,
+            id=58, name="Aquarium de la mort", type=EventType.AGILITÉ, difficulty=7,
             description="Nagez parmi créatures marines mortelles",
             decor="Aquarium géant avec prédateurs marins",
             death_animations=[
@@ -908,7 +908,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=60, name="Mine abandonnée", type=EventType.AGILITE, difficulty=7,
+            id=60, name="Mine abandonnée", type=EventType.AGILITÉ, difficulty=7,
             description="Échappez-vous de mine qui s'effondre",
             decor="Mine de charbon avec structure instable",
             death_animations=[
@@ -938,7 +938,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=62, name="Usine chimique", type=EventType.AGILITE, difficulty=8,
+            id=62, name="Usine chimique", type=EventType.AGILITÉ, difficulty=8,
             description="Fuyez usine en explosion avec produits toxiques",
             decor="Complexe industriel chimique en feu",
             death_animations=[
@@ -968,7 +968,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=64, name="Cirque de l'horreur", type=EventType.AGILITE, difficulty=7,
+            id=64, name="Cirque de l'horreur", type=EventType.AGILITÉ, difficulty=7,
             description="Spectacle de cirque où vous êtes la performance",
             decor="Chapiteau de cirque avec numéros mortels",
             death_animations=[
@@ -1043,7 +1043,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=69, name="Parc d'attractions", type=EventType.AGILITE, difficulty=6,
+            id=69, name="Parc d'attractions", type=EventType.AGILITÉ, difficulty=6,
             description="Survivez aux attractions mortelles du parc maudit",
             decor="Parc d'attractions abandonné avec manèges mortels",
             death_animations=[
@@ -1088,7 +1088,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=72, name="Prison flottante", type=EventType.AGILITE, difficulty=7,
+            id=72, name="Prison flottante", type=EventType.AGILITÉ, difficulty=7,
             description="Échappez-vous de prison sur plateforme pétrolière",
             decor="Plateforme pétrolière convertie en prison",
             death_animations=[
@@ -1118,7 +1118,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=74, name="Glacier mortel", type=EventType.AGILITE, difficulty=8,
+            id=74, name="Glacier mortel", type=EventType.AGILITÉ, difficulty=8,
             description="Escaladez glacier avant avalanche mortelle",
             decor="Glacier en haute montagne avec crevasses",
             death_animations=[
@@ -1178,7 +1178,7 @@ class EventsService:
         ),
         
         GameEvent(
-            id=78, name="Jungle amazonienne", type=EventType.AGILITE, difficulty=7,
+            id=78, name="Jungle amazonienne", type=EventType.AGILITÉ, difficulty=7,
             description="Survivez dans jungle avec prédateurs et tribus",
             decor="Forêt amazonienne dense avec animaux sauvages",
             death_animations=[

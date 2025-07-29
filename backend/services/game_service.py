@@ -610,7 +610,7 @@ class GameService:
             return player.stats.intelligence
         elif event.type == EventType.FORCE:
             return player.stats.force
-        elif event.type == EventType.AGILITE:
+        elif event.type == EventType.AGILITÉ:
             return player.stats.agilite
         else:
             return (player.stats.intelligence + player.stats.force + player.stats.agilite) // 3
@@ -622,14 +622,14 @@ class GameService:
             return 0.2
         elif player.role == PlayerRole.BRUTE and event.type == EventType.FORCE:
             return 0.2
-        elif player.role == PlayerRole.SPORTIF and event.type == EventType.AGILITE:
+        elif player.role == PlayerRole.SPORTIF and event.type == EventType.AGILITÉ:
             return 0.2
         elif player.role == PlayerRole.ZERO:
             return 0.15  # Bonus universel
         elif player.role == PlayerRole.PEUREUX:
             return -0.1
         else:
-            return 0.05 if event.type in [EventType.INTELLIGENCE, EventType.FORCE, EventType.AGILITE] else 0
+            return 0.05 if event.type in [EventType.INTELLIGENCE, EventType.FORCE, EventType.AGILITÉ] else 0
     
     @classmethod
     def generate_celebrities(cls, count: int = 1000) -> List[Celebrity]:
