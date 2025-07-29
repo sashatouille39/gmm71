@@ -30,7 +30,7 @@ class EventCategory(str, Enum):
 class PlayerStats(BaseModel):
     intelligence: int = Field(..., ge=0, le=10)
     force: int = Field(..., ge=0, le=10)
-    agilite: int = Field(..., ge=0, le=10)
+    agilité: int = Field(..., ge=0, le=10)
 
 class PlayerPortrait(BaseModel):
     face_shape: str
