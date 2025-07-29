@@ -21,6 +21,8 @@ const FinalRanking = () => {
   const [rankingData, setRankingData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showEliminatedModal, setShowEliminatedModal] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
 
   useEffect(() => {
     if (gameId) {
