@@ -421,8 +421,8 @@ class GameService:
             'Américain': ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez']
         }
         
-        nationality_first_names = first_names.get(nationality, first_names['Française'])
-        nationality_last_names = last_names.get(nationality, last_names['Française'])
+        nationality_first_names = first_names.get(nationality, first_names['Français'])
+        nationality_last_names = last_names.get(nationality, last_names['Français'])
         
         gender_first_names = nationality_first_names[gender]
         first_name = random.choice(gender_first_names)
