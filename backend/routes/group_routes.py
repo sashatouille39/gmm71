@@ -65,9 +65,19 @@ async def delete_group(group_id: str):
     del groups_storage[group_id]
     return {"message": "Groupe supprimé avec succès"}
 
+class AutoGroupWithPlayersRequest(BaseModel):
+    """Requête pour créer des groupes automatiquement avec les joueurs"""
+    players: List[Player]
+    num_groups: int = Field(..., ge=1, le=20)
+    min_members: int = Field(default=2, ge=2, le=8)
+    max_members: int = Field(default=8, ge=2, le=8)
+    allow_betrayals: bool = Field(default=False)
+
 @router.post("/groups/auto-create", response_model=List[PlayerGroup])
-async def create_groups_automatically(request: AutoGroupRequest, players: List[Player]):
+async def create_groups_automatically(request: AutoGroupWithPlayersRequest):
     """Créer des groupes automatiquement avec répartition aléatoire"""
+    players = request.players
+    
     if not players:
         raise HTTPException(status_code=400, detail="Aucun joueur fourni")
     
