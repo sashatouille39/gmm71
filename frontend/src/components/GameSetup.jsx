@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { generateRandomPlayer, MOCK_CELEBRITIES, EVENT_CATEGORIES } from '../mock/mockData';
 import CustomPlayersList from './CustomPlayersList';
+import GroupManager from './GroupManager';
 
 const GameSetup = ({ gameState, onStartGame }) => {
   const navigate = useNavigate();
