@@ -756,7 +756,7 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
                   {/* Boutons d'action */}
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
                     <Button
-                      onClick={() => navigate('/')}
+                      onClick={handleQuitGame}
                       variant="outline"
                       className="border-gray-600 text-gray-300 hover:bg-gray-700"
                     >
