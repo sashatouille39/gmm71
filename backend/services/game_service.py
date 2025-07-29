@@ -583,7 +583,17 @@ class GameService:
         for player, score in survivors_selected:
             time_remaining = random.randint(event.survival_time_min // 4, event.survival_time_max // 2)
             event_kills = random.randint(0, 2) if event.type == EventType.FORCE else random.randint(0, 1)
-            betrayed = random.random() < 0.1
+            
+            # Gérer les trahisons selon les groupes
+            betrayed = False
+            if player.group_id and player.group_id in groups_dict:
+                # Trahison possible uniquement si autorisée dans le groupe
+                group = groups_dict[player.group_id]
+                if hasattr(group, 'allow_betrayals') and group.allow_betrayals:
+                    betrayed = random.random() < 0.1
+            else:
+                # Pas de groupe = pas de trahison possible
+                betrayed = False
             
             player.survived_events += 1
             player.kills += event_kills
