@@ -375,6 +375,18 @@ const GameSetup = ({ gameState, onStartGame }) => {
             </div>
           </TabsContent>
 
+          {/* Gestion des groupes */}
+          <TabsContent value="groups" className="space-y-6">
+            <GroupManager 
+              players={players}
+              currentGameId={currentGameId}
+              onGroupsUpdated={(groups) => {
+                // Handle groups update if needed
+                console.log('Groups updated:', groups);
+              }}
+            />
+          </TabsContent>
+
           {/* Joueurs personnalisés */}
           <TabsContent value="custom" className="space-y-6">
             <CustomPlayersList 
