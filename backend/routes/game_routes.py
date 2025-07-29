@@ -483,68 +483,227 @@ async def get_events_by_difficulty(min_difficulty: int = 1, max_difficulty: int 
 
 @router.get("/{game_id}/final-ranking")
 async def get_final_ranking(game_id: str):
-    """Récupère le classement final complet d'une partie terminée"""
+    """Récupère le classement final d'une partie terminée"""
     if game_id not in games_db:
         raise HTTPException(status_code=404, detail="Partie non trouvée")
     
     game = games_db[game_id]
     
-    if not game.completed:
-        raise HTTPException(status_code=400, detail="La partie n'est pas encore terminée")
-    
-    # Trier tous les joueurs par score décroissant, puis par événements survécus
-    all_players_ranking = sorted(
-        game.players,
-        key=lambda p: (p.total_score, p.survived_events, -p.betrayals),
-        reverse=True
-    )
+    # Trier les joueurs par score décroissant
+    sorted_players = sorted(game.players, key=lambda p: (p.total_score, p.survived_events, -p.betrayals), reverse=True)
     
     # Créer le classement avec positions
     ranking = []
-    for position, player in enumerate(all_players_ranking, 1):
+    for i, player in enumerate(sorted_players):
         ranking.append({
-            "position": position,
+            "position": i + 1,
             "player": {
                 "id": player.id,
-                "name": player.name,
                 "number": player.number,
+                "name": player.name,
                 "nationality": player.nationality,
+                "gender": player.gender,
                 "role": player.role,
-                "alive": player.alive,
-                "is_celebrity": getattr(player, 'isCelebrity', False),
-                "celebrity_id": getattr(player, 'celebrityId', None)
+                "alive": player.alive
             },
-            "stats": {
+            "game_stats": {
                 "total_score": player.total_score,
                 "survived_events": player.survived_events,
                 "kills": player.kills,
-                "betrayals": player.betrayals
+                "betrayals": player.betrayals,
+                "killed_players": player.killed_players
             },
             "player_stats": {
                 "intelligence": player.stats.intelligence,
                 "force": player.stats.force,
-                "agilité": player.stats.agilité
+                "agilité": player.stats.agilité,
+                "charisme": player.stats.charisme,
+                "instinct": player.stats.instinct
             }
         })
     
     return {
         "game_id": game_id,
         "completed": game.completed,
-        "winner": {
-            "id": game.winner.id,
-            "name": game.winner.name,
-            "number": game.winner.number
-        } if game.winner else None,
+        "winner": game.winner,
         "total_players": len(game.players),
-        "total_events": len(game.events),
-        "events_completed": game.current_event_index,
-        "ranking": ranking,
-        "game_stats": {
-            "start_time": game.start_time,
-            "end_time": game.end_time,
-            "total_cost": game.total_cost,
-            "earnings": game.earnings
-        }
+        "ranking": ranking
+    }
+
+# Routes pour les groupes dans le contexte des parties
+@router.post("/{game_id}/groups")
+async def create_game_groups(game_id: str, request: dict):
+    """Crée des groupes pour une partie spécifique"""
+    if game_id not in games_db:
+        raise HTTPException(status_code=404, detail="Partie non trouvée")
+    
+    game = games_db[game_id]
+    num_groups = request.get("num_groups", 2)
+    min_members = request.get("min_members", 2)
+    max_members = request.get("max_members", 8)
+    allow_betrayals = request.get("allow_betrayals", False)
+    
+    # Récupérer les joueurs vivants
+    alive_players = [p for p in game.players if p.alive]
+    
+    if len(alive_players) < num_groups * min_members:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Pas assez de joueurs vivants pour créer {num_groups} groupes"
+        )
+    
+    # Mélanger les joueurs
+    random.shuffle(alive_players)
+    
+    groups = []
+    player_index = 0
+    
+    # Créer les groupes
+    for i in range(num_groups):
+        # Calculer le nombre de membres pour ce groupe
+        remaining_players = len(alive_players) - player_index
+        remaining_groups = num_groups - i
+        
+        min_needed = remaining_groups * min_members
+        available_for_this_group = remaining_players - min_needed + min_members
+        
+        members_count = min(
+            random.randint(min_members, max_members),
+            available_for_this_group,
+            remaining_players
+        )
+        
+        # Créer le groupe
+        group_members = []
+        for _ in range(members_count):
+            if player_index < len(alive_players):
+                player = alive_players[player_index]
+                group_members.append(player.id)
+                # Assigner le group_id au joueur
+                player.group_id = f"{game_id}_group_{i+1}"
+                player_index += 1
+        
+        group = PlayerGroup(
+            id=f"{game_id}_group_{i+1}",
+            name=f"Groupe {i + 1}",
+            member_ids=group_members,
+            allow_betrayals=allow_betrayals
+        )
+        
+        groups.append(group)
+        groups_db[group.id] = group
+    
+    return {
+        "game_id": game_id,
+        "groups": groups,
+        "message": f"{len(groups)} groupes créés avec succès"
+    }
+
+@router.get("/{game_id}/groups")
+async def get_game_groups(game_id: str):
+    """Récupère les groupes d'une partie"""
+    if game_id not in games_db:
+        raise HTTPException(status_code=404, detail="Partie non trouvée")
+    
+    game_groups = []
+    for group_id, group in groups_db.items():
+        if group_id.startswith(f"{game_id}_"):
+            # Ajouter les informations des joueurs
+            members = []
+            for member_id in group.member_ids:
+                for player in games_db[game_id].players:
+                    if player.id == member_id:
+                        members.append({
+                            "id": player.id,
+                            "name": player.name,
+                            "number": player.number,
+                            "alive": player.alive
+                        })
+                        break
+            
+            game_groups.append({
+                "id": group.id,
+                "name": group.name,
+                "members": members,
+                "allow_betrayals": group.allow_betrayals,
+                "created_at": group.created_at
+            })
+    
+    return {
+        "game_id": game_id,
+        "groups": game_groups
+    }
+
+@router.put("/{game_id}/groups/{group_id}")
+async def update_game_group(game_id: str, group_id: str, request: dict):
+    """Met à jour un groupe d'une partie"""
+    if game_id not in games_db:
+        raise HTTPException(status_code=404, detail="Partie non trouvée")
+    
+    if group_id not in groups_db:
+        raise HTTPException(status_code=404, detail="Groupe non trouvé")
+    
+    group = groups_db[group_id]
+    
+    # Mettre à jour les champs si fournis
+    if "name" in request:
+        group.name = request["name"]
+    
+    if "allow_betrayals" in request:
+        group.allow_betrayals = request["allow_betrayals"]
+    
+    groups_db[group_id] = group
+    
+    return {
+        "message": "Groupe mis à jour avec succès",
+        "group": group
+    }
+
+@router.post("/{game_id}/groups/toggle-betrayals")
+async def toggle_betrayals_for_all_groups(game_id: str, request: dict):
+    """Active/désactive les trahisons pour tous les groupes d'une partie"""
+    if game_id not in games_db:
+        raise HTTPException(status_code=404, detail="Partie non trouvée")
+    
+    allow_betrayals = request.get("allow_betrayals", False)
+    
+    # Mettre à jour tous les groupes de cette partie
+    updated_groups = []
+    for group_id, group in groups_db.items():
+        if group_id.startswith(f"{game_id}_"):
+            group.allow_betrayals = allow_betrayals
+            groups_db[group_id] = group
+            updated_groups.append(group)
+    
+    return {
+        "message": f"Trahisons {'activées' if allow_betrayals else 'désactivées'} pour tous les groupes",
+        "updated_groups": len(updated_groups),
+        "allow_betrayals": allow_betrayals
+    }
+
+@router.delete("/{game_id}/groups")
+async def clear_game_groups(game_id: str):
+    """Supprime tous les groupes d'une partie"""
+    if game_id not in games_db:
+        raise HTTPException(status_code=404, detail="Partie non trouvée")
+    
+    game = games_db[game_id]
+    
+    # Supprimer les groupes de la base
+    groups_to_remove = []
+    for group_id in groups_db.keys():
+        if group_id.startswith(f"{game_id}_"):
+            groups_to_remove.append(group_id)
+    
+    for group_id in groups_to_remove:
+        del groups_db[group_id]
+    
+    # Retirer les group_id des joueurs
+    for player in game.players:
+        player.group_id = None
+    
+    return {
+        "message": f"{len(groups_to_remove)} groupes supprimés avec succès"
     }
 
 @router.get("/{game_id}/player/{player_id}/eliminated-players")
