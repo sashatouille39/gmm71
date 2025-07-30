@@ -575,6 +575,25 @@ class GameService:
         # Trier par score de survie (les meilleurs en premier)
         player_scores.sort(key=lambda x: x[1], reverse=True)
         
+        # Mélange aléatoire des joueurs ayant des scores très similaires (écart < 2 points)
+        # pour éviter que les numéros se suivent
+        final_scores = []
+        i = 0
+        while i < len(player_scores):
+            # Grouper les joueurs avec des scores similaires
+            similar_group = [player_scores[i]]
+            j = i + 1
+            while j < len(player_scores) and abs(player_scores[j][1] - player_scores[i][1]) < 2.0:
+                similar_group.append(player_scores[j])
+                j += 1
+            
+            # Mélanger aléatoirement ce groupe
+            random.shuffle(similar_group)
+            final_scores.extend(similar_group)
+            i = j
+        
+        player_scores = final_scores
+        
         # Sélectionner exactement target_survivors survivants (les meilleurs)
         survivors_selected = player_scores[:target_survivors]
         eliminated_selected = player_scores[target_survivors:]
