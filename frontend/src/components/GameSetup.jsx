@@ -166,14 +166,15 @@ const GameSetup = ({ gameState, onStartGame }) => {
           player_count: players.length,
           game_mode: gameMode,
           selected_events: selectedEvents,
-          manual_players: players.filter(p => p.isCustom).map(p => ({
+          all_players: players.map(p => ({
             name: p.name,
             nationality: p.nationality,
             gender: p.gender,
             role: p.role,
             stats: p.stats,
             portrait: p.portrait,
-            uniform: p.uniform
+            uniform: p.uniform,
+            isCustom: p.isCustom || false
           })),
           preserve_event_order: preserveEventOrder
         }),
