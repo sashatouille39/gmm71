@@ -803,7 +803,19 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
                   {isPlaying && (
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
-                        <span className="text-white font-medium">Épreuve en cours...</span>
+                        <span className="text-white font-medium flex items-center gap-2">
+                          {isPaused ? (
+                            <>
+                              <Pause className="w-4 h-4 text-yellow-400" />
+                              Épreuve en pause
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
+                              Épreuve en cours...
+                            </>
+                          )}
+                        </span>
                         <span className="text-gray-400">{Math.round(eventProgress)}%</span>
                       </div>
                       <Progress value={eventProgress} className="h-3" />
@@ -813,9 +825,17 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
                         <span className="text-gray-400">
                           Temps écoulé: {Math.round(elapsedTime)}s / {currentEventDuration}s
                         </span>
-                        <span className="text-yellow-400">
-                          Vitesse: x{speedMultiplier}
-                        </span>
+                        <div className="flex items-center gap-3">
+                          {isPaused && (
+                            <span className="text-yellow-400 flex items-center gap-1">
+                              <Pause className="w-3 h-3" />
+                              PAUSE
+                            </span>
+                          )}
+                          <span className="text-yellow-400">
+                            Vitesse: x{speedMultiplier}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   )}
