@@ -504,7 +504,7 @@ async def get_realtime_updates(game_id: str):
         elapsed_time=elapsed_sim_time,
         total_duration=simulation["duration"],
         progress=progress,
-        deaths=new_deaths,
+        deaths=list(reversed(new_deaths)),  # Inverser l'ordre : les plus récentes en premier
         is_complete=is_complete,
         is_paused=simulation.get("is_paused", False),
         final_result=final_result
