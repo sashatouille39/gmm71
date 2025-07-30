@@ -38,63 +38,83 @@ async def create_game(request: GameCreateRequest):
     try:
         players = []
         
-        # Créer un ensemble pour suivre les noms déjà utilisés (incluant les joueurs manuels)
-        used_names = set()
-        
-        # Ajouter les joueurs manuels
-        for i, manual_player in enumerate(request.manual_players):
-            player = Player(
-                number=str(i + 1).zfill(3),
-                name=manual_player.name,
-                nationality=manual_player.nationality,
-                gender=manual_player.gender,
-                role=manual_player.role,
-                stats=manual_player.stats,
-                portrait=manual_player.portrait,
-                uniform=manual_player.uniform
-            )
-            players.append(player)
-            used_names.add(manual_player.name)  # Ajouter le nom manuel aux noms utilisés
-        
-        # Générer les joueurs automatiques restants avec des noms uniques
-        remaining_count = request.player_count - len(request.manual_players)
-        if remaining_count > 0:
-            # Générer les joueurs automatiques en évitant les noms déjà utilisés
-            for i in range(remaining_count):
-                player_id = len(request.manual_players) + i + 1
-                
-                # Sélection du rôle selon les probabilités
-                rand = random.random()
-                cumulative_probability = 0
-                selected_role = GameService.ROLE_PROBABILITIES[list(GameService.ROLE_PROBABILITIES.keys())[0]]
-                
-                for role, probability in GameService.ROLE_PROBABILITIES.items():
-                    cumulative_probability += probability
-                    if rand <= cumulative_probability:
-                        selected_role = role
-                        break
-                
-                nationality_key = random.choice(list(GameService.NATIONALITIES.keys()))
-                gender = random.choice(['M', 'F'])
-                nationality_display = GameService.NATIONALITIES[nationality_key][gender]
-                
-                # Génération des stats selon le rôle
-                stats = GameService._generate_stats_by_role(selected_role)
-                
+        # Vérifier si tous les joueurs sont fournis par le frontend
+        if request.all_players and len(request.all_players) > 0:
+            # Utiliser TOUS les joueurs fournis par le frontend
+            for i, player_data in enumerate(request.all_players):
                 player = Player(
-                    number=str(player_id).zfill(3),
-                    name=GameService._generate_unique_name(nationality_key, gender, used_names),
-                    nationality=nationality_display,
-                    gender=gender,
-                    role=selected_role,
-                    stats=stats,
-                    portrait=GameService._generate_portrait(nationality_key),
-                    uniform=GameService._generate_uniform(),
+                    number=str(i + 1).zfill(3),
+                    name=player_data.name,
+                    nationality=player_data.nationality,
+                    gender=player_data.gender,
+                    role=player_data.role,
+                    stats=player_data.stats,
+                    portrait=player_data.portrait,
+                    uniform=player_data.uniform,
                     alive=True,
                     health=100,
-                    total_score=stats.intelligence + stats.force + stats.agilité
+                    total_score=player_data.stats.intelligence + player_data.stats.force + player_data.stats.agilité
                 )
                 players.append(player)
+        else:
+            # Fallback vers l'ancien système (manual_players + génération automatique)
+            # Créer un ensemble pour suivre les noms déjà utilisés (incluant les joueurs manuels)
+            used_names = set()
+            
+            # Ajouter les joueurs manuels
+            for i, manual_player in enumerate(request.manual_players):
+                player = Player(
+                    number=str(i + 1).zfill(3),
+                    name=manual_player.name,
+                    nationality=manual_player.nationality,
+                    gender=manual_player.gender,
+                    role=manual_player.role,
+                    stats=manual_player.stats,
+                    portrait=manual_player.portrait,
+                    uniform=manual_player.uniform
+                )
+                players.append(player)
+                used_names.add(manual_player.name)  # Ajouter le nom manuel aux noms utilisés
+            
+            # Générer les joueurs automatiques restants avec des noms uniques
+            remaining_count = request.player_count - len(request.manual_players)
+            if remaining_count > 0:
+                # Générer les joueurs automatiques en évitant les noms déjà utilisés
+                for i in range(remaining_count):
+                    player_id = len(request.manual_players) + i + 1
+                    
+                    # Sélection du rôle selon les probabilités
+                    rand = random.random()
+                    cumulative_probability = 0
+                    selected_role = GameService.ROLE_PROBABILITIES[list(GameService.ROLE_PROBABILITIES.keys())[0]]
+                    
+                    for role, probability in GameService.ROLE_PROBABILITIES.items():
+                        cumulative_probability += probability
+                        if rand <= cumulative_probability:
+                            selected_role = role
+                            break
+                    
+                    nationality_key = random.choice(list(GameService.NATIONALITIES.keys()))
+                    gender = random.choice(['M', 'F'])
+                    nationality_display = GameService.NATIONALITIES[nationality_key][gender]
+                    
+                    # Génération des stats selon le rôle
+                    stats = GameService._generate_stats_by_role(selected_role)
+                    
+                    player = Player(
+                        number=str(player_id).zfill(3),
+                        name=GameService._generate_unique_name(nationality_key, gender, used_names),
+                        nationality=nationality_display,
+                        gender=gender,
+                        role=selected_role,
+                        stats=stats,
+                        portrait=GameService._generate_portrait(nationality_key),
+                        uniform=GameService._generate_uniform(),
+                        alive=True,
+                        health=100,
+                        total_score=stats.intelligence + stats.force + stats.agilité
+                    )
+                    players.append(player)
         
         # Sélectionner et organiser les événements selon les préférences utilisateur
         organized_events = EventsService.organize_events_for_game(
