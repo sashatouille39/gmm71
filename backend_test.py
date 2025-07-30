@@ -6389,6 +6389,339 @@ class BackendTester:
         except Exception as e:
             self.log_result("Review Request - Toutes les corrections", False, f"Erreur pendant les tests: {str(e)}")
 
+    def test_refund_system_100_percent(self):
+        """Test REVIEW REQUEST 1: Test du remboursement à 100%"""
+        try:
+            print("\n🎯 TESTING 100% REFUND SYSTEM - REVIEW REQUEST 1")
+            print("=" * 80)
+            
+            # Étape 1: Récupérer l'argent initial
+            response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+            if response.status_code != 200:
+                self.log_result("100% Refund System", False, f"Could not get initial gamestate - HTTP {response.status_code}")
+                return
+            
+            initial_gamestate = response.json()
+            initial_money = initial_gamestate.get('money', 0)
+            print(f"   💰 Argent initial: {initial_money:,}$")
+            
+            # Étape 2: Créer une partie et noter le coût
+            game_request = {
+                "player_count": 25,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3, 4],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("100% Refund System", False, f"Could not create game - HTTP {response.status_code}")
+                return
+            
+            game_data = response.json()
+            game_id = game_data.get('id')
+            game_cost = game_data.get('total_cost', 0)
+            print(f"   🎮 Partie créée (ID: {game_id}) - Coût: {game_cost:,}$")
+            
+            # Étape 3: Vérifier que l'argent a été déduit
+            response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+            if response.status_code != 200:
+                self.log_result("100% Refund System", False, f"Could not get gamestate after creation - HTTP {response.status_code}")
+                return
+            
+            after_creation_gamestate = response.json()
+            money_after_creation = after_creation_gamestate.get('money', 0)
+            expected_money_after_creation = initial_money - game_cost
+            
+            print(f"   💸 Argent après création: {money_after_creation:,}$ (attendu: {expected_money_after_creation:,}$)")
+            
+            if money_after_creation != expected_money_after_creation:
+                self.log_result("100% Refund System", False, 
+                              f"Money deduction incorrect: expected {expected_money_after_creation}, got {money_after_creation}")
+                return
+            
+            # Étape 4: Supprimer la partie AVANT qu'elle soit terminée
+            response = requests.delete(f"{API_BASE}/games/{game_id}", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("100% Refund System", False, f"Could not delete game - HTTP {response.status_code}")
+                return
+            
+            delete_response = response.json()
+            refund_amount = delete_response.get('refund_amount', 0)
+            print(f"   💰 Remboursement reçu: {refund_amount:,}$")
+            
+            # Étape 5: Vérifier que l'argent est remboursé à 100%
+            response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+            if response.status_code != 200:
+                self.log_result("100% Refund System", False, f"Could not get final gamestate - HTTP {response.status_code}")
+                return
+            
+            final_gamestate = response.json()
+            final_money = final_gamestate.get('money', 0)
+            
+            print(f"   💰 Argent final: {final_money:,}$ (initial: {initial_money:,}$)")
+            
+            # Vérifications finales
+            if refund_amount == game_cost and final_money == initial_money:
+                self.log_result("100% Refund System", True, 
+                              f"✅ REMBOURSEMENT À 100% VALIDÉ: Coût {game_cost:,}$ entièrement remboursé")
+            elif refund_amount != game_cost:
+                self.log_result("100% Refund System", False, 
+                              f"❌ Montant remboursé incorrect: attendu {game_cost:,}$, reçu {refund_amount:,}$")
+            else:
+                self.log_result("100% Refund System", False, 
+                              f"❌ Argent final incorrect: attendu {initial_money:,}$, reçu {final_money:,}$")
+                
+        except Exception as e:
+            self.log_result("100% Refund System", False, f"Error during test: {str(e)}")
+
+    def test_automatic_statistics_saving(self):
+        """Test REVIEW REQUEST 2: Test de la sauvegarde automatique des statistiques"""
+        try:
+            print("\n🎯 TESTING AUTOMATIC STATISTICS SAVING - REVIEW REQUEST 2")
+            print("=" * 80)
+            
+            # Étape 1: Créer une partie avec au moins 2 joueurs
+            game_request = {
+                "player_count": 10,  # Plus de joueurs pour assurer qu'on peut finir la partie
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],  # Quelques événements
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Automatic Statistics Saving", False, f"Could not create game - HTTP {response.status_code}")
+                return
+            
+            game_data = response.json()
+            game_id = game_data.get('id')
+            initial_players = len(game_data.get('players', []))
+            print(f"   🎮 Partie créée (ID: {game_id}) avec {initial_players} joueurs")
+            
+            # Étape 2: Simuler des événements jusqu'à ce qu'elle se termine (1 survivant)
+            max_events = 15
+            event_count = 0
+            game_completed = False
+            
+            while event_count < max_events and not game_completed:
+                event_count += 1
+                
+                response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if response.status_code != 200:
+                    self.log_result("Automatic Statistics Saving", False, 
+                                  f"Event simulation failed at event {event_count} - HTTP {response.status_code}")
+                    return
+                
+                data = response.json()
+                game = data.get('game', {})
+                result = data.get('result', {})
+                
+                survivors = result.get('survivors', [])
+                eliminated = result.get('eliminated', [])
+                game_completed = game.get('completed', False)
+                
+                print(f"   📊 Événement {event_count}: {len(survivors)} survivants, {len(eliminated)} éliminés, terminé: {game_completed}")
+                
+                if game_completed:
+                    winner = game.get('winner')
+                    if winner:
+                        print(f"   🏆 Gagnant: {winner.get('name', 'Inconnu')} (#{winner.get('number', 'N/A')})")
+                    break
+            
+            if not game_completed:
+                self.log_result("Automatic Statistics Saving", False, 
+                              f"Game did not complete after {max_events} events")
+                return
+            
+            # Étape 3: Vérifier que GET /api/statistics/detailed retourne des données
+            response = requests.get(f"{API_BASE}/statistics/detailed", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Automatic Statistics Saving", False, 
+                              f"Could not get detailed statistics - HTTP {response.status_code}")
+                return
+            
+            detailed_stats = response.json()
+            total_games = detailed_stats.get('total_games_played', 0)
+            total_kills = detailed_stats.get('total_kills', 0)
+            
+            print(f"   📈 Statistiques détaillées: {total_games} parties jouées, {total_kills} éliminations")
+            
+            # Étape 4: Vérifier que GET /api/statistics/completed-games contient la partie terminée
+            response = requests.get(f"{API_BASE}/statistics/completed-games", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Automatic Statistics Saving", False, 
+                              f"Could not get completed games - HTTP {response.status_code}")
+                return
+            
+            completed_games = response.json()
+            
+            if not isinstance(completed_games, list):
+                self.log_result("Automatic Statistics Saving", False, 
+                              f"Completed games response is not a list: {type(completed_games)}")
+                return
+            
+            # Chercher notre partie dans l'historique
+            our_game_found = False
+            for completed_game in completed_games:
+                if completed_game.get('id') == game_id:
+                    our_game_found = True
+                    print(f"   ✅ Partie trouvée dans l'historique: {completed_game.get('total_players', 0)} joueurs, {completed_game.get('survivors', 0)} survivant(s)")
+                    break
+            
+            # Vérifications finales
+            if total_games > 0 and our_game_found:
+                self.log_result("Automatic Statistics Saving", True, 
+                              f"✅ SAUVEGARDE AUTOMATIQUE VALIDÉE: Partie sauvegardée dans les statistiques")
+            elif total_games == 0:
+                self.log_result("Automatic Statistics Saving", False, 
+                              "❌ Aucune partie enregistrée dans les statistiques détaillées")
+            else:
+                self.log_result("Automatic Statistics Saving", False, 
+                              "❌ Partie terminée non trouvée dans l'historique des parties complétées")
+                
+        except Exception as e:
+            self.log_result("Automatic Statistics Saving", False, f"Error during test: {str(e)}")
+
+    def test_real_past_winners(self):
+        """Test REVIEW REQUEST 3: Test des vrais anciens gagnants"""
+        try:
+            print("\n🎯 TESTING REAL PAST WINNERS - REVIEW REQUEST 3")
+            print("=" * 80)
+            
+            # Étape 1: Créer et terminer une partie pour avoir un gagnant
+            game_request = {
+                "player_count": 8,  # Moins de joueurs pour finir plus vite
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Real Past Winners", False, f"Could not create game - HTTP {response.status_code}")
+                return
+            
+            game_data = response.json()
+            game_id = game_data.get('id')
+            print(f"   🎮 Partie créée (ID: {game_id})")
+            
+            # Simuler jusqu'à la fin
+            max_events = 10
+            event_count = 0
+            game_completed = False
+            winner_info = None
+            
+            while event_count < max_events and not game_completed:
+                event_count += 1
+                
+                response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if response.status_code != 200:
+                    break
+                
+                data = response.json()
+                game = data.get('game', {})
+                game_completed = game.get('completed', False)
+                
+                if game_completed:
+                    winner_info = game.get('winner')
+                    if winner_info:
+                        print(f"   🏆 Gagnant: {winner_info.get('name', 'Inconnu')} (#{winner_info.get('number', 'N/A')})")
+                    break
+            
+            if not game_completed or not winner_info:
+                self.log_result("Real Past Winners", False, "Could not complete game or no winner found")
+                return
+            
+            # Étape 2: Appeler GET /api/statistics/winners
+            response = requests.get(f"{API_BASE}/statistics/winners", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Real Past Winners", False, 
+                              f"Could not get winners - HTTP {response.status_code}")
+                return
+            
+            winners = response.json()
+            
+            if not isinstance(winners, list):
+                self.log_result("Real Past Winners", False, 
+                              f"Winners response is not a list: {type(winners)}")
+                return
+            
+            print(f"   📊 Nombre de gagnants trouvés: {len(winners)}")
+            
+            # Étape 3: Vérifier que le gagnant apparaît avec ses stats améliorées (+5 points)
+            our_winner_found = False
+            winner_data = None
+            
+            for winner in winners:
+                game_data_info = winner.get('game_data', {})
+                if game_data_info.get('game_id') == game_id:
+                    our_winner_found = True
+                    winner_data = winner
+                    break
+            
+            if not our_winner_found:
+                self.log_result("Real Past Winners", False, 
+                              f"Our winner not found in winners list")
+                return
+            
+            # Vérifier les stats améliorées
+            winner_stats = winner_data.get('stats', {})
+            intelligence = winner_stats.get('intelligence', 0)
+            force = winner_stats.get('force', 0)
+            agilite = winner_stats.get('agilité', 0)
+            total_stats = intelligence + force + agilite
+            
+            print(f"   📈 Stats du gagnant: Intelligence={intelligence}, Force={force}, Agilité={agilite} (Total: {total_stats})")
+            
+            # Étape 4: Vérifier que le prix est calculé selon les étoiles (10M par étoile)
+            stars = winner_data.get('stars', 0)
+            price = winner_data.get('price', 0)
+            expected_base_price = stars * 10000000  # 10M par étoile
+            
+            print(f"   ⭐ Étoiles: {stars}, Prix: {price:,}$ (base attendue: {expected_base_price:,}$)")
+            
+            # Vérifications finales
+            stats_improved = total_stats > 15  # Stats de base sont généralement autour de 5 chacune
+            price_correct = price >= expected_base_price  # Prix peut être plus élevé avec bonus victoires
+            
+            if our_winner_found and stats_improved and price_correct and stars > 0:
+                self.log_result("Real Past Winners", True, 
+                              f"✅ VRAIS ANCIENS GAGNANTS VALIDÉS: {stars} étoiles, prix {price:,}$, stats améliorées")
+            elif not stats_improved:
+                self.log_result("Real Past Winners", False, 
+                              f"❌ Stats non améliorées: total {total_stats} (attendu > 15)")
+            elif not price_correct:
+                self.log_result("Real Past Winners", False, 
+                              f"❌ Prix incorrect: {price:,}$ (attendu >= {expected_base_price:,}$)")
+            elif stars == 0:
+                self.log_result("Real Past Winners", False, 
+                              "❌ Aucune étoile attribuée au gagnant")
+            else:
+                self.log_result("Real Past Winners", False, 
+                              "❌ Problème général dans la validation des gagnants")
+                
+        except Exception as e:
+            self.log_result("Real Past Winners", False, f"Error during test: {str(e)}")
+
     def run_all_tests(self):
         """Run all backend tests with focus on review request features"""
         print(f"🚀 STARTING BACKEND TESTS - REVIEW REQUEST FRANÇAIS - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
