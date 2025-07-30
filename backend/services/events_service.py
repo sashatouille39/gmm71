@@ -113,7 +113,7 @@ class EventsService:
                 "Coup de massue, crâne fracassé",
                 "Noyade forcée dans une mare de sang"
             ],
-            survival_time_min=300, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.65,  # Exception: Battle Royale peut être plus élevé
             special_mechanics=["Libre pour tous", "Armes cachées"]
         ),
@@ -293,7 +293,7 @@ class EventsService:
                 "Écrasé par un boulet de catapulte",
                 "Piétiné par la cavalerie lourde"
             ],
-            survival_time_min=300, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.52,
             special_mechanics=["Bataille massive", "Armes médiévales"]
         ),
@@ -308,7 +308,7 @@ class EventsService:
                 "Crâne fracassé contre les barreaux",
                 "Empoisonné avec produit de nettoyage"
             ],
-            survival_time_min=240, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.6,
             special_mechanics=["Environnement carcéral", "Armes improvisées"]
         ),
@@ -341,7 +341,7 @@ class EventsService:
                 "Explosion de piège dans bâtiment",
                 "Électrocution sur ligne haute tension"
             ],
-            survival_time_min=240, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.6,
             special_mechanics=["Environnement urbain", "Snipers"]
         ),
@@ -356,7 +356,7 @@ class EventsService:
                 "Coupé en deux par mur-lame",
                 "Piétiné dans la panique générale"
             ],
-            survival_time_min=300, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.4,
             special_mechanics=["Murs mobiles", "Mécanismes d'écrasement"]
         ),
@@ -401,7 +401,7 @@ class EventsService:
                 "Corde qui lâche, chute libre",
                 "Enseveli sous éboulement"
             ],
-            survival_time_min=240, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.5,
             special_mechanics=["Escalade", "Effondrement progressif"]
         ),
@@ -491,7 +491,7 @@ class EventsService:
                 "Empoisonnement par eau contaminée",
                 "Coincé dans grille, asphyxie"
             ],
-            survival_time_min=240, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.3,
             special_mechanics=["Milieu aquatique", "Montée des eaux"]
         ),
@@ -554,7 +554,7 @@ class EventsService:
                 "Laser mortel des yeux du sphinx",
                 "Gaz toxique émis par sphinx pour mauvaise réponse"
             ],
-            survival_time_min=300, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.6,
             special_mechanics=["Énigmes complexes", "Sphinx robotique"]
         ),
@@ -569,7 +569,7 @@ class EventsService:
                 "Inhalation de gaz toxique mortel",
                 "Convulsions par poison neural"
             ],
-            survival_time_min=240, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.5,
             special_mechanics=["Chimie", "Formules complexes"]
         ),
@@ -599,7 +599,7 @@ class EventsService:
                 "Électrocution par mauvaise manipulation",
                 "Onde de choc, hémorragie interne"
             ],
-            survival_time_min=600, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.48,
             special_mechanics=["Puzzle 3D", "Bombe à retardement"]
         ),
@@ -614,7 +614,7 @@ class EventsService:
                 "Coulé avec navire, asphyxie",
                 "Shrapnels d'explosion, hémorragie"
             ],
-            survival_time_min=300, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.5,
             special_mechanics=["Stratégie navale", "Explosions réelles"]
         ),
@@ -629,7 +629,7 @@ class EventsService:
                 "Gaz neurotoxique pour mauvais code",
                 "Incinération par défense thermique"
             ],
-            survival_time_min=240, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.6,
             special_mechanics=["Codes informatiques", "Lasers de sécurité"]
         ),
@@ -644,7 +644,7 @@ class EventsService:
                 "Piétiné par cavalier géant",
                 "Écrasé par tour qui bouge"
             ],
-            survival_time_min=900, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.5,
             special_mechanics=["Règles d'échecs", "Pièces vivantes"]
         ),
@@ -674,7 +674,7 @@ class EventsService:
                 "Court-circuit, explosion électrique",
                 "Paralysie puis arrêt cardiaque"
             ],
-            survival_time_min=600, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.4,
             special_mechanics=["Sudoku géant", "Électrification"]
         ),
@@ -689,7 +689,7 @@ class EventsService:
                 "Gaz soporifique puis élimination",
                 "Poison dans eau pour mauvaise réponse"
             ],
-            survival_time_min=300, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.3,
             special_mechanics=["Psychologie", "Détecteur de mensonges"]
         ),
@@ -734,7 +734,7 @@ class EventsService:
                 "Téléportation ratée, dispersion",
                 "Radiation quantique, mutation mortelle"
             ],
-            survival_time_min=600, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.52,
             special_mechanics=["Physique quantique", "Science avancée"]
         ),
@@ -749,7 +749,7 @@ class EventsService:
                 "Assassinat par sniper ennemi",
                 "Poison dans rations militaires"
             ],
-            survival_time_min=900, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.6,
             special_mechanics=["Tactique militaire", "Guerre réelle"]
         ),
@@ -764,7 +764,7 @@ class EventsService:
                 "Infection par manipulation d'organes",
                 "Virus mortel par contact patient"
             ],
-            survival_time_min=300, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.5,
             special_mechanics=["Médecine", "Diagnostics complexes"]
         ),
@@ -782,7 +782,7 @@ class EventsService:
                 "Poignardé dans le dos par allié",
                 "Électrocution par vote majoritaire"
             ],
-            survival_time_min=600, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.4,
             special_mechanics=["Psychologie sociale", "Trahison possible"]
         ),
@@ -797,7 +797,7 @@ class EventsService:
                 "Torture pour désobéissance",
                 "Suicide plutôt que trahir"
             ],
-            survival_time_min=300, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.3,
             special_mechanics=["Sacrifice forcé", "Loyauté testée"]
         ),
@@ -827,7 +827,7 @@ class EventsService:
                 "Écrasé par plafond qui descend",
                 "Empoisonné par aiguilles murales"
             ],
-            survival_time_min=300, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.6,
             special_mechanics=["Pièges sadiques", "Horreur psychologique"]
         ),
@@ -842,7 +842,7 @@ class EventsService:
                 "Glissade mortelle sur glace",
                 "Brisé comme statue de glace"
             ],
-            survival_time_min=600, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.4,
             special_mechanics=["Froid extrême", "Hypothermie"]
         ),
@@ -872,7 +872,7 @@ class EventsService:
                 "Chute dans trappe du sol",
                 "Empoisonnement par parfum mortel"
             ],
-            survival_time_min=300, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.3,
             special_mechanics=["Chorégraphie précise", "Rythme mortel"]
         ),
@@ -902,7 +902,7 @@ class EventsService:
                 "Paralysé par pollen mortel",
                 "Suffocation par spores toxiques"
             ],
-            survival_time_min=240, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.5,
             special_mechanics=["Botanique mortelle", "Toxines naturelles"]
         ),
@@ -917,7 +917,7 @@ class EventsService:
                 "Noyé dans infiltration d'eau",
                 "Explosion de grisou, carbonisation"
             ],
-            survival_time_min=300, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.6,
             special_mechanics=["Effondrement", "Gaz toxiques"]
         ),
@@ -932,7 +932,7 @@ class EventsService:
                 "Étranglé par dealer",
                 "Défenestré depuis étage élevé"
             ],
-            survival_time_min=600, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.4,
             special_mechanics=["Jeux de hasard", "Dettes mortelles"]
         ),
@@ -962,7 +962,7 @@ class EventsService:
                 "Papercuts mortelles multiples",
                 "Écrasé sous pile de livres"
             ],
-            survival_time_min=300, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.5,
             special_mechanics=["Livres animés", "Connaissance mortelle"]
         ),
@@ -977,7 +977,7 @@ class EventsService:
                 "Accident de trapèze, écrasement",
                 "Couteau de lanceur qui trouve sa cible"
             ],
-            survival_time_min=240, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.6,
             special_mechanics=["Numéros de cirque", "Performance mortelle"]
         ),
@@ -992,7 +992,7 @@ class EventsService:
                 "Attaque par patient fou",
                 "Overdose de médicaments psychiatriques"
             ],
-            survival_time_min=600, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.5,
             special_mechanics=["Santé mentale", "Folie progressive"]
         ),
@@ -1007,7 +1007,7 @@ class EventsService:
                 "Radiation cosmique mortelle",
                 "Explosion de réacteur nucléaire"
             ],
-            survival_time_min=300, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.6,
             special_mechanics=["Technologie spatiale", "Réparations complexes"]
         ),
@@ -1022,7 +1022,7 @@ class EventsService:
                 "Étranglé par fantôme vengeur",
                 "Enterré vivant dans tombe"
             ],
-            survival_time_min=240, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.5,
             special_mechanics=["Morts-vivants", "Horreur surnaturelle"]
         ),
@@ -1052,7 +1052,7 @@ class EventsService:
                 "Découpé par manège détraqué",
                 "Électrocuté dans auto-tamponneuses"
             ],
-            survival_time_min=300, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.5,
             special_mechanics=["Attractions mortelles", "Parc abandonné"]
         ),
@@ -1067,7 +1067,7 @@ class EventsService:
                 "Empoisonné par fuite de combustible",
                 "Explosion de torpille, démembrement"
             ],
-            survival_time_min=240, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.45,
             special_mechanics=["Milieu sous-marin", "Réparations techniques"]
         ),
@@ -1082,7 +1082,7 @@ class EventsService:
                 "Enseveli par tempête de sable",
                 "Empoisonné par morsure de scorpion"
             ],
-            survival_time_min=600, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.6,
             special_mechanics=["Environnement désertique", "Créatures hostiles"]
         ),
@@ -1097,7 +1097,7 @@ class EventsService:
                 "Explosion de puits de pétrole",
                 "Requin qui dévore pendant évasion"
             ],
-            survival_time_min=420, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.6,
             special_mechanics=["Milieu maritime", "Évasion de prison"]
         ),
@@ -1112,7 +1112,7 @@ class EventsService:
                 "Dévoré par plante carnivore mutante",
                 "Transformation mortelle en monstre"
             ],
-            survival_time_min=300, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.48,
             special_mechanics=["Mutations génétiques", "Créatures expérimentales"]
         ),
@@ -1127,7 +1127,7 @@ class EventsService:
                 "Hypothermie en haute altitude",
                 "Écrasé par bloc de glace"
             ],
-            survival_time_min=240, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.5,
             special_mechanics=["Haute altitude", "Conditions extrêmes"]
         ),
@@ -1142,7 +1142,7 @@ class EventsService:
                 "Découpé par laser de robot",
                 "Électrocuté par robot défaillant"
             ],
-            survival_time_min=300, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.6,
             special_mechanics=["Programmation robotique", "IA hostile"]
         ),
@@ -1172,7 +1172,7 @@ class EventsService:
                 "Radiation mortelle du Soleil",
                 "Impact au sol, vaporisation"
             ],
-            survival_time_min=240, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.6,
             special_mechanics=["Technologie spatiale", "Apesanteur"]
         ),
@@ -1187,7 +1187,7 @@ class EventsService:
                 "Mordu par serpent venimeux",
                 "Noyé dans rivière aux piranhas"
             ],
-            survival_time_min=720, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.6,
             special_mechanics=["Survie en jungle", "Prédateurs naturels"]
         ),
@@ -1202,7 +1202,7 @@ class EventsService:
                 "Écrasé par pierre de catapulte",
                 "Empalé sur pieux de défense"
             ],
-            survival_time_min=600, survival_time_max=300,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.48,
             special_mechanics=["Siège médiéval", "Guerre de château"]
         ),
