@@ -506,7 +506,7 @@ class EventsService:
                 "Trampoline piégé, explosion au contact",
                 "Collision avec autre concurrent, chute mortelle"
             ],
-            survival_time_min=180, survival_time_max=360,
+            survival_time_min=120, survival_time_max=300,
             elimination_rate=0.4,
             special_mechanics=["Trampolines", "Pièges intégrés"]
         ),
