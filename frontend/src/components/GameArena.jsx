@@ -168,13 +168,40 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
           
           const updateData = await updateResponse.json();
           
+          // Mettre à jour l'état de pause
+          setIsPaused(updateData.is_paused || false);
+          
           // Mettre à jour la progression
           setEventProgress(updateData.progress);
           setElapsedTime(updateData.elapsed_time);
           
-          // Ajouter les nouvelles morts au feed
+          // Ajouter les nouvelles morts au feed et mettre à jour les compteurs en temps réel
           if (updateData.deaths && updateData.deaths.length > 0) {
-            setRealtimeDeaths(prev => [...prev, ...updateData.deaths]);
+            setRealtimeDeaths(prev => {
+              const newDeaths = [...prev, ...updateData.deaths];
+              
+              // Mettre à jour le jeu en temps réel avec les nouvelles éliminations
+              setCurrentGame(prevGame => {
+                const updatedPlayers = prevGame.players.map(player => {
+                  // Vérifier si ce joueur est dans les nouvelles morts
+                  const isDead = updateData.deaths.some(death => 
+                    death.player_name === player.name && death.player_number === player.number
+                  );
+                  
+                  if (isDead && player.alive) {
+                    return { ...player, alive: false };
+                  }
+                  return player;
+                });
+                
+                return {
+                  ...prevGame,
+                  players: updatedPlayers
+                };
+              });
+              
+              return newDeaths;
+            });
           }
           
           // Vérifier si l'événement est terminé
