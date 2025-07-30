@@ -680,6 +680,53 @@ async def create_game_groups(game_id: str, request: dict):
         "message": f"{len(groups)} groupes créés avec succès"
     }
 
+@router.post("/{game_id}/groups/apply-preconfigured")
+async def apply_preconfigured_groups_to_game(game_id: str):
+    """Applique les groupes pré-configurés à une partie"""
+    if game_id not in games_db:
+        raise HTTPException(status_code=404, detail="Partie non trouvée")
+    
+    game = games_db[game_id]
+    
+    if not preconfigured_groups_db:
+        raise HTTPException(status_code=400, detail="Aucun groupe pré-configuré disponible")
+    
+    applied_groups = []
+    
+    for group in preconfigured_groups_db.values():
+        # Vérifier que tous les joueurs du groupe existent dans la partie
+        valid_member_ids = []
+        for member_id in group.member_ids:
+            # Trouver le joueur par ID dans la partie
+            player_found = False
+            for player in game.players:
+                if player.id == member_id:
+                    valid_member_ids.append(member_id)
+                    player.group_id = f"{game_id}_{group.id}"
+                    player_found = True
+                    break
+            
+            if not player_found:
+                print(f"Attention: Joueur {member_id} du groupe {group.name} non trouvé dans la partie")
+        
+        # Créer le groupe pour cette partie seulement si on a des membres valides
+        if valid_member_ids:
+            game_group = PlayerGroup(
+                id=f"{game_id}_{group.id}",
+                name=group.name,
+                member_ids=valid_member_ids,
+                allow_betrayals=group.allow_betrayals
+            )
+            
+            applied_groups.append(game_group)
+            groups_db[game_group.id] = game_group
+    
+    return {
+        "game_id": game_id,
+        "applied_groups": applied_groups,
+        "message": f"{len(applied_groups)} groupes pré-configurés appliqués à la partie"
+    }
+
 @router.get("/{game_id}/groups")
 async def get_game_groups(game_id: str):
     """Récupère les groupes d'une partie"""
