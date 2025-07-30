@@ -933,9 +933,9 @@
 
 ## test_plan:
   current_focus:
-    - "Durées des épreuves limitées à 5 minutes"
-    - "Limite de vitesse x20 en simulation temps réel"
-    - "Vérification système général après modifications"
+    - "Argent de base à 1 million"
+    - "Système général toujours fonctionnel"
+    - "Cohérence du système économique"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
