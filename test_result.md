@@ -788,11 +788,13 @@
 
 ## test_plan:
   current_focus:
-    - "Correction logique de création de partie"
-    - "Suppression modes hardcore et custom"
-    - "Correction limite génération joueurs"
+    - "Route de simulation en temps réel"
+    - "Route de mises à jour temps réel"
+    - "Route de changement de vitesse"
+    - "Route d'arrêt de simulation"
+    - "Messages de mort en temps réel"
   stuck_tasks:
-    - "Intégration MongoDB"
+    - "Route de changement de vitesse"
   test_all: false
   test_priority: "high_first"
 
