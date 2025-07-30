@@ -392,12 +392,8 @@ async def simulate_event_realtime(game_id: str, request: RealtimeSimulationReque
             "message": f"{eliminated_player['name']} ({eliminated_player['number']}) est mort"
         }
         
-        # Vérifier s'il y a un tueur pour ce joueur
-        for survivor in final_result.survivors:
-            survivor_player = survivor["player"]
-            if eliminated_player["player"].id in survivor_player.killed_players:
-                death_info["message"] = f"{eliminated_player['name']} ({eliminated_player['number']}) a été tué par {survivor_player.name} ({survivor_player.number})"
-                break
+        # Note: On cache maintenant qui a tué qui pour garder le suspense
+        # Le message reste simple : "X est mort" au lieu de "X a été tué par Y"
         
         deaths_timeline.append(death_info)
     
