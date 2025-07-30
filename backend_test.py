@@ -1213,6 +1213,217 @@ class BackendTester:
         except Exception as e:
             self.log_result("Agilité Field Correction", False, f"Error during test: {str(e)}")
 
+    def test_randomness_improvements_in_event_simulation(self):
+        """Test REVIEW REQUEST FRANÇAIS: Tester l'amélioration de l'aléatoire dans la simulation d'événements"""
+        try:
+            print("\n🎯 TESTING RANDOMNESS IMPROVEMENTS IN EVENT SIMULATION - REVIEW REQUEST FRANÇAIS")
+            print("=" * 80)
+            print("Testing the enhanced randomness to prevent consecutive number patterns in eliminations")
+            
+            # Test avec 50-100 joueurs comme demandé dans la review request
+            player_counts = [50, 75, 100]
+            all_test_results = []
+            
+            for player_count in player_counts:
+                print(f"\n   Testing with {player_count} players...")
+                
+                # Créer une partie avec suffisamment de joueurs
+                game_request = {
+                    "player_count": player_count,
+                    "game_mode": "standard",
+                    "selected_events": [1, 2, 3, 4, 5],  # 5 événements pour plus de données
+                    "manual_players": []
+                }
+                
+                response = requests.post(f"{API_BASE}/games/create", 
+                                       json=game_request, 
+                                       headers={"Content-Type": "application/json"},
+                                       timeout=20)
+                
+                if response.status_code != 200:
+                    self.log_result("Randomness Improvements", False, 
+                                  f"Could not create test game with {player_count} players - HTTP {response.status_code}")
+                    continue
+                    
+                game_data = response.json()
+                game_id = game_data.get('id')
+                
+                if not game_id:
+                    self.log_result("Randomness Improvements", False, 
+                                  f"No game ID returned for {player_count} players test")
+                    continue
+                
+                # Simuler plusieurs événements (3-5 comme demandé)
+                elimination_patterns = []
+                consecutive_sequences = []
+                
+                for event_num in range(1, 6):  # 5 événements maximum
+                    response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=15)
+                    
+                    if response.status_code != 200:
+                        print(f"   Event {event_num} simulation failed - HTTP {response.status_code}")
+                        break
+                    
+                    data = response.json()
+                    result = data.get('result', {})
+                    game = data.get('game', {})
+                    
+                    eliminated = result.get('eliminated', [])
+                    survivors = result.get('survivors', [])
+                    
+                    if eliminated:
+                        # Analyser les numéros des éliminés
+                        eliminated_numbers = []
+                        for elim in eliminated:
+                            number_str = elim.get('number', '000')
+                            try:
+                                number_int = int(number_str)
+                                eliminated_numbers.append(number_int)
+                            except ValueError:
+                                continue
+                        
+                        eliminated_numbers.sort()
+                        elimination_patterns.append({
+                            'event': event_num,
+                            'eliminated_count': len(eliminated_numbers),
+                            'eliminated_numbers': eliminated_numbers,
+                            'survivors_count': len(survivors)
+                        })
+                        
+                        # Détecter les séquences consécutives
+                        consecutive_count = 0
+                        max_consecutive = 0
+                        current_consecutive = 1
+                        
+                        for i in range(1, len(eliminated_numbers)):
+                            if eliminated_numbers[i] == eliminated_numbers[i-1] + 1:
+                                current_consecutive += 1
+                            else:
+                                if current_consecutive > max_consecutive:
+                                    max_consecutive = current_consecutive
+                                current_consecutive = 1
+                        
+                        if current_consecutive > max_consecutive:
+                            max_consecutive = current_consecutive
+                        
+                        consecutive_sequences.append({
+                            'event': event_num,
+                            'max_consecutive': max_consecutive,
+                            'eliminated_numbers': eliminated_numbers
+                        })
+                        
+                        print(f"   Event {event_num}: {len(eliminated_numbers)} eliminated, max consecutive: {max_consecutive}")
+                    
+                    # Arrêter si le jeu est terminé
+                    if game.get('completed', False):
+                        print(f"   Game completed after event {event_num}")
+                        break
+                
+                # Analyser les résultats pour ce nombre de joueurs
+                if elimination_patterns:
+                    total_eliminations = sum(p['eliminated_count'] for p in elimination_patterns)
+                    total_events_simulated = len(elimination_patterns)
+                    avg_eliminations_per_event = total_eliminations / total_events_simulated if total_events_simulated > 0 else 0
+                    
+                    # Calculer les statistiques de consécutivité
+                    max_consecutive_overall = max(seq['max_consecutive'] for seq in consecutive_sequences) if consecutive_sequences else 0
+                    avg_consecutive = sum(seq['max_consecutive'] for seq in consecutive_sequences) / len(consecutive_sequences) if consecutive_sequences else 0
+                    
+                    # Analyser la dispersion des éliminations
+                    all_eliminated_numbers = []
+                    for pattern in elimination_patterns:
+                        all_eliminated_numbers.extend(pattern['eliminated_numbers'])
+                    
+                    if all_eliminated_numbers:
+                        # Calculer l'écart-type pour mesurer la dispersion
+                        import statistics
+                        std_dev = statistics.stdev(all_eliminated_numbers) if len(all_eliminated_numbers) > 1 else 0
+                        mean_eliminated = statistics.mean(all_eliminated_numbers)
+                        
+                        # Calculer le coefficient de variation (dispersion relative)
+                        cv = (std_dev / mean_eliminated) * 100 if mean_eliminated > 0 else 0
+                        
+                        test_result = {
+                            'player_count': player_count,
+                            'total_eliminations': total_eliminations,
+                            'events_simulated': total_events_simulated,
+                            'avg_eliminations_per_event': avg_eliminations_per_event,
+                            'max_consecutive_overall': max_consecutive_overall,
+                            'avg_consecutive': avg_consecutive,
+                            'std_dev': std_dev,
+                            'coefficient_variation': cv,
+                            'elimination_patterns': elimination_patterns,
+                            'consecutive_sequences': consecutive_sequences
+                        }
+                        
+                        all_test_results.append(test_result)
+                        
+                        print(f"   Results for {player_count} players:")
+                        print(f"   - Total eliminations: {total_eliminations}")
+                        print(f"   - Max consecutive sequence: {max_consecutive_overall}")
+                        print(f"   - Average consecutive: {avg_consecutive:.1f}")
+                        print(f"   - Standard deviation: {std_dev:.1f}")
+                        print(f"   - Coefficient of variation: {cv:.1f}%")
+            
+            # Évaluer les résultats globaux
+            if not all_test_results:
+                self.log_result("Randomness Improvements", False, 
+                              "No test results obtained - could not create or simulate games")
+                return
+            
+            # Critères de succès pour la randomness améliorée
+            success_criteria = {
+                'max_consecutive_threshold': 5,  # Maximum 5 numéros consécutifs acceptables
+                'avg_consecutive_threshold': 3.0,  # Moyenne des séquences consécutives < 3
+                'min_coefficient_variation': 15.0,  # Coefficient de variation > 15% pour bonne dispersion
+            }
+            
+            success = True
+            issues = []
+            
+            for result in all_test_results:
+                player_count = result['player_count']
+                max_consecutive = result['max_consecutive_overall']
+                avg_consecutive = result['avg_consecutive']
+                cv = result['coefficient_variation']
+                
+                # Vérifier les critères
+                if max_consecutive > success_criteria['max_consecutive_threshold']:
+                    success = False
+                    issues.append(f"Player count {player_count}: Max consecutive sequence too high ({max_consecutive} > {success_criteria['max_consecutive_threshold']})")
+                
+                if avg_consecutive > success_criteria['avg_consecutive_threshold']:
+                    success = False
+                    issues.append(f"Player count {player_count}: Average consecutive too high ({avg_consecutive:.1f} > {success_criteria['avg_consecutive_threshold']})")
+                
+                if cv < success_criteria['min_coefficient_variation']:
+                    issues.append(f"Player count {player_count}: Low dispersion (CV: {cv:.1f}% < {success_criteria['min_coefficient_variation']}%)")
+            
+            if success and len(issues) <= 1:  # Permettre 1 issue mineure
+                # Calculer les statistiques globales
+                total_eliminations = sum(r['total_eliminations'] for r in all_test_results)
+                avg_max_consecutive = sum(r['max_consecutive_overall'] for r in all_test_results) / len(all_test_results)
+                avg_cv = sum(r['coefficient_variation'] for r in all_test_results) / len(all_test_results)
+                
+                self.log_result("Randomness Improvements", True, 
+                              f"✅ AMÉLIORATION DE L'ALÉATOIRE VALIDÉE! Tests effectués avec {len(all_test_results)} configurations de joueurs. "
+                              f"Total éliminations analysées: {total_eliminations}. "
+                              f"Séquences consécutives moyennes: {avg_max_consecutive:.1f} (seuil: {success_criteria['max_consecutive_threshold']}). "
+                              f"Dispersion moyenne: {avg_cv:.1f}% (seuil: {success_criteria['min_coefficient_variation']}%). "
+                              f"Les numéros des morts ne suivent plus de pattern prévisible - problème résolu!")
+                
+                # Log des détails pour chaque configuration
+                for result in all_test_results:
+                    print(f"   📊 {result['player_count']} joueurs: {result['total_eliminations']} éliminations, "
+                          f"max consécutif: {result['max_consecutive_overall']}, dispersion: {result['coefficient_variation']:.1f}%")
+                    
+            else:
+                self.log_result("Randomness Improvements", False, 
+                              f"❌ PROBLÈMES DE RANDOMNESS DÉTECTÉS: {len(issues)} critères non respectés", issues[:3])
+                
+        except Exception as e:
+            self.log_result("Randomness Improvements", False, f"Error during randomness test: {str(e)}")
+
     def test_eliminated_players_tracking(self):
         """Test REVIEW REQUEST 2: Vérifier le nouveau système de suivi des éliminations"""
         try:
