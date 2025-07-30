@@ -5201,6 +5201,504 @@ class BackendTester:
         except Exception as e:
             self.log_result("Real-time Simulation Edge Cases", False, f"Error during test: {str(e)}")
 
+    def test_speed_change_correction(self):
+        """Test REVIEW REQUEST 1: Changement de vitesse corrigé - plus d'erreur 500"""
+        try:
+            print("\n🎯 TESTING SPEED CHANGE CORRECTION - REVIEW REQUEST FRANÇAIS")
+            print("=" * 80)
+            print("Testing that speed changes no longer return 500 errors")
+            
+            # Create a game for testing
+            game_request = {
+                "player_count": 30,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Speed Change Correction", False, f"Could not create test game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            if not game_id:
+                self.log_result("Speed Change Correction", False, "No game ID returned from creation")
+                return
+            
+            # Start real-time simulation with speed x1.0
+            simulation_request = {"speed_multiplier": 1.0}
+            response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event-realtime", 
+                                   json=simulation_request,
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Speed Change Correction", False, f"Could not start simulation - HTTP {response.status_code}")
+                return
+            
+            print("   ✅ Real-time simulation started with speed x1.0")
+            
+            # Test speed changes: x2.0, x5.0, x10.0
+            speed_tests = [2.0, 5.0, 10.0]
+            speed_change_results = []
+            
+            for new_speed in speed_tests:
+                speed_request = {"speed_multiplier": new_speed}
+                response = requests.post(f"{API_BASE}/games/{game_id}/update-simulation-speed", 
+                                       json=speed_request,
+                                       headers={"Content-Type": "application/json"},
+                                       timeout=10)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    speed_change_results.append(f"x{new_speed}: ✅ SUCCESS - {data.get('message', 'Speed updated')}")
+                    print(f"   ✅ Speed change to x{new_speed}: SUCCESS")
+                elif response.status_code == 500:
+                    speed_change_results.append(f"x{new_speed}: ❌ ERROR 500 - {response.text[:100]}")
+                    print(f"   ❌ Speed change to x{new_speed}: ERROR 500 (BUG NOT FIXED)")
+                else:
+                    speed_change_results.append(f"x{new_speed}: ⚠️ HTTP {response.status_code} - {response.text[:100]}")
+                    print(f"   ⚠️ Speed change to x{new_speed}: HTTP {response.status_code}")
+            
+            # Stop simulation to clean up
+            requests.delete(f"{API_BASE}/games/{game_id}/stop-simulation", timeout=5)
+            
+            # Evaluate results
+            error_500_count = len([r for r in speed_change_results if "ERROR 500" in r])
+            success_count = len([r for r in speed_change_results if "SUCCESS" in r])
+            
+            if error_500_count == 0 and success_count == len(speed_tests):
+                self.log_result("Speed Change Correction", True, 
+                              f"✅ CORRECTION VALIDÉE: All speed changes successful (x2.0, x5.0, x10.0) - No more 500 errors!")
+            elif error_500_count > 0:
+                self.log_result("Speed Change Correction", False, 
+                              f"❌ BUG NOT FIXED: {error_500_count}/{len(speed_tests)} speed changes still return 500 errors", 
+                              speed_change_results)
+            else:
+                self.log_result("Speed Change Correction", False, 
+                              f"⚠️ PARTIAL SUCCESS: {success_count}/{len(speed_tests)} speed changes successful", 
+                              speed_change_results)
+                
+        except Exception as e:
+            self.log_result("Speed Change Correction", False, f"Error during test: {str(e)}")
+
+    def test_simplified_death_messages(self):
+        """Test REVIEW REQUEST 2: Messages de mort simplifiés - plus de 'X a été tué par Y'"""
+        try:
+            print("\n🎯 TESTING SIMPLIFIED DEATH MESSAGES - REVIEW REQUEST FRANÇAIS")
+            print("=" * 80)
+            print("Testing that death messages are simplified to 'X (numéro) est mort' format only")
+            
+            # Create a game for testing
+            game_request = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Simplified Death Messages", False, f"Could not create test game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            if not game_id:
+                self.log_result("Simplified Death Messages", False, "No game ID returned from creation")
+                return
+            
+            # Start real-time simulation
+            simulation_request = {"speed_multiplier": 10.0}  # Fast speed for quick testing
+            response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event-realtime", 
+                                   json=simulation_request,
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Simplified Death Messages", False, f"Could not start simulation - HTTP {response.status_code}")
+                return
+            
+            print("   ✅ Real-time simulation started")
+            
+            # Collect death messages over time
+            all_death_messages = []
+            max_checks = 20
+            check_count = 0
+            
+            import time
+            while check_count < max_checks:
+                check_count += 1
+                
+                # Get real-time updates
+                response = requests.get(f"{API_BASE}/games/{game_id}/realtime-updates", timeout=5)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    deaths = data.get('deaths', [])
+                    is_complete = data.get('is_complete', False)
+                    
+                    # Collect new death messages
+                    for death in deaths:
+                        message = death.get('message', '')
+                        if message and message not in [d['message'] for d in all_death_messages]:
+                            all_death_messages.append(death)
+                            print(f"   📝 Death message: {message}")
+                    
+                    if is_complete:
+                        print("   ✅ Simulation completed")
+                        break
+                else:
+                    print(f"   ⚠️ Could not get updates: HTTP {response.status_code}")
+                
+                time.sleep(0.5)  # Wait before next check
+            
+            # Analyze death messages
+            if not all_death_messages:
+                self.log_result("Simplified Death Messages", False, "No death messages received during simulation")
+                return
+            
+            # Check message formats
+            simplified_messages = []
+            complex_messages = []
+            
+            for death in all_death_messages:
+                message = death.get('message', '')
+                
+                # Check if message contains "a été tué par" (complex format)
+                if "a été tué par" in message or "tué par" in message:
+                    complex_messages.append(message)
+                # Check if message is in simple format "X (number) est mort"
+                elif "est mort" in message and "(" in message and ")" in message:
+                    simplified_messages.append(message)
+                else:
+                    # Unknown format
+                    complex_messages.append(f"UNKNOWN FORMAT: {message}")
+            
+            print(f"   📊 Analysis: {len(simplified_messages)} simplified, {len(complex_messages)} complex messages")
+            
+            if len(complex_messages) == 0 and len(simplified_messages) > 0:
+                self.log_result("Simplified Death Messages", True, 
+                              f"✅ CORRECTION VALIDÉE: All {len(simplified_messages)} death messages use simplified format 'X (numéro) est mort' - No more 'X a été tué par Y'!")
+            elif len(complex_messages) > 0:
+                self.log_result("Simplified Death Messages", False, 
+                              f"❌ BUG NOT FIXED: {len(complex_messages)} messages still use complex format 'X a été tué par Y'", 
+                              complex_messages[:3])
+            else:
+                self.log_result("Simplified Death Messages", False, "No death messages to analyze")
+                
+        except Exception as e:
+            self.log_result("Simplified Death Messages", False, f"Error during test: {str(e)}")
+
+    def test_pause_resume_routes(self):
+        """Test REVIEW REQUEST 3: Nouvelles routes pause/resume"""
+        try:
+            print("\n🎯 TESTING PAUSE/RESUME ROUTES - REVIEW REQUEST FRANÇAIS")
+            print("=" * 80)
+            print("Testing new pause and resume simulation routes")
+            
+            # Create a game for testing
+            game_request = {
+                "player_count": 25,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Pause/Resume Routes", False, f"Could not create test game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            if not game_id:
+                self.log_result("Pause/Resume Routes", False, "No game ID returned from creation")
+                return
+            
+            # Test 1: Try to pause when no simulation is running (should return 404)
+            response = requests.post(f"{API_BASE}/games/{game_id}/pause-simulation", timeout=5)
+            
+            if response.status_code == 404:
+                print("   ✅ Pause without simulation: 404 (correct)")
+                pause_no_sim_ok = True
+            else:
+                print(f"   ❌ Pause without simulation: HTTP {response.status_code} (expected 404)")
+                pause_no_sim_ok = False
+            
+            # Test 2: Start real-time simulation
+            simulation_request = {"speed_multiplier": 2.0}
+            response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event-realtime", 
+                                   json=simulation_request,
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Pause/Resume Routes", False, f"Could not start simulation - HTTP {response.status_code}")
+                return
+            
+            print("   ✅ Real-time simulation started")
+            
+            # Test 3: Pause the running simulation
+            response = requests.post(f"{API_BASE}/games/{game_id}/pause-simulation", timeout=5)
+            
+            if response.status_code == 200:
+                data = response.json()
+                print(f"   ✅ Pause simulation: SUCCESS - {data.get('message', 'Paused')}")
+                pause_ok = True
+            else:
+                print(f"   ❌ Pause simulation: HTTP {response.status_code}")
+                pause_ok = False
+            
+            # Test 4: Try to pause again (should return 400 - already paused)
+            response = requests.post(f"{API_BASE}/games/{game_id}/pause-simulation", timeout=5)
+            
+            if response.status_code == 400:
+                print("   ✅ Pause already paused: 400 (correct)")
+                pause_already_paused_ok = True
+            else:
+                print(f"   ❌ Pause already paused: HTTP {response.status_code} (expected 400)")
+                pause_already_paused_ok = False
+            
+            # Test 5: Resume the paused simulation
+            response = requests.post(f"{API_BASE}/games/{game_id}/resume-simulation", timeout=5)
+            
+            if response.status_code == 200:
+                data = response.json()
+                print(f"   ✅ Resume simulation: SUCCESS - {data.get('message', 'Resumed')}")
+                resume_ok = True
+            else:
+                print(f"   ❌ Resume simulation: HTTP {response.status_code}")
+                resume_ok = False
+            
+            # Test 6: Try to resume when not paused (should return 400)
+            response = requests.post(f"{API_BASE}/games/{game_id}/resume-simulation", timeout=5)
+            
+            if response.status_code == 400:
+                print("   ✅ Resume not paused: 400 (correct)")
+                resume_not_paused_ok = True
+            else:
+                print(f"   ❌ Resume not paused: HTTP {response.status_code} (expected 400)")
+                resume_not_paused_ok = False
+            
+            # Clean up - stop simulation
+            requests.delete(f"{API_BASE}/games/{game_id}/stop-simulation", timeout=5)
+            
+            # Test 7: Try to resume when no simulation exists (should return 404)
+            response = requests.post(f"{API_BASE}/games/{game_id}/resume-simulation", timeout=5)
+            
+            if response.status_code == 404:
+                print("   ✅ Resume without simulation: 404 (correct)")
+                resume_no_sim_ok = True
+            else:
+                print(f"   ❌ Resume without simulation: HTTP {response.status_code} (expected 404)")
+                resume_no_sim_ok = False
+            
+            # Evaluate results
+            all_tests = [
+                pause_no_sim_ok, pause_ok, pause_already_paused_ok,
+                resume_ok, resume_not_paused_ok, resume_no_sim_ok
+            ]
+            
+            passed_tests = sum(all_tests)
+            total_tests = len(all_tests)
+            
+            if passed_tests == total_tests:
+                self.log_result("Pause/Resume Routes", True, 
+                              f"✅ NOUVELLES ROUTES VALIDÉES: All {total_tests} pause/resume tests passed with correct error codes")
+            else:
+                self.log_result("Pause/Resume Routes", False, 
+                              f"❌ ROUTES ISSUES: {passed_tests}/{total_tests} tests passed - Some error codes incorrect")
+                
+        except Exception as e:
+            self.log_result("Pause/Resume Routes", False, f"Error during test: {str(e)}")
+
+    def test_pause_state_in_realtime_updates(self):
+        """Test REVIEW REQUEST 4: État de pause dans realtime-updates"""
+        try:
+            print("\n🎯 TESTING PAUSE STATE IN REALTIME UPDATES - REVIEW REQUEST FRANÇAIS")
+            print("=" * 80)
+            print("Testing that realtime-updates correctly shows pause state and stops progression")
+            
+            # Create a game for testing
+            game_request = {
+                "player_count": 30,
+                "game_mode": "standard",
+                "selected_events": [1, 2],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Pause State in Realtime Updates", False, f"Could not create test game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            if not game_id:
+                self.log_result("Pause State in Realtime Updates", False, "No game ID returned from creation")
+                return
+            
+            # Start real-time simulation with slow speed for better testing
+            simulation_request = {"speed_multiplier": 1.0}
+            response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event-realtime", 
+                                   json=simulation_request,
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Pause State in Realtime Updates", False, f"Could not start simulation - HTTP {response.status_code}")
+                return
+            
+            print("   ✅ Real-time simulation started")
+            
+            import time
+            
+            # Test 1: Check initial state (not paused)
+            time.sleep(1)  # Let simulation run a bit
+            response = requests.get(f"{API_BASE}/games/{game_id}/realtime-updates", timeout=5)
+            
+            if response.status_code == 200:
+                data = response.json()
+                initial_is_paused = data.get('is_paused', None)
+                initial_progress = data.get('progress', 0)
+                initial_deaths_count = len(data.get('deaths', []))
+                
+                print(f"   📊 Initial state: is_paused={initial_is_paused}, progress={initial_progress:.1f}%, deaths={initial_deaths_count}")
+                
+                if initial_is_paused == False:
+                    print("   ✅ Initial state: is_paused=false (correct)")
+                    initial_state_ok = True
+                else:
+                    print(f"   ❌ Initial state: is_paused={initial_is_paused} (expected false)")
+                    initial_state_ok = False
+            else:
+                print(f"   ❌ Could not get initial updates: HTTP {response.status_code}")
+                initial_state_ok = False
+            
+            # Test 2: Pause the simulation
+            response = requests.post(f"{API_BASE}/games/{game_id}/pause-simulation", timeout=5)
+            
+            if response.status_code != 200:
+                self.log_result("Pause State in Realtime Updates", False, f"Could not pause simulation - HTTP {response.status_code}")
+                return
+            
+            print("   ✅ Simulation paused")
+            
+            # Test 3: Check paused state
+            response = requests.get(f"{API_BASE}/games/{game_id}/realtime-updates", timeout=5)
+            
+            if response.status_code == 200:
+                data = response.json()
+                paused_is_paused = data.get('is_paused', None)
+                paused_progress = data.get('progress', 0)
+                paused_deaths_count = len(data.get('deaths', []))
+                
+                print(f"   📊 Paused state: is_paused={paused_is_paused}, progress={paused_progress:.1f}%, deaths={paused_deaths_count}")
+                
+                if paused_is_paused == True:
+                    print("   ✅ Paused state: is_paused=true (correct)")
+                    paused_state_ok = True
+                else:
+                    print(f"   ❌ Paused state: is_paused={paused_is_paused} (expected true)")
+                    paused_state_ok = False
+            else:
+                print(f"   ❌ Could not get paused updates: HTTP {response.status_code}")
+                paused_state_ok = False
+            
+            # Test 4: Wait and verify progression stops when paused
+            time.sleep(2)  # Wait 2 seconds
+            response = requests.get(f"{API_BASE}/games/{game_id}/realtime-updates", timeout=5)
+            
+            if response.status_code == 200:
+                data = response.json()
+                after_wait_progress = data.get('progress', 0)
+                after_wait_deaths_count = len(data.get('deaths', []))
+                
+                print(f"   📊 After wait: progress={after_wait_progress:.1f}%, deaths={after_wait_deaths_count}")
+                
+                # Progress should not have changed significantly while paused
+                progress_diff = abs(after_wait_progress - paused_progress)
+                deaths_diff = after_wait_deaths_count - paused_deaths_count
+                
+                if progress_diff < 1.0 and deaths_diff == 0:
+                    print("   ✅ Progression stopped: progress and deaths unchanged while paused")
+                    progression_stopped_ok = True
+                else:
+                    print(f"   ❌ Progression continued: progress changed by {progress_diff:.1f}%, deaths by {deaths_diff}")
+                    progression_stopped_ok = False
+            else:
+                progression_stopped_ok = False
+            
+            # Test 5: Resume and verify progression continues
+            response = requests.post(f"{API_BASE}/games/{game_id}/resume-simulation", timeout=5)
+            
+            if response.status_code != 200:
+                print(f"   ⚠️ Could not resume simulation: HTTP {response.status_code}")
+                resume_progression_ok = False
+            else:
+                print("   ✅ Simulation resumed")
+                
+                # Wait a bit and check if progression continues
+                time.sleep(1)
+                response = requests.get(f"{API_BASE}/games/{game_id}/realtime-updates", timeout=5)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    resumed_is_paused = data.get('is_paused', None)
+                    resumed_progress = data.get('progress', 0)
+                    
+                    print(f"   📊 Resumed state: is_paused={resumed_is_paused}, progress={resumed_progress:.1f}%")
+                    
+                    if resumed_is_paused == False:
+                        print("   ✅ Resumed state: is_paused=false (correct)")
+                        resume_progression_ok = True
+                    else:
+                        print(f"   ❌ Resumed state: is_paused={resumed_is_paused} (expected false)")
+                        resume_progression_ok = False
+                else:
+                    resume_progression_ok = False
+            
+            # Clean up
+            requests.delete(f"{API_BASE}/games/{game_id}/stop-simulation", timeout=5)
+            
+            # Evaluate results
+            all_tests = [initial_state_ok, paused_state_ok, progression_stopped_ok, resume_progression_ok]
+            passed_tests = sum(all_tests)
+            total_tests = len(all_tests)
+            
+            if passed_tests == total_tests:
+                self.log_result("Pause State in Realtime Updates", True, 
+                              f"✅ PAUSE STATE VALIDÉ: All {total_tests} pause state tests passed - is_paused field works correctly, progression stops when paused")
+            else:
+                self.log_result("Pause State in Realtime Updates", False, 
+                              f"❌ PAUSE STATE ISSUES: {passed_tests}/{total_tests} tests passed - Some pause state functionality not working")
+                
+        except Exception as e:
+            self.log_result("Pause State in Realtime Updates", False, f"Error during test: {str(e)}")
+
     def run_all_tests(self):
         """Run all backend tests with focus on real-time simulation system"""
         print(f"🚀 STARTING BACKEND TESTS - REAL-TIME SIMULATION SYSTEM - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
