@@ -3908,6 +3908,415 @@ class BackendTester:
         except Exception as e:
             self.log_result("Group Cooperation Logic", False, f"Error during test: {str(e)}")
 
+    def test_preconfigured_groups_create(self):
+        """Test 1: POST /api/games/groups/preconfigured - Créer des groupes pré-configurés"""
+        try:
+            print("\n🎯 TESTING PRECONFIGURED GROUPS CREATION")
+            print("=" * 80)
+            
+            # Générer des joueurs pour les tests
+            response = requests.post(f"{API_BASE}/games/generate-players?count=20", timeout=10)
+            if response.status_code != 200:
+                self.log_result("Preconfigured Groups Create", False, "Could not generate test players")
+                return None
+                
+            players = response.json()
+            if len(players) < 20:
+                self.log_result("Preconfigured Groups Create", False, f"Not enough players generated: {len(players)}")
+                return None
+            
+            # Créer des groupes pré-configurés avec des noms français réalistes
+            groups_data = {
+                "groups": [
+                    {
+                        "name": "Les Survivants",
+                        "member_ids": [players[0]["id"], players[1]["id"], players[2]["id"]],
+                        "allow_betrayals": False
+                    },
+                    {
+                        "name": "Alliance Secrète",
+                        "member_ids": [players[3]["id"], players[4]["id"], players[5]["id"], players[6]["id"]],
+                        "allow_betrayals": True
+                    },
+                    {
+                        "name": "Les Stratèges",
+                        "member_ids": [players[7]["id"], players[8]["id"]],
+                        "allow_betrayals": False
+                    }
+                ]
+            }
+            
+            response = requests.post(f"{API_BASE}/games/groups/preconfigured", 
+                                   json=groups_data,
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Vérifier la structure de la réponse
+                required_fields = ['groups', 'message']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    created_groups = data['groups']
+                    message = data['message']
+                    
+                    if len(created_groups) == 3:
+                        # Vérifier chaque groupe créé
+                        group_validation_errors = []
+                        
+                        for i, group in enumerate(created_groups):
+                            expected_name = groups_data["groups"][i]["name"]
+                            expected_members = groups_data["groups"][i]["member_ids"]
+                            expected_betrayals = groups_data["groups"][i]["allow_betrayals"]
+                            
+                            if group["name"] != expected_name:
+                                group_validation_errors.append(f"Groupe {i+1}: nom incorrect - attendu '{expected_name}', reçu '{group['name']}'")
+                            
+                            if set(group["member_ids"]) != set(expected_members):
+                                group_validation_errors.append(f"Groupe {i+1}: membres incorrects")
+                            
+                            if group["allow_betrayals"] != expected_betrayals:
+                                group_validation_errors.append(f"Groupe {i+1}: allow_betrayals incorrect")
+                            
+                            if "id" not in group or not group["id"]:
+                                group_validation_errors.append(f"Groupe {i+1}: ID manquant")
+                        
+                        if not group_validation_errors:
+                            self.log_result("Preconfigured Groups Create", True, 
+                                          f"✅ 3 groupes pré-configurés créés avec succès: 'Les Survivants' (3 membres), 'Alliance Secrète' (4 membres, trahisons autorisées), 'Les Stratèges' (2 membres)")
+                            return created_groups
+                        else:
+                            self.log_result("Preconfigured Groups Create", False, 
+                                          "Erreurs de validation des groupes", group_validation_errors)
+                    else:
+                        self.log_result("Preconfigured Groups Create", False, 
+                                      f"Nombre de groupes incorrect: attendu 3, reçu {len(created_groups)}")
+                else:
+                    self.log_result("Preconfigured Groups Create", False, 
+                                  f"Réponse manque des champs: {missing_fields}")
+            else:
+                self.log_result("Preconfigured Groups Create", False, 
+                              f"HTTP {response.status_code}", response.text[:200])
+                
+        except Exception as e:
+            self.log_result("Preconfigured Groups Create", False, f"Erreur: {str(e)}")
+        
+        return None
+
+    def test_preconfigured_groups_get(self):
+        """Test 2: GET /api/games/groups/preconfigured - Récupérer les groupes pré-configurés"""
+        try:
+            print("\n🎯 TESTING PRECONFIGURED GROUPS RETRIEVAL")
+            
+            response = requests.get(f"{API_BASE}/games/groups/preconfigured", timeout=5)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "groups" in data:
+                    groups = data["groups"]
+                    
+                    if isinstance(groups, list):
+                        if len(groups) > 0:
+                            # Vérifier la structure du premier groupe
+                            first_group = groups[0]
+                            required_fields = ['id', 'name', 'member_ids', 'allow_betrayals']
+                            missing_fields = [field for field in required_fields if field not in first_group]
+                            
+                            if not missing_fields:
+                                group_names = [g["name"] for g in groups]
+                                self.log_result("Preconfigured Groups Get", True, 
+                                              f"✅ {len(groups)} groupes pré-configurés récupérés: {', '.join(group_names)}")
+                                return groups
+                            else:
+                                self.log_result("Preconfigured Groups Get", False, 
+                                              f"Structure de groupe invalide: champs manquants {missing_fields}")
+                        else:
+                            self.log_result("Preconfigured Groups Get", True, 
+                                          "✅ Aucun groupe pré-configuré (liste vide)")
+                            return []
+                    else:
+                        self.log_result("Preconfigured Groups Get", False, 
+                                      f"'groups' n'est pas une liste: {type(groups)}")
+                else:
+                    self.log_result("Preconfigured Groups Get", False, 
+                                  "Réponse manque le champ 'groups'")
+            else:
+                self.log_result("Preconfigured Groups Get", False, 
+                              f"HTTP {response.status_code}", response.text[:200])
+                
+        except Exception as e:
+            self.log_result("Preconfigured Groups Get", False, f"Erreur: {str(e)}")
+        
+        return None
+
+    def test_preconfigured_groups_update(self):
+        """Test 3: PUT /api/games/groups/preconfigured/{group_id} - Modifier un groupe pré-configuré"""
+        try:
+            print("\n🎯 TESTING PRECONFIGURED GROUPS UPDATE")
+            
+            # D'abord récupérer les groupes existants
+            groups = self.test_preconfigured_groups_get()
+            if not groups:
+                # Créer un groupe pour le test
+                created_groups = self.test_preconfigured_groups_create()
+                if not created_groups:
+                    self.log_result("Preconfigured Groups Update", False, "Aucun groupe disponible pour le test")
+                    return
+                groups = created_groups
+            
+            # Prendre le premier groupe pour le test
+            test_group = groups[0]
+            group_id = test_group["id"]
+            original_name = test_group["name"]
+            
+            # Données de mise à jour
+            update_data = {
+                "name": "Groupe Modifié - Les Champions",
+                "allow_betrayals": not test_group["allow_betrayals"]  # Inverser la valeur
+            }
+            
+            response = requests.put(f"{API_BASE}/games/groups/preconfigured/{group_id}", 
+                                  json=update_data,
+                                  headers={"Content-Type": "application/json"},
+                                  timeout=5)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "message" in data and "group" in data:
+                    updated_group = data["group"]
+                    
+                    # Vérifier que les modifications ont été appliquées
+                    if (updated_group["name"] == update_data["name"] and 
+                        updated_group["allow_betrayals"] == update_data["allow_betrayals"]):
+                        
+                        self.log_result("Preconfigured Groups Update", True, 
+                                      f"✅ Groupe mis à jour avec succès: '{original_name}' → '{update_data['name']}', trahisons: {update_data['allow_betrayals']}")
+                    else:
+                        self.log_result("Preconfigured Groups Update", False, 
+                                      "Les modifications n'ont pas été appliquées correctement")
+                else:
+                    self.log_result("Preconfigured Groups Update", False, 
+                                  "Réponse manque 'message' ou 'group'")
+            else:
+                self.log_result("Preconfigured Groups Update", False, 
+                              f"HTTP {response.status_code}", response.text[:200])
+                
+        except Exception as e:
+            self.log_result("Preconfigured Groups Update", False, f"Erreur: {str(e)}")
+
+    def test_preconfigured_groups_delete_single(self):
+        """Test 4: DELETE /api/games/groups/preconfigured/{group_id} - Supprimer un groupe pré-configuré"""
+        try:
+            print("\n🎯 TESTING PRECONFIGURED GROUPS DELETE SINGLE")
+            
+            # D'abord récupérer les groupes existants
+            groups = self.test_preconfigured_groups_get()
+            if not groups:
+                # Créer un groupe pour le test
+                created_groups = self.test_preconfigured_groups_create()
+                if not created_groups:
+                    self.log_result("Preconfigured Groups Delete Single", False, "Aucun groupe disponible pour le test")
+                    return
+                groups = created_groups
+            
+            # Prendre le dernier groupe pour le test (pour ne pas affecter les autres tests)
+            test_group = groups[-1]
+            group_id = test_group["id"]
+            group_name = test_group["name"]
+            initial_count = len(groups)
+            
+            response = requests.delete(f"{API_BASE}/games/groups/preconfigured/{group_id}", timeout=5)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "message" in data:
+                    # Vérifier que le groupe a été supprimé
+                    remaining_groups = self.test_preconfigured_groups_get()
+                    if remaining_groups is not None:
+                        if len(remaining_groups) == initial_count - 1:
+                            # Vérifier que le groupe supprimé n'est plus dans la liste
+                            remaining_ids = [g["id"] for g in remaining_groups]
+                            if group_id not in remaining_ids:
+                                self.log_result("Preconfigured Groups Delete Single", True, 
+                                              f"✅ Groupe '{group_name}' supprimé avec succès ({initial_count} → {len(remaining_groups)} groupes)")
+                            else:
+                                self.log_result("Preconfigured Groups Delete Single", False, 
+                                              "Le groupe supprimé est encore présent dans la liste")
+                        else:
+                            self.log_result("Preconfigured Groups Delete Single", False, 
+                                          f"Nombre de groupes incorrect après suppression: {len(remaining_groups)} au lieu de {initial_count - 1}")
+                    else:
+                        self.log_result("Preconfigured Groups Delete Single", False, 
+                                      "Impossible de vérifier la suppression")
+                else:
+                    self.log_result("Preconfigured Groups Delete Single", False, 
+                                  "Réponse manque le champ 'message'")
+            else:
+                self.log_result("Preconfigured Groups Delete Single", False, 
+                              f"HTTP {response.status_code}", response.text[:200])
+                
+        except Exception as e:
+            self.log_result("Preconfigured Groups Delete Single", False, f"Erreur: {str(e)}")
+
+    def test_preconfigured_groups_delete_all(self):
+        """Test 5: DELETE /api/games/groups/preconfigured - Supprimer tous les groupes pré-configurés"""
+        try:
+            print("\n🎯 TESTING PRECONFIGURED GROUPS DELETE ALL")
+            
+            # D'abord s'assurer qu'il y a des groupes à supprimer
+            groups = self.test_preconfigured_groups_get()
+            if not groups:
+                # Créer quelques groupes pour le test
+                created_groups = self.test_preconfigured_groups_create()
+                if not created_groups:
+                    self.log_result("Preconfigured Groups Delete All", False, "Impossible de créer des groupes pour le test")
+                    return
+                groups = created_groups
+            
+            initial_count = len(groups)
+            
+            response = requests.delete(f"{API_BASE}/games/groups/preconfigured", timeout=5)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "message" in data:
+                    # Vérifier que tous les groupes ont été supprimés
+                    remaining_groups = self.test_preconfigured_groups_get()
+                    if remaining_groups is not None:
+                        if len(remaining_groups) == 0:
+                            self.log_result("Preconfigured Groups Delete All", True, 
+                                          f"✅ Tous les groupes pré-configurés supprimés avec succès ({initial_count} → 0 groupes)")
+                        else:
+                            self.log_result("Preconfigured Groups Delete All", False, 
+                                          f"Suppression incomplète: {len(remaining_groups)} groupes restants")
+                    else:
+                        self.log_result("Preconfigured Groups Delete All", False, 
+                                      "Impossible de vérifier la suppression")
+                else:
+                    self.log_result("Preconfigured Groups Delete All", False, 
+                                  "Réponse manque le champ 'message'")
+            else:
+                self.log_result("Preconfigured Groups Delete All", False, 
+                              f"HTTP {response.status_code}", response.text[:200])
+                
+        except Exception as e:
+            self.log_result("Preconfigured Groups Delete All", False, f"Erreur: {str(e)}")
+
+    def test_apply_preconfigured_groups_to_game(self):
+        """Test 6: POST /api/games/{game_id}/groups/apply-preconfigured - Appliquer les groupes pré-configurés à une partie"""
+        try:
+            print("\n🎯 TESTING APPLY PRECONFIGURED GROUPS TO GAME")
+            print("=" * 80)
+            
+            # Étape 1: Créer des groupes pré-configurés
+            print("   Étape 1: Création des groupes pré-configurés...")
+            created_groups = self.test_preconfigured_groups_create()
+            if not created_groups:
+                self.log_result("Apply Preconfigured Groups", False, "Impossible de créer des groupes pré-configurés")
+                return
+            
+            # Étape 2: Créer une partie avec les mêmes joueurs
+            print("   Étape 2: Création d'une partie avec les joueurs des groupes...")
+            
+            # Récupérer tous les IDs des joueurs des groupes
+            all_player_ids = []
+            for group in created_groups:
+                all_player_ids.extend(group["member_ids"])
+            
+            # Générer des joueurs supplémentaires pour avoir une partie complète
+            response = requests.post(f"{API_BASE}/games/generate-players?count=30", timeout=10)
+            if response.status_code != 200:
+                self.log_result("Apply Preconfigured Groups", False, "Impossible de générer des joueurs pour la partie")
+                return
+            
+            all_players = response.json()
+            
+            # Créer une partie avec ces joueurs
+            game_request = {
+                "player_count": 30,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request,
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Apply Preconfigured Groups", False, f"Impossible de créer la partie - HTTP {response.status_code}")
+                return
+            
+            game_data = response.json()
+            game_id = game_data.get("id")
+            
+            if not game_id:
+                self.log_result("Apply Preconfigured Groups", False, "Aucun ID de partie retourné")
+                return
+            
+            print(f"   Partie créée avec ID: {game_id}")
+            
+            # Étape 3: Appliquer les groupes pré-configurés à la partie
+            print("   Étape 3: Application des groupes pré-configurés à la partie...")
+            
+            response = requests.post(f"{API_BASE}/games/{game_id}/groups/apply-preconfigured", timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Vérifier la structure de la réponse
+                required_fields = ['game_id', 'applied_groups', 'message']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    applied_groups = data['applied_groups']
+                    message = data['message']
+                    returned_game_id = data['game_id']
+                    
+                    if returned_game_id == game_id:
+                        if len(applied_groups) > 0:
+                            # Vérifier que les groupes appliqués ont les bonnes propriétés
+                            group_validation_errors = []
+                            
+                            for applied_group in applied_groups:
+                                # Vérifier que l'ID du groupe contient l'ID de la partie
+                                if not applied_group["id"].startswith(f"{game_id}_"):
+                                    group_validation_errors.append(f"ID de groupe incorrect: {applied_group['id']}")
+                                
+                                # Vérifier que le groupe a des membres
+                                if not applied_group["member_ids"]:
+                                    group_validation_errors.append(f"Groupe '{applied_group['name']}' sans membres")
+                            
+                            if not group_validation_errors:
+                                group_names = [g["name"] for g in applied_groups]
+                                self.log_result("Apply Preconfigured Groups", True, 
+                                              f"✅ {len(applied_groups)} groupes pré-configurés appliqués avec succès à la partie {game_id}: {', '.join(group_names)}")
+                            else:
+                                self.log_result("Apply Preconfigured Groups", False, 
+                                              "Erreurs de validation des groupes appliqués", group_validation_errors)
+                        else:
+                            self.log_result("Apply Preconfigured Groups", False, 
+                                          "Aucun groupe appliqué (peut-être que les joueurs ne correspondent pas)")
+                    else:
+                        self.log_result("Apply Preconfigured Groups", False, 
+                                      f"ID de partie incorrect dans la réponse: attendu {game_id}, reçu {returned_game_id}")
+                else:
+                    self.log_result("Apply Preconfigured Groups", False, 
+                                  f"Réponse manque des champs: {missing_fields}")
+            else:
+                self.log_result("Apply Preconfigured Groups", False, 
+                              f"HTTP {response.status_code}", response.text[:200])
+                
+        except Exception as e:
+            self.log_result("Apply Preconfigured Groups", False, f"Erreur: {str(e)}")
+
     def run_all_tests(self):
         """Exécute tous les tests backend selon la review request française"""
         print(f"🚀 STARTING BACKEND TESTS - REVIEW REQUEST FRANÇAISE - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
