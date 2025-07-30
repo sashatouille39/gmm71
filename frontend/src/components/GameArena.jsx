@@ -114,6 +114,7 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
           // Recharger le gameState depuis le backend pour synchroniser le nouveau solde
           if (onRefreshGameState) {
             await onRefreshGameState();
+            console.log('GameState rechargé après collecte des gains VIP');
           }
         } else {
           console.error('Erreur lors de la collecte des gains VIP');
