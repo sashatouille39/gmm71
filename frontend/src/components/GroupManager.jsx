@@ -7,15 +7,16 @@ import { Badge } from './ui/badge';
 import { Switch } from './ui/switch';
 import { Users, Settings, Trash2, Edit2, Shield, ShieldOff } from 'lucide-react';
 
-const GroupManager = ({ gameId, players, onGroupsCreated, onGroupsUpdated }) => {
+const GroupManager = ({ gameId = null, players, onGroupsCreated, onGroupsUpdated }) => {
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingGroup, setEditingGroup] = useState(null);
   const [editName, setEditName] = useState('');
+  const [showManualCreation, setShowManualCreation] = useState(false);
   
-  // État pour la création de groupes
+  // État pour la création de groupes automatique
   const [createForm, setCreateForm] = useState({
     num_groups: 2,
     min_members: 2,
@@ -23,12 +24,16 @@ const GroupManager = ({ gameId, players, onGroupsCreated, onGroupsUpdated }) => 
     allow_betrayals: false
   });
 
+  // État pour la création manuelle
+  const [manualGroups, setManualGroups] = useState([]);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [selectedPlayers, setSelectedPlayers] = useState({});
+  const [draggedPlayer, setDraggedPlayer] = useState(null);
+
   const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
   useEffect(() => {
-    if (gameId) {
-      fetchGroups();
-    }
+    fetchGroups();
   }, [gameId]);
 
   const fetchGroups = async () => {
