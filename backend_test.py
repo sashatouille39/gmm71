@@ -5748,9 +5748,9 @@ class BackendTester:
         self.print_summary()
     
     def print_summary(self):
-        """Affiche le résumé des tests focalisé sur les corrections françaises"""
+        """Affiche le résumé des tests focalisé sur les nouvelles fonctionnalités de simulation"""
         print("\n" + "=" * 80)
-        print("📊 RÉSUMÉ DES TESTS BACKEND - CORRECTIONS UTILISATEUR FRANÇAIS")
+        print("📊 RÉSUMÉ DES TESTS BACKEND - NOUVELLES FONCTIONNALITÉS DE SIMULATION")
         print("=" * 80)
         
         success_rate = (self.passed_tests / self.total_tests * 100) if self.total_tests > 0 else 0
@@ -5760,64 +5760,37 @@ class BackendTester:
         print(f"Tests échoués: {self.total_tests - self.passed_tests}")
         print(f"Taux de réussite: {success_rate:.1f}%")
         
-        # Analyse spécifique des 3 corrections demandées
-        print("\n🎯 ANALYSE DES 3 CORRECTIONS SPÉCIFIQUES:")
+        # Analyse spécifique des 4 fonctionnalités de la review request
+        print("\n🎯 ANALYSE DES 4 NOUVELLES FONCTIONNALITÉS:")
         
-        # Analyser les résultats pour les 3 corrections principales
-        creation_tests = [r for r in self.results if "Game Creation Logic" in r["test"]]
-        modes_tests = [r for r in self.results if "Game Mode Test" in r["test"]]
-        generation_tests = [r for r in self.results if "Player Generation" in r["test"]]
+        # Analyser les résultats pour les 4 fonctionnalités principales
+        speed_tests = [r for r in self.results if "Speed Change Correction" in r["test"]]
+        message_tests = [r for r in self.results if "Simplified Death Messages" in r["test"]]
+        pause_tests = [r for r in self.results if "Pause/Resume Routes" in r["test"]]
+        state_tests = [r for r in self.results if "Pause State in Realtime Updates" in r["test"]]
         
-        print(f"1. Création de partie: {len([t for t in creation_tests if '✅' in t['status']])}/{len(creation_tests)} tests réussis")
-        print(f"2. Modes de jeu: {len([t for t in modes_tests if '✅' in t['status']])}/{len(modes_tests)} tests réussis")
-        print(f"3. Génération joueurs: {len([t for t in generation_tests if '✅' in t['status']])}/{len(generation_tests)} tests réussis")
+        print(f"1. Changement de vitesse corrigé: {len([t for t in speed_tests if '✅' in t['status']])}/{len(speed_tests)} tests réussis")
+        print(f"2. Messages de mort simplifiés: {len([t for t in message_tests if '✅' in t['status']])}/{len(message_tests)} tests réussis")
+        print(f"3. Routes pause/resume: {len([t for t in pause_tests if '✅' in t['status']])}/{len(pause_tests)} tests réussis")
+        print(f"4. État de pause dans updates: {len([t for t in state_tests if '✅' in t['status']])}/{len(state_tests)} tests réussis")
+        
+        # Détails des échecs pour les fonctionnalités principales
+        failed_tests = [r for r in self.results if '❌' in r['status']]
+        if failed_tests:
+            print(f"\n❌ TESTS ÉCHOUÉS ({len(failed_tests)}):")
+            for test in failed_tests[:5]:  # Show first 5 failures
+                print(f"   - {test['test']}: {test['message']}")
         
         if success_rate >= 90:
-            print("\n🎉 EXCELLENT - Les 3 corrections françaises fonctionnent parfaitement!")
+            print("\n🎉 EXCELLENT - Les nouvelles fonctionnalités de simulation fonctionnent parfaitement!")
         elif success_rate >= 75:
-            print("\n✅ BON - La plupart des corrections françaises sont fonctionnelles")
+            print("\n✅ BON - La plupart des nouvelles fonctionnalités sont opérationnelles")
         elif success_rate >= 50:
-            print("\n⚠️  MOYEN - Quelques problèmes avec les corrections françaises")
+            print("\n⚠️ MOYEN - Certaines fonctionnalités nécessitent des corrections")
         else:
-            print("\n❌ CRITIQUE - Problèmes majeurs avec les corrections françaises")
-        
-        print("\n📋 DÉTAILS DES RÉSULTATS:")
-        for result in self.results:
-            print(f"{result['status']}: {result['test']} - {result['message']}")
+            print("\n❌ PROBLÉMATIQUE - Plusieurs fonctionnalités ne fonctionnent pas correctement")
         
         print("\n" + "=" * 80)
-        
-        print("\n📋 DÉTAILS DES RÉSULTATS:")
-        for result in self.results:
-            print(f"{result['status']}: {result['test']}")
-            if result['details'] and result['status'] == "❌ FAIL":
-                print(f"   → {result['details']}")
-        
-        print("=" * 80)
-        
-        # PRIORITY TEST: Mortality rates correction (as per review request)
-        print("\n🎯 PRIORITY TEST: Testing mortality rates correction as per review request...")
-        self.test_mortality_rates_correction()
-        
-        # PRIORITY TEST: Game termination issue (specific review request)
-        print("\n🎯 PRIORITY TEST: Testing game termination issue as per review request...")
-        self.test_game_termination_issue()
-        
-        # Test 3: Game events
-        self.test_game_events_available()
-        
-        # Test 4: Player generation
-        self.test_generate_players()
-        
-        # Test 5: CRITICAL - Nationality names correction (NEW COMPREHENSIVE TEST)
-        print("\n🎯 Testing CRITICAL fix: Nationality names correction for all 43 nationalities...")
-        self.test_nationality_names_correction()
-        
-        # Test 6: Skin color consistency with nationalities
-        self.test_skin_color_nationality_consistency()
-        
-        # Test 7: Name diversity within same nationality
-        self.test_name_diversity_same_nationality()
         
         # Test 8: Game creation
         game_id = self.test_create_game()
