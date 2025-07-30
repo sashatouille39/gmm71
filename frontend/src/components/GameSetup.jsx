@@ -186,6 +186,25 @@ const GameSetup = ({ gameState, onStartGame }) => {
         const gameData = await response.json();
         setCurrentGameId(gameData.id);
         
+        // Essayer d'appliquer les groupes pré-configurés si ils existent
+        try {
+          const groupsResponse = await fetch(`${backendUrl}/api/games/${gameData.id}/groups/apply-preconfigured`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (groupsResponse.ok) {
+            const groupsData = await groupsResponse.json();
+            console.log('Groupes pré-configurés appliqués:', groupsData.applied_groups);
+          } else {
+            console.log('Aucun groupe pré-configuré à appliquer ou erreur lors de l\'application');
+          }
+        } catch (groupError) {
+          console.log('Erreur lors de l\'application des groupes pré-configurés:', groupError);
+        }
+        
         onStartGame(players, orderedEvents, { 
           preserveEventOrder, 
           gameMode,
