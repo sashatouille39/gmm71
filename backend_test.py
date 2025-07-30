@@ -6729,9 +6729,9 @@ class BackendTester:
         print(f"API Base: {API_BASE}")
         print("=" * 80)
         print("🎯 FOCUS: Testing les 3 corrections selon review request française")
-        print("1. ARGENT DE BASE À 1 MILLION: Vérifier que l'API /api/gamestate/ retourne 1,000,000$ au lieu de 10,000,000$")
-        print("2. SYSTÈME GÉNÉRAL TOUJOURS FONCTIONNEL: Assurer que toutes les APIs principales fonctionnent encore")
-        print("3. COHÉRENCE DU SYSTÈME ÉCONOMIQUE: Vérifier que le coût d'une partie (120,000$) est significatif vs le budget de 1M")
+        print("1. Test du remboursement à 100%")
+        print("2. Test de la sauvegarde automatique des statistiques")
+        print("3. Test des vrais anciens gagnants")
         print("=" * 80)
         
         # Test server startup first
@@ -6744,7 +6744,10 @@ class BackendTester:
         print("🎯 REVIEW REQUEST TESTS - LES 3 CORRECTIONS PRIORITAIRES")
         print("="*80)
         
-        self.test_review_request_corrections()
+        # Test the 3 specific corrections from the review request
+        self.test_refund_system_100_percent()
+        self.test_automatic_statistics_saving()
+        self.test_real_past_winners()
         
         # Run additional tests for context
         print("\n" + "="*80)
