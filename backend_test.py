@@ -4542,7 +4542,14 @@ class BackendTester:
             print("❌ Server startup failed - stopping tests")
             return
         
-        # 🇫🇷 TESTS PRINCIPAUX: Groupes pré-configurés selon la review request française
+        # 🇫🇷 TEST PRINCIPAL: Amélioration de l'aléatoire selon la review request française
+        print("\n" + "="*80)
+        print("🇫🇷 TEST DE L'AMÉLIORATION DE L'ALÉATOIRE - REVIEW REQUEST FRANÇAISE")
+        print("="*80)
+        
+        self.test_randomness_improvements_in_event_simulation()
+        
+        # 🇫🇷 TESTS COMPLÉMENTAIRES: Groupes pré-configurés selon la review request française
         print("\n" + "="*80)
         print("🇫🇷 TESTS DES GROUPES PRÉ-CONFIGURÉS - REVIEW REQUEST FRANÇAISE")
         print("="*80)
