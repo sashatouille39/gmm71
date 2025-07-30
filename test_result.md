@@ -102,7 +102,53 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-## user_problem_statement: "j'ai besoin que tu règles quelques problèmes sur le jeu, déjà quand on paye pour faire les jeux notre argent ne se dépense pas et les vips ne paient pas la somme qu'ils doivent payer à la fin des jeux quand on retourne au menu ( c'est marqué ce qu'il doivent payer dans le salon vip ). Attention, si on quitte avant d'avoir un gagnant notre argent doit être remboursé."
+## user_problem_statement: "j'ai besoin que tu règles 2 petits soucis sur ce jeu : déjà quand je clique sur lancer la partie après avoir créer mes joueurs et choit les épreuves, rien ne se passe. Ensuite  supprimer tous les modes de jeu sauf le standard quand on commence une partie et enfin  qu'on puisse choisir jusqu'à 1000 joueurs parce que là quand je clique sur générer il n'y a toujours que 100 joueurs qui se génèrent"
+
+## backend:
+  - task: "Correction logique de création de partie"
+    implemented: true
+    working: false
+    file: "App.js & GameSetup.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "PROBLÈME IDENTIFIÉ : Duplication dans la logique de création de partie. GameSetup.jsx crée la partie via API puis appelle onStartGame qui essaie de créer une nouvelle partie, causant des conflits."
+        - working: false
+          agent: "main"
+          comment: "CORRECTION IMPLÉMENTÉE : Simplifié la logique - GameSetup.jsx crée la partie, et startNewGame dans App.js récupère maintenant la partie existante via le gameId au lieu de créer une nouvelle partie."
+
+  - task: "Suppression modes hardcore et custom"
+    implemented: true
+    working: false
+    file: "components/GameSetup.jsx"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "PROBLÈME IDENTIFIÉ : L'objet gameModes contient 3 modes (standard, hardcore, custom) au lieu d'un seul."
+        - working: false
+          agent: "main"
+          comment: "CORRECTION IMPLÉMENTÉE : Modifié l'objet gameModes pour ne contenir que le mode 'standard'."
+
+  - task: "Correction limite génération joueurs"
+    implemented: true
+    working: false
+    file: "components/GameSetup.jsx"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "PROBLÈME IDENTIFIÉ : L'API backend s'attend à recevoir le paramètre count en query parameter, mais le frontend l'envoyait dans le body JSON."
+        - working: false
+          agent: "main"
+          comment: "CORRECTION IMPLÉMENTÉE : Modifié l'appel API dans GameSetup.jsx pour passer le count en query parameter (?count=${playerCount}) au lieu du body."
 
 ## backend:
   - task: "Correction système de paiement"
