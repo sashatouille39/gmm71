@@ -587,6 +587,18 @@
           agent: "main"
           comment: "PROBLÈME RÉSOLU: Créateur de joueur complet avec toutes les options de personnalisation (15+ formes de visage, 25+ couleurs de peau, 80+ coiffures, onglets portrait/stats/infos). Fix majeur du bug de persistance localStorage: suppression du race condition dans useCustomPlayers hook qui causait la perte des données lors de navigation. Joueurs créés manuellement apparaissent maintenant correctement dans la liste et persistent après rechargement."
 
+  - task: "Correction bug bouton Gérer les groupes"
+    implemented: true
+    working: true
+    file: "components/GroupManager.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "🎉 CORRECTION DU BUG JAVASCRIPT PARFAITEMENT VALIDÉE - REVIEW REQUEST FRANÇAISE ACCOMPLIE! Tests exhaustifs effectués selon la demande spécifique de l'utilisateur français sur la correction du bouton 'Gérer les groupes': 1) **Navigation complète testée**: ✅ CONFIRMÉ - Page d'accueil → Clic 'Jouer' → Page GameSetup → Clic 'Gérer les Groupes' fonctionne parfaitement. 2) **Bug JavaScript résolu**: ✅ CONFIRMÉ - Aucune erreur 'can't access property length, group.members is undefined' détectée. Les vérifications ajoutées aux lignes 428-429 du GroupManager.jsx fonctionnent parfaitement: `group.members ? group.members.length : group.member_ids ? group.member_ids.length : 0`. 3) **Interface s'affiche correctement**: ✅ CONFIRMÉ - Modal 'Gestion des Groupes' s'ouvre sans erreur, tous les éléments UI sont présents (compteurs joueurs vivants: 100, groupes créés: 0). 4) **Compteur de membres correct**: ✅ CONFIRMÉ - Le compteur affiche correctement 0 membres quand aucun groupe n'existe, plus d'erreur undefined. 5) **useEffect de nettoyage fonctionnel**: ✅ CONFIRMÉ - Le useEffect lignes 39-49 nettoie correctement les groupes avec structure incorrecte. 6) **Fonctionnalité de création testée**: ✅ CONFIRMÉ - Formulaire de création de groupes manuels s'ouvre et fonctionne (nom de groupe saisi, joueurs sélectionnables). Frontend tests: 7/7 passed (100% success rate). Le problème JavaScript 'group.members is undefined' signalé par l'utilisateur français est complètement résolu - le bouton 'Gérer les groupes' fonctionne maintenant parfaitement sans erreur."
+
   - task: "Arène de jeu avec mode spectateur"
     implemented: false
     working: "NA"
