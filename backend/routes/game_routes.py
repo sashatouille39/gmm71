@@ -530,6 +530,87 @@ async def get_final_ranking(game_id: str):
         "ranking": ranking
     }
 
+# Storage pour les groupes pré-configurés (indépendants des parties)
+preconfigured_groups_db: Dict[str, PlayerGroup] = {}
+
+# Routes pour les groupes pré-configurés (indépendants des parties)
+@router.post("/groups/preconfigured")
+async def create_preconfigured_groups(request: dict):
+    """Crée des groupes pré-configurés (indépendamment d'une partie)"""
+    groups_data = request.get("groups", [])
+    
+    if not groups_data:
+        raise HTTPException(status_code=400, detail="Aucun groupe fourni")
+    
+    created_groups = []
+    
+    for group_data in groups_data:
+        name = group_data.get("name", "Groupe sans nom")
+        member_ids = group_data.get("member_ids", [])
+        allow_betrayals = group_data.get("allow_betrayals", False)
+        
+        if not member_ids:
+            continue
+            
+        group = PlayerGroup(
+            name=name,
+            member_ids=member_ids,
+            allow_betrayals=allow_betrayals
+        )
+        
+        created_groups.append(group)
+        preconfigured_groups_db[group.id] = group
+    
+    return {
+        "groups": created_groups,
+        "message": f"{len(created_groups)} groupes pré-configurés créés avec succès"
+    }
+
+@router.get("/groups/preconfigured")
+async def get_preconfigured_groups():
+    """Récupère tous les groupes pré-configurés"""
+    return {
+        "groups": list(preconfigured_groups_db.values())
+    }
+
+@router.delete("/groups/preconfigured")
+async def clear_preconfigured_groups():
+    """Supprime tous les groupes pré-configurés"""
+    global preconfigured_groups_db
+    preconfigured_groups_db = {}
+    return {"message": "Tous les groupes pré-configurés ont été supprimés"}
+
+@router.put("/groups/preconfigured/{group_id}")
+async def update_preconfigured_group(group_id: str, request: dict):
+    """Met à jour un groupe pré-configuré"""
+    if group_id not in preconfigured_groups_db:
+        raise HTTPException(status_code=404, detail="Groupe pré-configuré non trouvé")
+    
+    group = preconfigured_groups_db[group_id]
+    
+    if "name" in request:
+        group.name = request["name"]
+    if "member_ids" in request:
+        group.member_ids = request["member_ids"]
+    if "allow_betrayals" in request:
+        group.allow_betrayals = request["allow_betrayals"]
+    
+    preconfigured_groups_db[group_id] = group
+    
+    return {
+        "message": "Groupe pré-configuré mis à jour avec succès",
+        "group": group
+    }
+
+@router.delete("/groups/preconfigured/{group_id}")
+async def delete_preconfigured_group(group_id: str):
+    """Supprime un groupe pré-configuré"""
+    if group_id not in preconfigured_groups_db:
+        raise HTTPException(status_code=404, detail="Groupe pré-configuré non trouvé")
+    
+    del preconfigured_groups_db[group_id]
+    return {"message": "Groupe pré-configuré supprimé avec succès"}
+
 # Routes pour les groupes dans le contexte des parties
 @router.post("/{game_id}/groups")
 async def create_game_groups(game_id: str, request: dict):
