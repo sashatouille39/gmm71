@@ -176,7 +176,7 @@ class DetailedGameStats(BaseModel):
     basic_stats: GameStats
     completed_games: List[CompletedGame] = []
     role_statistics: List[RoleStats] = []
-    event_statistics: Dict[str, Dict[str, Any]] = {}
+    event_statistics: List[Dict[str, Any]] = []
 
 class GameState(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
