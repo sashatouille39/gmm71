@@ -748,9 +748,49 @@ async def delete_game(game_id: str, user_id: str = "default_user"):
             "new_total_money": game_state.money
         }
     else:
-        # Partie terminée, pas de remboursement
-        del games_db[game_id]
-        return {"message": "Partie terminée supprimée (pas de remboursement)"}
+        # Partie terminée : sauvegarder dans l'historique avant suppression
+        try:
+            from services.statistics_service import StatisticsService
+            from routes.gamestate_routes import game_states_db
+            
+            # Récupérer le classement final
+            final_ranking = []
+            try:
+                import requests
+                ranking_response = requests.get(f"http://localhost:8001/api/games/{game_id}/final-ranking", timeout=5)
+                if ranking_response.status_code == 200:
+                    ranking_data = ranking_response.json()
+                    final_ranking = ranking_data.get('ranking', [])
+            except:
+                pass
+            
+            # Sauvegarder la partie dans l'historique
+            completed_game = StatisticsService.save_completed_game(user_id, game, final_ranking)
+            
+            # Mettre à jour les stats de base dans gamestate
+            if user_id in game_states_db:
+                game_state = game_states_db[user_id]
+                game_state.game_stats.total_games_played += 1
+                game_state.game_stats.total_kills += len([p for p in game.players if not p.alive])
+                if hasattr(game, 'earnings'):
+                    game_state.game_stats.total_earnings += game.earnings
+                game_state.updated_at = datetime.utcnow()
+                game_states_db[user_id] = game_state
+            
+            del games_db[game_id]
+            
+            return {
+                "message": "Partie terminée sauvegardée dans l'historique et supprimée",
+                "saved_game_id": completed_game.id
+            }
+            
+        except Exception as e:
+            # En cas d'erreur de sauvegarde, supprimer quand même la partie
+            del games_db[game_id]
+            return {
+                "message": "Partie terminée supprimée (erreur sauvegarde historique)",
+                "error": str(e)
+            }
 
 @router.post("/generate-players", response_model=List[Player])
 async def generate_players(count: int = 100):
