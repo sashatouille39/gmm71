@@ -408,18 +408,32 @@ const GameSetup = ({ gameState, onStartGame }) => {
           </TabsContent>
 
           {/* Gestion des groupes */}
-          <TabsContent value="groups" className="space-y-6">
-            <GroupManager 
-              gameId={currentGameId}
-              players={players}
-              onGroupsCreated={(groups) => {
-                console.log('Groups created:', groups);
-              }}
-              onGroupsUpdated={(groups) => {
-                console.log('Groups updated:', groups);
-              }}
-            />
-          </TabsContent>
+          {showGroupManager && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-bold text-gray-800">Gestion des Groupes</h2>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setShowGroupManager(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    ✕
+                  </Button>
+                </div>
+                <GroupManager 
+                  players={players}
+                  onGroupsCreated={(groups) => {
+                    console.log('Groups created:', groups);
+                    setShowGroupManager(false);
+                  }}
+                  onGroupsUpdated={(groups) => {
+                    console.log('Groups updated:', groups);
+                  }}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Joueurs personnalisés */}
           <TabsContent value="custom" className="space-y-6">
