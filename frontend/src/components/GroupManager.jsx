@@ -413,10 +413,10 @@ const GroupManager = ({ gameId = null, players, onGroupsCreated, onGroupsUpdated
                       
                       <div className="space-y-2">
                         <div className="text-sm text-gray-600">
-                          Membres ({group.members.length}):
+                          Membres ({group.members ? group.members.length : group.member_ids ? group.member_ids.length : 0}):
                         </div>
                         <div className="flex flex-wrap gap-1">
-                          {group.members.map((member) => (
+                          {group.members ? group.members.map((member) => (
                             <Badge 
                               key={member.id} 
                               variant="outline"
@@ -425,7 +425,25 @@ const GroupManager = ({ gameId = null, players, onGroupsCreated, onGroupsUpdated
                               #{member.number} {member.name}
                               {!member.alive && " (mort)"}
                             </Badge>
-                          ))}
+                          )) : group.member_ids ? group.member_ids.map((memberId) => {
+                            const member = players.find(p => p.id === memberId);
+                            return member ? (
+                              <Badge 
+                                key={memberId} 
+                                variant="outline"
+                                className={member.alive ? "bg-green-50" : "bg-red-50"}
+                              >
+                                #{member.number} {member.name}
+                                {!member.alive && " (mort)"}
+                              </Badge>
+                            ) : (
+                              <Badge key={memberId} variant="outline" className="bg-gray-50">
+                                ID: {memberId}
+                              </Badge>
+                            );
+                          }) : (
+                            <div className="text-sm text-gray-500">Aucun membre</div>
+                          )}
                         </div>
                       </div>
                     </CardContent>
