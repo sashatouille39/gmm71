@@ -115,28 +115,60 @@ class StatisticsService:
         return role_stats
     
     @classmethod
-    def calculate_event_statistics(cls, user_id: str) -> Dict[str, Dict[str, Any]]:
-        """Calcule les statistiques pour chaque épreuve"""
+    def calculate_event_statistics(cls, user_id: str) -> List[Dict[str, Any]]:
+        """Calcule les statistiques pour chaque épreuve et retourne un tableau trié"""
         
         completed_games = cls.completed_games_db.get(user_id, [])
         
         if not completed_games:
-            return {}
+            return []
         
         event_stats = defaultdict(lambda: {
+            'name': '',
             'played_count': 0,
             'total_participants': 0,
             'total_eliminations': 0,
+            'deaths': 0,
+            'survival_rate': 0.0,
             'average_elimination_rate': 0.0
         })
         
+        total_events_data = {}
+        
         for game in completed_games:
             for event_name in game.events_played:
+                if event_name not in event_stats:
+                    event_stats[event_name]['name'] = event_name
+                
                 event_stats[event_name]['played_count'] += 1
-                # Note: Pour des statistiques plus précises, nous aurions besoin
-                # de données plus détaillées sur chaque événement
+                
+                # Calculer les statistiques basées sur les données disponibles
+                # En utilisant les données du jeu pour estimer les participants et éliminations
+                if hasattr(game, 'total_players') and game.total_players:
+                    avg_participants_per_event = game.total_players // len(game.events_played) if game.events_played else game.total_players
+                    event_stats[event_name]['total_participants'] += avg_participants_per_event
+                    
+                    # Estimer les éliminations (approximation basée sur les survivants)
+                    if hasattr(game, 'survivors') and game.survivors:
+                        total_eliminations = game.total_players - game.survivors
+                        avg_eliminations_per_event = total_eliminations // len(game.events_played) if game.events_played else 0
+                        event_stats[event_name]['deaths'] += avg_eliminations_per_event
+                        event_stats[event_name]['total_eliminations'] += avg_eliminations_per_event
         
-        return dict(event_stats)
+        # Calculer les taux de survie et organiser en tableau
+        event_list = []
+        for event_name, stats in event_stats.items():
+            if stats['total_participants'] > 0:
+                survival_rate = max(0, (stats['total_participants'] - stats['deaths']) / stats['total_participants'])
+                stats['survival_rate'] = survival_rate
+                stats['average_elimination_rate'] = 1.0 - survival_rate
+            
+            event_list.append(stats)
+        
+        # Trier par nombre de morts (événements les plus mortels en premier)
+        event_list.sort(key=lambda x: x['deaths'], reverse=True)
+        
+        return event_list
     
     @classmethod
     def get_detailed_statistics(cls, user_id: str, basic_stats: GameStats) -> DetailedGameStats:
