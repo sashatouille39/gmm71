@@ -542,6 +542,70 @@ async def stop_simulation(game_id: str):
     del active_simulations[game_id]
     return {"message": "Simulation arrêtée"}
 
+@router.post("/{game_id}/pause-simulation")
+async def pause_simulation(game_id: str):
+    """Met en pause une simulation en cours"""
+    if game_id not in active_simulations:
+        raise HTTPException(status_code=404, detail="Aucune simulation en cours")
+    
+    simulation = active_simulations[game_id]
+    
+    # Vérifier si déjà en pause
+    if simulation.get("is_paused", False):
+        raise HTTPException(status_code=400, detail="Simulation déjà en pause")
+    
+    # Calculer le temps de simulation écoulé avant la pause
+    current_time = datetime.utcnow()
+    elapsed_real_time = (current_time - simulation["start_time"]).total_seconds()
+    elapsed_sim_time = elapsed_real_time * simulation["speed_multiplier"]
+    
+    # Marquer comme en pause et sauvegarder le temps écoulé
+    simulation["is_paused"] = True
+    simulation["pause_time"] = current_time
+    simulation["elapsed_sim_time_at_pause"] = elapsed_sim_time
+    
+    active_simulations[game_id] = simulation
+    
+    return {
+        "message": "Simulation mise en pause", 
+        "elapsed_time": elapsed_sim_time,
+        "paused_at": current_time.isoformat()
+    }
+
+@router.post("/{game_id}/resume-simulation")
+async def resume_simulation(game_id: str):
+    """Reprend une simulation en pause"""
+    if game_id not in active_simulations:
+        raise HTTPException(status_code=404, detail="Aucune simulation en cours")
+    
+    simulation = active_simulations[game_id]
+    
+    # Vérifier si en pause
+    if not simulation.get("is_paused", False):
+        raise HTTPException(status_code=400, detail="Simulation n'est pas en pause")
+    
+    # Reprendre la simulation
+    current_time = datetime.utcnow()
+    elapsed_sim_time_at_pause = simulation["elapsed_sim_time_at_pause"]
+    
+    # Calculer le nouveau temps de début pour reprendre où on s'était arrêté
+    new_elapsed_real_time = elapsed_sim_time_at_pause / simulation["speed_multiplier"]
+    new_start_time = current_time - timedelta(seconds=new_elapsed_real_time)
+    
+    # Mettre à jour les champs
+    simulation["start_time"] = new_start_time
+    simulation["is_paused"] = False
+    simulation.pop("pause_time", None)
+    simulation.pop("elapsed_sim_time_at_pause", None)
+    
+    active_simulations[game_id] = simulation
+    
+    return {
+        "message": "Simulation reprise",
+        "resumed_at": current_time.isoformat(),
+        "elapsed_time": elapsed_sim_time_at_pause
+    }
+
 @router.get("/{game_id}/vip-earnings-status")
 async def get_vip_earnings_status(game_id: str):
     """Obtient le statut des gains VIP d'une partie"""
