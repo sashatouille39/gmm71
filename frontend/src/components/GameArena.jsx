@@ -723,12 +723,70 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
 
                   {/* Barre de progression de l'événement */}
                   {isPlaying && (
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                       <div className="flex justify-between items-center">
                         <span className="text-white font-medium">Épreuve en cours...</span>
-                        <span className="text-gray-400">{eventProgress}%</span>
+                        <span className="text-gray-400">{Math.round(eventProgress)}%</span>
                       </div>
-                      <Progress value={eventProgress} className="h-2" />
+                      <Progress value={eventProgress} className="h-3" />
+                      
+                      {/* Informations de timing */}
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-400">
+                          Temps écoulé: {Math.round(elapsedTime)}s / {currentEventDuration}s
+                        </span>
+                        <span className="text-yellow-400">
+                          Vitesse: x{speedMultiplier}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Contrôles de vitesse */}
+                  {isPlaying && (
+                    <div className="bg-gray-800/30 p-4 rounded-lg">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-white font-medium">Vitesse de simulation</h3>
+                        <span className="text-yellow-400 text-sm">Actuel: x{speedMultiplier}</span>
+                      </div>
+                      <div className="grid grid-cols-5 gap-2">
+                        {speedOptions.map((option) => (
+                          <Button
+                            key={option.value}
+                            variant={speedMultiplier === option.value ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => changeSimulationSpeed(option.value)}
+                            className={speedMultiplier === option.value 
+                              ? "bg-yellow-600 hover:bg-yellow-700 text-white" 
+                              : "border-gray-600 text-gray-400 hover:bg-gray-700"
+                            }
+                          >
+                            {option.label}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Feed des morts en temps réel */}
+                  {isPlaying && realtimeDeaths.length > 0 && (
+                    <div className="bg-red-900/20 border border-red-500/30 p-4 rounded-lg">
+                      <h3 className="text-red-400 font-medium mb-3 flex items-center gap-2">
+                        <Skull className="w-4 h-4" />
+                        Éliminations en direct
+                      </h3>
+                      <div className="max-h-32 overflow-y-auto space-y-2">
+                        {realtimeDeaths.slice(-5).map((death, index) => (
+                          <div key={index} className="text-sm text-gray-300 p-2 bg-red-900/10 rounded border-l-2 border-red-500">
+                            💀 {death.message}
+                          </div>
+                        ))}
+                      </div>
+                      {realtimeDeaths.length > 5 && (
+                        <div className="text-xs text-gray-500 mt-2">
+                          ... et {realtimeDeaths.length - 5} autres éliminations
+                        </div>
+                      )}
                     </div>
                   )}
 
