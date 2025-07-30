@@ -5988,6 +5988,15 @@ class BackendTester:
         self.test_vitesse_x20_limite()
         self.test_systeme_general_apres_modifications()
         
+        # TESTS DES 3 BUG FIXES SPÉCIFIQUES DE LA REVIEW REQUEST
+        print("\n" + "="*80)
+        print("🎯 TESTING THE 3 SPECIFIC BUG FIXES FROM REVIEW REQUEST")
+        print("="*80)
+        
+        self.test_bug_fix_1_unique_names_generation()
+        self.test_bug_fix_2_game_creation_name_diversity()
+        self.test_bug_fix_3_realtime_death_order()
+        
         # Run additional tests for context
         print("\n" + "="*80)
         print("🔧 ADDITIONAL TESTS FOR CONTEXT")
