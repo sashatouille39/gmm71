@@ -22,30 +22,52 @@ const Statistics = ({ gameState }) => {
   const navigate = useNavigate();
   const [selectedPeriod, setSelectedPeriod] = useState('all');
   const [celebrityStats, setCelebrityStats] = useState(null);
+  const [detailedStats, setDetailedStats] = useState(null);
+  const [roleStats, setRoleStats] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Charger les statistiques des célébrités
+  // Charger toutes les statistiques depuis le backend
   useEffect(() => {
-    const fetchCelebrityStats = async () => {
+    const fetchAllStats = async () => {
+      setIsLoading(true);
       try {
         const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
-        const response = await fetch(`${backendUrl}/api/celebrities/stats/summary`);
-        if (response.ok) {
-          const stats = await response.json();
-          setCelebrityStats(stats);
+        
+        // Charger statistiques détaillées
+        const detailedResponse = await fetch(`${backendUrl}/api/statistics/detailed`);
+        if (detailedResponse.ok) {
+          const detailed = await detailedResponse.json();
+          setDetailedStats(detailed);
         }
+        
+        // Charger statistiques des rôles
+        const roleResponse = await fetch(`${backendUrl}/api/statistics/roles`);
+        if (roleResponse.ok) {
+          const roles = await roleResponse.json();
+          setRoleStats(roles);
+        }
+        
+        // Charger statistiques des célébrités
+        const celebrityResponse = await fetch(`${backendUrl}/api/celebrities/stats/summary`);
+        if (celebrityResponse.ok) {
+          const celebrity = await celebrityResponse.json();
+          setCelebrityStats(celebrity);
+        }
+        
       } catch (error) {
-        console.error('Erreur lors du chargement des stats de célébrités:', error);
+        console.error('Erreur lors du chargement des statistiques:', error);
       }
+      setIsLoading(false);
     };
 
-    fetchCelebrityStats();
+    fetchAllStats();
   }, []);
 
-  // Utiliser les vraies données de jeu au lieu des données mockées
-  const realGames = gameState.completedGames || [];
+  // Utiliser les données détaillées du backend ou fallback sur gameState
+  const realGames = detailedStats?.completed_games || [];
   const realStats = {
     games: realGames,
-    topEvents: gameState.eventStats || [],
+    topEvents: detailedStats?.event_statistics || {},
     achievements: [
       { 
         name: 'Premier sang', 
