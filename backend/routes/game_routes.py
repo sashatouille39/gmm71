@@ -524,8 +524,11 @@ async def update_simulation_speed(game_id: str, request: RealtimeSimulationReque
     # Mettre à jour pour la nouvelle vitesse
     simulation["speed_multiplier"] = request.speed_multiplier
     # Ajuster le temps de début pour maintenir la continuité
-    new_start_time = current_time - datetime.timedelta(seconds=elapsed_sim_time / request.speed_multiplier)
-    simulation["start_time"] = new_start_time
+    if request.speed_multiplier > 0:
+        # Calculer le nouveau temps de début nécessaire
+        new_elapsed_real_time = elapsed_sim_time / request.speed_multiplier
+        new_start_time = current_time - datetime.timedelta(seconds=new_elapsed_real_time)
+        simulation["start_time"] = new_start_time
     
     active_simulations[game_id] = simulation
     
