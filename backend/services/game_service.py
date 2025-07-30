@@ -431,6 +431,70 @@ class GameService:
         return f"{first_name} {last_name}"
     
     @classmethod
+    def _generate_unique_name(cls, nationality: str, gender: str, used_names: set) -> str:
+        """Génère un nom unique qui n'a pas encore été utilisé dans la partie"""
+        max_attempts = 50  # Éviter les boucles infinies si toutes les combinaisons sont épuisées
+        
+        for attempt in range(max_attempts):
+            name = cls._generate_random_name(nationality, gender)
+            if name not in used_names:
+                used_names.add(name)
+                return name
+        
+        # Si on n'arrive pas à trouver un nom unique après max_attempts,
+        # on ajoute un suffixe numérique
+        base_name = cls._generate_random_name(nationality, gender)
+        counter = 1
+        while f"{base_name} {counter}" in used_names:
+            counter += 1
+        
+        final_name = f"{base_name} {counter}"
+        used_names.add(final_name)
+        return final_name
+    
+    @classmethod
+    def generate_multiple_players(cls, count: int) -> List[Player]:
+        """Génère plusieurs joueurs en évitant les noms en double"""
+        players = []
+        used_names = set()
+        
+        for i in range(1, count + 1):
+            # Sélection du rôle selon les probabilités
+            rand = random.random()
+            cumulative_probability = 0
+            selected_role = PlayerRole.NORMAL
+            
+            for role, probability in cls.ROLE_PROBABILITIES.items():
+                cumulative_probability += probability
+                if rand <= cumulative_probability:
+                    selected_role = role
+                    break
+            
+            nationality_key = random.choice(list(cls.NATIONALITIES.keys()))
+            gender = random.choice(['M', 'F'])
+            nationality_display = cls.NATIONALITIES[nationality_key][gender]
+            
+            # Génération des stats selon le rôle
+            stats = cls._generate_stats_by_role(selected_role)
+            
+            player = Player(
+                number=str(i).zfill(3),
+                name=cls._generate_unique_name(nationality_key, gender, used_names),
+                nationality=nationality_display,
+                gender=gender,
+                role=selected_role,
+                stats=stats,
+                portrait=cls._generate_portrait(nationality_key),
+                alive=True,
+                health=100,
+                total_score=stats.intelligence + stats.force + stats.agilité
+            )
+            
+            players.append(player)
+        
+        return players
+    
+    @classmethod
     def _generate_portrait(cls, nationality: str) -> PlayerPortrait:
         """Génère un portrait cohérent avec la nationalité"""
         skin_color_ranges = {
