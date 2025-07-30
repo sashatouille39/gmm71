@@ -38,9 +38,7 @@ const GameSetup = ({ gameState, onStartGame }) => {
   const [showGroupManager, setShowGroupManager] = useState(false);
 
   const gameModes = {
-    standard: { name: 'Standard', cost: 100000, description: 'Jeu classique avec épreuves variées' },
-    hardcore: { name: 'Hardcore', cost: 500000, description: 'Épreuves plus difficiles, moins de survivants' },
-    custom: { name: 'Personnalisé', cost: 1000000, description: 'Choisissez vos propres épreuves' }
+    standard: { name: 'Standard', cost: 100000, description: 'Jeu classique avec épreuves variées' }
   };
 
   // Charger les épreuves depuis l'API backend
