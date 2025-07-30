@@ -29,6 +29,26 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [eventProgress, setEventProgress] = useState(0);
   const [animationPhase, setAnimationPhase] = useState('idle');
+  
+  // Nouveaux états pour la simulation en temps réel
+  const [speedMultiplier, setSpeedMultiplier] = useState(1.0);
+  const [realtimeDeaths, setRealtimeDeaths] = useState([]);
+  const [currentEventDuration, setCurrentEventDuration] = useState(0);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [simulationInterval, setSimulationInterval] = useState(null);
+
+  // Options de vitesse disponibles
+  const speedOptions = [
+    { value: 1.0, label: 'x1' },
+    { value: 1.25, label: 'x1.25' },
+    { value: 1.5, label: 'x1.5' },
+    { value: 1.75, label: 'x1.75' },
+    { value: 2.0, label: 'x2' },
+    { value: 3.0, label: 'x3' },
+    { value: 4.0, label: 'x4' },
+    { value: 5.0, label: 'x5' },
+    { value: 10.0, label: 'x10' }
+  ];
 
   useEffect(() => {
     if (currentGame && currentGame.events.length > 0) {
