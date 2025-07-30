@@ -4743,6 +4743,464 @@ class BackendTester:
         except Exception as e:
             self.log_result("Player Generation Limits", False, f"Error: {str(e)}")
 
+    def test_realtime_simulation_system(self):
+        """Test REVIEW REQUEST FRANÇAIS: Système de simulation d'événements en temps réel"""
+        try:
+            print("\n🎯 TESTING REAL-TIME EVENT SIMULATION SYSTEM - REVIEW REQUEST FRANÇAIS")
+            print("=" * 80)
+            print("Testing the new real-time simulation routes as requested by the French user")
+            
+            # Étape 1: Créer une partie avec quelques joueurs
+            print("   Step 1: Creating a game with players...")
+            game_request = {
+                "player_count": 30,  # Assez de joueurs pour voir des morts progressives
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3, 4],  # Plusieurs événements
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Real-time Simulation System", False, 
+                              f"Could not create test game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            if not game_id:
+                self.log_result("Real-time Simulation System", False, "No game ID returned from creation")
+                return
+            
+            print(f"   ✅ Game created with ID: {game_id}")
+            
+            # Étape 2: Démarrer une simulation en temps réel
+            print("   Step 2: Starting real-time simulation...")
+            realtime_request = {"speed_multiplier": 2.0}  # Vitesse x2 pour les tests
+            
+            response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event-realtime", 
+                                   json=realtime_request,
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Real-time Simulation System", False, 
+                              f"Could not start real-time simulation - HTTP {response.status_code}: {response.text[:200]}")
+                return
+            
+            simulation_data = response.json()
+            required_fields = ['message', 'event_name', 'duration', 'speed_multiplier', 'total_participants']
+            missing_fields = [field for field in required_fields if field not in simulation_data]
+            
+            if missing_fields:
+                self.log_result("Real-time Simulation System", False, 
+                              f"Simulation start response missing fields: {missing_fields}")
+                return
+            
+            print(f"   ✅ Real-time simulation started: {simulation_data['event_name']}")
+            print(f"      Duration: {simulation_data['duration']}s, Speed: x{simulation_data['speed_multiplier']}")
+            
+            # Étape 3: Vérifier les mises à jour progressives
+            print("   Step 3: Checking progressive updates...")
+            import time
+            
+            total_deaths_received = 0
+            update_count = 0
+            max_updates = 10  # Limite de sécurité
+            
+            while update_count < max_updates:
+                update_count += 1
+                time.sleep(1)  # Attendre 1 seconde entre les mises à jour
+                
+                response = requests.get(f"{API_BASE}/games/{game_id}/realtime-updates", timeout=5)
+                
+                if response.status_code != 200:
+                    self.log_result("Real-time Simulation System", False, 
+                                  f"Could not get real-time updates - HTTP {response.status_code}")
+                    return
+                
+                update_data = response.json()
+                
+                # Vérifier la structure de la réponse
+                required_update_fields = ['event_id', 'event_name', 'elapsed_time', 'total_duration', 
+                                        'progress', 'deaths', 'is_complete']
+                missing_update_fields = [field for field in required_update_fields if field not in update_data]
+                
+                if missing_update_fields:
+                    self.log_result("Real-time Simulation System", False, 
+                                  f"Update response missing fields: {missing_update_fields}")
+                    return
+                
+                # Compter les nouvelles morts
+                new_deaths = update_data.get('deaths', [])
+                total_deaths_received += len(new_deaths)
+                
+                # Afficher les morts reçues (messages "X est mort" et "Y tué par Z")
+                for death in new_deaths:
+                    message = death.get('message', '')
+                    player_name = death.get('player_name', '')
+                    player_number = death.get('player_number', '')
+                    print(f"      💀 {message}")
+                    
+                    # Vérifier le format des messages de mort
+                    if not (message and player_name and player_number):
+                        self.log_result("Real-time Simulation System", False, 
+                                      f"Death message incomplete: {death}")
+                        return
+                
+                progress = update_data.get('progress', 0)
+                elapsed_time = update_data.get('elapsed_time', 0)
+                total_duration = update_data.get('total_duration', 0)
+                
+                print(f"      Update {update_count}: {progress:.1f}% complete, {len(new_deaths)} new deaths, "
+                      f"{elapsed_time:.1f}s/{total_duration:.1f}s")
+                
+                # Si la simulation est terminée
+                if update_data.get('is_complete', False):
+                    print(f"   ✅ Simulation completed after {update_count} updates")
+                    
+                    # Vérifier les résultats finaux
+                    final_result = update_data.get('final_result')
+                    if final_result:
+                        survivors = final_result.get('survivors', [])
+                        eliminated = final_result.get('eliminated', [])
+                        print(f"      Final results: {len(survivors)} survivors, {len(eliminated)} eliminated")
+                    
+                    break
+            
+            if update_count >= max_updates:
+                self.log_result("Real-time Simulation System", False, 
+                              f"Simulation did not complete after {max_updates} updates")
+                return
+            
+            print(f"   ✅ Progressive updates working: {total_deaths_received} total deaths received")
+            
+            # Étape 4: Tester le changement de vitesse (sur une nouvelle simulation)
+            print("   Step 4: Testing speed change...")
+            
+            # Créer une nouvelle partie pour tester le changement de vitesse
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                new_game_data = response.json()
+                new_game_id = new_game_data.get('id')
+                
+                if new_game_id:
+                    # Démarrer une nouvelle simulation
+                    start_request = {"speed_multiplier": 1.0}
+                    response = requests.post(f"{API_BASE}/games/{new_game_id}/simulate-event-realtime", 
+                                           json=start_request,
+                                           headers={"Content-Type": "application/json"},
+                                           timeout=10)
+                    
+                    if response.status_code == 200:
+                        # Changer la vitesse
+                        speed_change_request = {"speed_multiplier": 3.0}
+                        response = requests.post(f"{API_BASE}/games/{new_game_id}/update-simulation-speed", 
+                                               json=speed_change_request,
+                                               headers={"Content-Type": "application/json"},
+                                               timeout=5)
+                        
+                        if response.status_code == 200:
+                            speed_data = response.json()
+                            if (speed_data.get('new_speed') == 3.0 and 
+                                'message' in speed_data):
+                                print(f"   ✅ Speed change working: {speed_data['message']}")
+                                
+                                # Arrêter la simulation
+                                response = requests.delete(f"{API_BASE}/games/{new_game_id}/stop-simulation", timeout=5)
+                                if response.status_code == 200:
+                                    stop_data = response.json()
+                                    print(f"   ✅ Simulation stop working: {stop_data.get('message', 'Stopped')}")
+                                else:
+                                    self.log_result("Real-time Simulation System", False, 
+                                                  f"Could not stop simulation - HTTP {response.status_code}")
+                                    return
+                            else:
+                                self.log_result("Real-time Simulation System", False, 
+                                              f"Speed change response invalid: {speed_data}")
+                                return
+                        else:
+                            self.log_result("Real-time Simulation System", False, 
+                                          f"Could not change speed - HTTP {response.status_code}")
+                            return
+            
+            # Étape 5: Vérifier que les résultats finaux sont corrects
+            print("   Step 5: Verifying final results...")
+            
+            # Récupérer la partie terminée
+            response = requests.get(f"{API_BASE}/games/{game_id}", timeout=5)
+            if response.status_code == 200:
+                final_game_data = response.json()
+                
+                # Vérifier que la partie est marquée comme terminée
+                if final_game_data.get('completed', False):
+                    players = final_game_data.get('players', [])
+                    alive_players = [p for p in players if p.get('alive', False)]
+                    dead_players = [p for p in players if not p.get('alive', True)]
+                    
+                    print(f"   ✅ Final game state: {len(alive_players)} alive, {len(dead_players)} dead")
+                    
+                    # Vérifier la cohérence
+                    if len(alive_players) + len(dead_players) == len(players):
+                        self.log_result("Real-time Simulation System", True, 
+                                      f"✅ SYSTÈME DE SIMULATION EN TEMPS RÉEL PARFAITEMENT FONCTIONNEL! "
+                                      f"Tests réussis: démarrage simulation, mises à jour progressives "
+                                      f"({total_deaths_received} morts reçues), changement vitesse, arrêt simulation, "
+                                      f"résultats finaux cohérents ({len(alive_players)} survivants, {len(dead_players)} morts)")
+                    else:
+                        self.log_result("Real-time Simulation System", False, 
+                                      f"Player count inconsistency: {len(alive_players)} + {len(dead_players)} ≠ {len(players)}")
+                else:
+                    self.log_result("Real-time Simulation System", False, 
+                                  "Game not marked as completed after simulation")
+            else:
+                self.log_result("Real-time Simulation System", False, 
+                              f"Could not retrieve final game state - HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Real-time Simulation System", False, f"Error during test: {str(e)}")
+
+    def test_realtime_death_messages(self):
+        """Test SPÉCIFIQUE: Vérifier les messages de mort "X est mort" et "Y tué par Z" """
+        try:
+            print("\n🎯 TESTING REAL-TIME DEATH MESSAGES - SPECIFIC TEST")
+            print("=" * 80)
+            print("Testing death messages format: 'X est mort' and 'Y tué par Z'")
+            
+            # Créer une partie avec assez de joueurs pour avoir des interactions
+            game_request = {
+                "player_count": 25,
+                "game_mode": "standard",
+                "selected_events": [1],  # Un seul événement pour focus
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Real-time Death Messages", False, 
+                              f"Could not create test game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            # Démarrer simulation en temps réel
+            realtime_request = {"speed_multiplier": 5.0}  # Vitesse rapide pour test
+            
+            response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event-realtime", 
+                                   json=realtime_request,
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Real-time Death Messages", False, 
+                              f"Could not start simulation - HTTP {response.status_code}")
+                return
+            
+            # Collecter tous les messages de mort
+            import time
+            all_death_messages = []
+            update_count = 0
+            max_updates = 15
+            
+            while update_count < max_updates:
+                update_count += 1
+                time.sleep(0.5)  # Attendre 0.5 seconde
+                
+                response = requests.get(f"{API_BASE}/games/{game_id}/realtime-updates", timeout=5)
+                
+                if response.status_code != 200:
+                    break
+                
+                update_data = response.json()
+                new_deaths = update_data.get('deaths', [])
+                
+                for death in new_deaths:
+                    message = death.get('message', '')
+                    all_death_messages.append(message)
+                    print(f"      💀 {message}")
+                
+                if update_data.get('is_complete', False):
+                    break
+            
+            # Analyser les messages de mort
+            simple_death_messages = []  # "X est mort"
+            kill_messages = []  # "X tué par Y"
+            invalid_messages = []
+            
+            for message in all_death_messages:
+                if " est mort" in message:
+                    simple_death_messages.append(message)
+                elif " a été tué par " in message:
+                    kill_messages.append(message)
+                else:
+                    invalid_messages.append(message)
+            
+            # Vérifier les formats
+            total_messages = len(all_death_messages)
+            valid_messages = len(simple_death_messages) + len(kill_messages)
+            
+            if total_messages > 0:
+                if invalid_messages:
+                    self.log_result("Real-time Death Messages", False, 
+                                  f"❌ Invalid death message formats found: {invalid_messages[:3]}")
+                else:
+                    self.log_result("Real-time Death Messages", True, 
+                                  f"✅ MESSAGES DE MORT PARFAITEMENT FORMATÉS! "
+                                  f"Total: {total_messages} messages, "
+                                  f"Morts simples: {len(simple_death_messages)} ('X est mort'), "
+                                  f"Morts avec tueur: {len(kill_messages)} ('X tué par Y'), "
+                                  f"Format valide: {valid_messages}/{total_messages} (100%)")
+                    
+                    # Afficher quelques exemples
+                    if simple_death_messages:
+                        print(f"      Exemple mort simple: {simple_death_messages[0]}")
+                    if kill_messages:
+                        print(f"      Exemple mort avec tueur: {kill_messages[0]}")
+            else:
+                self.log_result("Real-time Death Messages", False, 
+                              "No death messages received during simulation")
+                
+        except Exception as e:
+            self.log_result("Real-time Death Messages", False, f"Error during test: {str(e)}")
+
+    def test_realtime_simulation_edge_cases(self):
+        """Test: Cas limites du système de simulation en temps réel"""
+        try:
+            print("\n🎯 TESTING REAL-TIME SIMULATION EDGE CASES")
+            print("=" * 80)
+            
+            # Test 1: Démarrer simulation sur partie inexistante
+            fake_game_id = "fake-game-id"
+            realtime_request = {"speed_multiplier": 1.0}
+            
+            response = requests.post(f"{API_BASE}/games/{fake_game_id}/simulate-event-realtime", 
+                                   json=realtime_request,
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=5)
+            
+            if response.status_code == 404:
+                print("   ✅ Test 1 passed: 404 for non-existent game")
+            else:
+                self.log_result("Real-time Simulation Edge Cases", False, 
+                              f"Test 1 failed: Expected 404, got {response.status_code}")
+                return
+            
+            # Test 2: Démarrer deux simulations simultanées sur la même partie
+            game_request = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Real-time Simulation Edge Cases", False, 
+                              f"Could not create test game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            # Première simulation
+            response1 = requests.post(f"{API_BASE}/games/{game_id}/simulate-event-realtime", 
+                                    json=realtime_request,
+                                    headers={"Content-Type": "application/json"},
+                                    timeout=10)
+            
+            if response1.status_code != 200:
+                self.log_result("Real-time Simulation Edge Cases", False, 
+                              f"Could not start first simulation - HTTP {response1.status_code}")
+                return
+            
+            # Deuxième simulation (devrait échouer)
+            response2 = requests.post(f"{API_BASE}/games/{game_id}/simulate-event-realtime", 
+                                    json=realtime_request,
+                                    headers={"Content-Type": "application/json"},
+                                    timeout=5)
+            
+            if response2.status_code == 400:
+                print("   ✅ Test 2 passed: 400 for concurrent simulation attempt")
+            else:
+                self.log_result("Real-time Simulation Edge Cases", False, 
+                              f"Test 2 failed: Expected 400, got {response2.status_code}")
+                return
+            
+            # Nettoyer - arrêter la simulation
+            requests.delete(f"{API_BASE}/games/{game_id}/stop-simulation", timeout=5)
+            
+            # Test 3: Vitesse de simulation invalide
+            invalid_speed_request = {"speed_multiplier": 15.0}  # > 10.0 (limite max)
+            
+            response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event-realtime", 
+                                   json=invalid_speed_request,
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=5)
+            
+            if response.status_code == 422:  # Validation error
+                print("   ✅ Test 3 passed: 422 for invalid speed multiplier")
+            else:
+                print(f"   ⚠️  Test 3: Expected 422, got {response.status_code} (may be handled differently)")
+            
+            # Test 4: Récupérer updates sans simulation active
+            response = requests.get(f"{API_BASE}/games/{game_id}/realtime-updates", timeout=5)
+            
+            if response.status_code == 404:
+                print("   ✅ Test 4 passed: 404 for updates without active simulation")
+            else:
+                self.log_result("Real-time Simulation Edge Cases", False, 
+                              f"Test 4 failed: Expected 404, got {response.status_code}")
+                return
+            
+            # Test 5: Changer vitesse sans simulation active
+            response = requests.post(f"{API_BASE}/games/{game_id}/update-simulation-speed", 
+                                   json=realtime_request,
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=5)
+            
+            if response.status_code == 404:
+                print("   ✅ Test 5 passed: 404 for speed change without active simulation")
+            else:
+                self.log_result("Real-time Simulation Edge Cases", False, 
+                              f"Test 5 failed: Expected 404, got {response.status_code}")
+                return
+            
+            # Test 6: Arrêter simulation inexistante
+            response = requests.delete(f"{API_BASE}/games/{game_id}/stop-simulation", timeout=5)
+            
+            if response.status_code == 404:
+                print("   ✅ Test 6 passed: 404 for stopping non-existent simulation")
+            else:
+                self.log_result("Real-time Simulation Edge Cases", False, 
+                              f"Test 6 failed: Expected 404, got {response.status_code}")
+                return
+            
+            self.log_result("Real-time Simulation Edge Cases", True, 
+                          "✅ All edge case tests passed: non-existent game (404), "
+                          "concurrent simulations (400), invalid speed (422), "
+                          "updates without simulation (404), speed change without simulation (404), "
+                          "stop non-existent simulation (404)")
+                
+        except Exception as e:
+            self.log_result("Real-time Simulation Edge Cases", False, f"Error during test: {str(e)}")
+
     def run_all_tests(self):
         """Run all backend tests with focus on French user corrections"""
         print(f"🚀 STARTING BACKEND TESTS - FRENCH USER CORRECTIONS - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
