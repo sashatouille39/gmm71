@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-## user_problem_statement: "j'ai besoin que tu règles 2 petits soucis sur ce jeu : déjà quand je clique sur lancer la partie après avoir créer mes joueurs et choit les épreuves, rien ne se passe. Ensuite  supprimer tous les modes de jeu sauf le standard quand on commence une partie et enfin  qu'on puisse choisir jusqu'à 1000 joueurs parce que là quand je clique sur générer il n'y a toujours que 100 joueurs qui se génèrent"
+## user_problem_statement: "j'ai besoin que tu corriges un problème sur ce jeu : quand on simule les épreuves; on ne peut pas changer la vitesse alors qu'il y a les options, ça bug. Et enfin quand on simule on voit les éliminations en direct mais j'aimerai qu'on ne sache pas en direct qui a tué qui juste ça dit que le joueur est mort et par la même occasion j'aimerai que le nombre d'éliminations qui est en haut en gros se mette à jour en temps réel en fonction des éliminations en direct. J'aimerai aussi pouvoir mettre en pause l'épreuve si par exemple on veut aller pisser mais pas louper pour autant."
 
 ## backend:
   - task: "Correction logique de création de partie"
