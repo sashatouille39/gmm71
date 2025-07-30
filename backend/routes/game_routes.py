@@ -427,33 +427,39 @@ async def get_realtime_updates(game_id: str):
     
     simulation = active_simulations[game_id]
     current_time = datetime.utcnow()
-    elapsed_real_time = (current_time - simulation["start_time"]).total_seconds()
     
-    # Calculer le temps écoulé dans la simulation (avec multiplicateur de vitesse)
-    elapsed_sim_time = elapsed_real_time * simulation["speed_multiplier"]
+    # Gérer l'état de pause
+    if simulation.get("is_paused", False):
+        # Si en pause, utiliser le temps écoulé sauvegardé
+        elapsed_sim_time = simulation["elapsed_sim_time_at_pause"]
+    else:
+        # Calcul normal du temps écoulé
+        elapsed_real_time = (current_time - simulation["start_time"]).total_seconds()
+        elapsed_sim_time = elapsed_real_time * simulation["speed_multiplier"]
     
     # Calculer la progression
     progress = min(100.0, (elapsed_sim_time / simulation["duration"]) * 100)
     
-    # Trouver les nouvelles morts à envoyer
+    # Trouver les nouvelles morts à envoyer (seulement si pas en pause)
     new_deaths = []
-    deaths_timeline = simulation["deaths_timeline"]
-    deaths_sent = simulation["deaths_sent"]
+    if not simulation.get("is_paused", False):
+        deaths_timeline = simulation["deaths_timeline"]
+        deaths_sent = simulation["deaths_sent"]
+        
+        for i in range(deaths_sent, len(deaths_timeline)):
+            death = deaths_timeline[i]
+            if death["time"] <= elapsed_sim_time:
+                new_deaths.append({
+                    "message": death["message"],
+                    "player_name": death["player"]["name"],
+                    "player_number": death["player"]["number"]
+                })
+                simulation["deaths_sent"] = i + 1
+            else:
+                break
     
-    for i in range(deaths_sent, len(deaths_timeline)):
-        death = deaths_timeline[i]
-        if death["time"] <= elapsed_sim_time:
-            new_deaths.append({
-                "message": death["message"],
-                "player_name": death["player"]["name"],
-                "player_number": death["player"]["number"]
-            })
-            simulation["deaths_sent"] = i + 1
-        else:
-            break
-    
-    # Vérifier si l'événement est terminé
-    is_complete = elapsed_sim_time >= simulation["duration"]
+    # Vérifier si l'événement est terminé (ne peut pas se terminer en pause)
+    is_complete = not simulation.get("is_paused", False) and elapsed_sim_time >= simulation["duration"]
     final_result = None
     
     if is_complete:
