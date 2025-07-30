@@ -435,8 +435,124 @@ const GroupManager = ({ gameId = null, players, onGroupsCreated, onGroupsUpdated
             </div>
           )}
 
-          {/* Formulaire de création */}
-          {showCreateForm && (
+          {/* Formulaire de création manuelle */}
+          {showManualCreation && (
+            <Card className="mt-4 border-2 border-green-200">
+              <CardHeader>
+                <CardTitle className="text-lg">Créer des groupes manuellement</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Section de sélection des joueurs */}
+                <div>
+                  <Label className="text-base font-medium">Sélectionner les joueurs pour le groupe</Label>
+                  <div className="mt-2">
+                    <Input
+                      placeholder="Nom du groupe (ex: Les Survivants)"
+                      value={newGroupName}
+                      onChange={(e) => setNewGroupName(e.target.value)}
+                      className="mb-3"
+                    />
+                    
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 max-h-60 overflow-y-auto border rounded p-3 bg-gray-50">
+                      {players.map((player) => {
+                        const isSelected = selectedPlayers[player.id];
+                        const isInGroup = manualGroups.some(group => group.member_ids.includes(player.id));
+                        
+                        return (
+                          <div
+                            key={player.id}
+                            className={`p-2 rounded cursor-pointer border-2 text-center transition-all ${
+                              isInGroup 
+                                ? 'bg-yellow-100 border-yellow-400 text-yellow-700 cursor-not-allowed'
+                                : isSelected
+                                  ? 'bg-blue-100 border-blue-500 text-blue-700'
+                                  : 'bg-white border-gray-200 hover:border-blue-300'
+                            }`}
+                            onClick={() => !isInGroup && togglePlayerSelection(player.id)}
+                            title={isInGroup ? 'Joueur déjà assigné à un groupe' : ''}
+                          >
+                            <div className="text-xs font-medium truncate">{player.name}</div>
+                            <div className="text-xs text-gray-500">#{player.number}</div>
+                            {isInGroup && <div className="text-xs">✓ Assigné</div>}
+                            {isSelected && !isInGroup && <div className="text-xs">✓ Sélectionné</div>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  
+                  <Button
+                    onClick={createManualGroup}
+                    disabled={!newGroupName.trim() || Object.keys(selectedPlayers).filter(id => selectedPlayers[id]).length < 2}
+                    className="mt-3 bg-green-600 hover:bg-green-700"
+                  >
+                    Ajouter ce groupe
+                  </Button>
+                </div>
+
+                {/* Liste des groupes créés */}
+                {manualGroups.length > 0 && (
+                  <div>
+                    <Label className="text-base font-medium">Groupes créés ({manualGroups.length})</Label>
+                    <div className="mt-2 space-y-2">
+                      {manualGroups.map((group, index) => (
+                        <Card key={index} className="border border-gray-300">
+                          <CardContent className="p-3">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h4 className="font-medium">{group.name}</h4>
+                                <p className="text-sm text-gray-600">
+                                  {group.member_ids.length} membres: {
+                                    group.member_ids.map(id => {
+                                      const player = players.find(p => p.id === id);
+                                      return player ? `${player.name} (#${player.number})` : 'Joueur inconnu';
+                                    }).join(', ')
+                                  }
+                                </p>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeManualGroup(index)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                  <Button
+                    onClick={saveManualGroups}
+                    disabled={loading || manualGroups.length === 0}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {loading ? 'Sauvegarde...' : `Sauvegarder ${manualGroups.length} groupe(s)`}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setShowManualCreation(false);
+                      setManualGroups([]);
+                      setSelectedPlayers({});
+                      setNewGroupName('');
+                    }}
+                    variant="outline"
+                  >
+                    Annuler
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Formulaire de création automatique */}
+          {showCreateForm && gameId && (
             <Card className="mt-4 border-2 border-blue-200">
               <CardHeader>
                 <CardTitle className="text-lg">Créer des groupes</CardTitle>
