@@ -154,7 +154,7 @@ class GameStats(BaseModel):
 class GameState(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str = "default_user"  # Pour l'instant un seul utilisateur
-    money: int = 10000000  # 10 millions comme demandé par l'utilisateur
+    money: int = 1000000  # 1 million comme demandé par l'utilisateur
     vip_salon_level: int = 1
     unlocked_uniforms: List[str] = []
     unlocked_patterns: List[str] = []
