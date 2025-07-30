@@ -50,7 +50,7 @@ class EventsService:
                 "Empoisonnement par injection",
                 "Électrocution sur place"
             ],
-            survival_time_min=180, survival_time_max=600,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.5,
             special_mechanics=["Jeu par paires", "Trahison possible"]
         ),
