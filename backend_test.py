@@ -1105,6 +1105,397 @@ class BackendTester:
         except Exception as e:
             self.log_result("Celebrity Stats Improvement Rules", False, f"Error: {str(e)}")
 
+    def test_statistics_detailed_event_statistics_array(self):
+        """Test REVIEW REQUEST: Vérifier que /api/statistics/detailed retourne event_statistics comme un tableau au lieu d'un objet"""
+        try:
+            print("\n🎯 TESTING STATISTICS DETAILED - EVENT STATISTICS ARRAY FORMAT")
+            print("=" * 80)
+            
+            # Test 1: Appel GET à /api/statistics/detailed
+            response = requests.get(f"{API_BASE}/statistics/detailed", timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Vérifier la structure de base
+                required_fields = ['basic_stats', 'completed_games', 'role_statistics', 'event_statistics']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_result("Statistics Detailed - Event Statistics Array", False, 
+                                  f"Response missing fields: {missing_fields}")
+                    return
+                
+                # Test critique: vérifier que event_statistics est un tableau
+                event_statistics = data.get('event_statistics')
+                
+                if isinstance(event_statistics, list):
+                    self.log_result("Statistics Detailed - Event Statistics Array", True, 
+                                  f"✅ CORRECTION VALIDÉE: event_statistics retourne bien un tableau avec {len(event_statistics)} éléments")
+                    
+                    # Vérifier la structure des éléments du tableau si non vide
+                    if event_statistics:
+                        first_event = event_statistics[0]
+                        expected_event_fields = ['name', 'played_count', 'total_participants', 'deaths', 'survival_rate']
+                        missing_event_fields = [field for field in expected_event_fields if field not in first_event]
+                        
+                        if not missing_event_fields:
+                            self.log_result("Statistics Detailed - Event Statistics Structure", True, 
+                                          f"✅ Structure des événements correcte: {list(first_event.keys())}")
+                        else:
+                            self.log_result("Statistics Detailed - Event Statistics Structure", False, 
+                                          f"Structure événement manque: {missing_event_fields}")
+                    else:
+                        self.log_result("Statistics Detailed - Event Statistics Content", True, 
+                                      f"✅ Tableau event_statistics vide (normal si aucune partie terminée)")
+                        
+                elif isinstance(event_statistics, dict):
+                    self.log_result("Statistics Detailed - Event Statistics Array", False, 
+                                  f"❌ PROBLÈME: event_statistics retourne encore un objet au lieu d'un tableau")
+                else:
+                    self.log_result("Statistics Detailed - Event Statistics Array", False, 
+                                  f"❌ PROBLÈME: event_statistics a un type inattendu: {type(event_statistics)}")
+                    
+            else:
+                self.log_result("Statistics Detailed - Event Statistics Array", False, 
+                              f"HTTP {response.status_code}", response.text[:200])
+                
+        except Exception as e:
+            self.log_result("Statistics Detailed - Event Statistics Array", False, f"Error: {str(e)}")
+
+    def test_completed_games_and_winners(self):
+        """Test REVIEW REQUEST: Tester les parties terminées et les gagnants"""
+        try:
+            print("\n🎯 TESTING COMPLETED GAMES AND WINNERS SYSTEM")
+            print("=" * 80)
+            
+            # Test 1: Appel GET à /api/statistics/completed-games
+            response = requests.get(f"{API_BASE}/statistics/completed-games", timeout=10)
+            
+            if response.status_code == 200:
+                completed_games = response.json()
+                
+                if isinstance(completed_games, list):
+                    self.log_result("Statistics Completed Games", True, 
+                                  f"✅ Route completed-games fonctionne: {len(completed_games)} parties trouvées")
+                    
+                    # Si des parties terminées existent, vérifier leur structure
+                    if completed_games:
+                        first_game = completed_games[0]
+                        required_game_fields = ['id', 'date', 'total_players', 'survivors', 'winner', 'earnings']
+                        missing_game_fields = [field for field in required_game_fields if field not in first_game]
+                        
+                        if not missing_game_fields:
+                            self.log_result("Statistics Completed Games Structure", True, 
+                                          f"✅ Structure partie terminée correcte")
+                        else:
+                            self.log_result("Statistics Completed Games Structure", False, 
+                                          f"Structure partie manque: {missing_game_fields}")
+                    
+                    # Test 2: Appel GET à /api/statistics/winners
+                    winners_response = requests.get(f"{API_BASE}/statistics/winners", timeout=10)
+                    
+                    if winners_response.status_code == 200:
+                        winners = winners_response.json()
+                        
+                        if isinstance(winners, list):
+                            self.log_result("Statistics Winners", True, 
+                                          f"✅ Route winners fonctionne: {len(winners)} gagnants trouvés")
+                            
+                            # Si des gagnants existent, vérifier leurs stats boostées
+                            if winners:
+                                first_winner = winners[0]
+                                required_winner_fields = ['id', 'name', 'category', 'stars', 'price', 'stats', 'game_data']
+                                missing_winner_fields = [field for field in required_winner_fields if field not in first_winner]
+                                
+                                if not missing_winner_fields:
+                                    # Vérifier que les stats sont boostées (au moins une stat > 5)
+                                    winner_stats = first_winner.get('stats', {})
+                                    intelligence = winner_stats.get('intelligence', 0)
+                                    force = winner_stats.get('force', 0)
+                                    agilite = winner_stats.get('agilité', 0)
+                                    
+                                    if intelligence > 5 or force > 5 or agilite > 5:
+                                        self.log_result("Statistics Winners Stats Boosted", True, 
+                                                      f"✅ Stats gagnant boostées: INT={intelligence}, FOR={force}, AGI={agilite}")
+                                    else:
+                                        self.log_result("Statistics Winners Stats Boosted", False, 
+                                                      f"Stats gagnant non boostées: INT={intelligence}, FOR={force}, AGI={agilite}")
+                                        
+                                    # Vérifier le prix basé sur les étoiles
+                                    stars = first_winner.get('stars', 0)
+                                    price = first_winner.get('price', 0)
+                                    expected_min_price = stars * 10000000  # 10M par étoile
+                                    
+                                    if price >= expected_min_price:
+                                        self.log_result("Statistics Winners Pricing", True, 
+                                                      f"✅ Prix gagnant cohérent: {stars} étoiles = {price}$ (min {expected_min_price}$)")
+                                    else:
+                                        self.log_result("Statistics Winners Pricing", False, 
+                                                      f"Prix gagnant incohérent: {stars} étoiles = {price}$ (attendu min {expected_min_price}$)")
+                                        
+                                else:
+                                    self.log_result("Statistics Winners Structure", False, 
+                                                  f"Structure gagnant manque: {missing_winner_fields}")
+                            else:
+                                self.log_result("Statistics Winners Content", True, 
+                                              f"✅ Aucun gagnant (normal si aucune partie terminée)")
+                                
+                        else:
+                            self.log_result("Statistics Winners", False, 
+                                          f"Winners response n'est pas une liste: {type(winners)}")
+                    else:
+                        self.log_result("Statistics Winners", False, 
+                                      f"Winners request failed - HTTP {winners_response.status_code}")
+                        
+                else:
+                    self.log_result("Statistics Completed Games", False, 
+                                  f"Completed games response n'est pas une liste: {type(completed_games)}")
+            else:
+                self.log_result("Statistics Completed Games", False, 
+                              f"Completed games request failed - HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Statistics Completed Games and Winners", False, f"Error: {str(e)}")
+
+    def test_create_completed_game_for_testing(self):
+        """Test REVIEW REQUEST: Créer une partie de test et la marquer comme terminée pour tester le système"""
+        try:
+            print("\n🎯 CREATING TEST COMPLETED GAME FOR STATISTICS TESTING")
+            print("=" * 80)
+            
+            # Créer une partie de test
+            game_request = {
+                "player_count": 25,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3, 4],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Create Test Game for Statistics", False, 
+                              f"Could not create test game - HTTP {response.status_code}")
+                return None
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            if not game_id:
+                self.log_result("Create Test Game for Statistics", False, "No game ID returned")
+                return None
+            
+            self.log_result("Create Test Game for Statistics", True, 
+                          f"✅ Partie de test créée: {game_id} avec {len(game_data.get('players', []))} joueurs")
+            
+            # Simuler quelques événements pour terminer la partie
+            events_simulated = 0
+            max_events = 10
+            
+            while events_simulated < max_events:
+                events_simulated += 1
+                
+                simulate_response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if simulate_response.status_code != 200:
+                    self.log_result("Simulate Events for Test Game", False, 
+                                  f"Event simulation failed at event {events_simulated}")
+                    break
+                
+                simulate_data = simulate_response.json()
+                game_state = simulate_data.get('game', {})
+                
+                if game_state.get('completed', False):
+                    winner = game_state.get('winner')
+                    winner_name = winner.get('name', 'Inconnu') if winner else 'Aucun'
+                    
+                    self.log_result("Complete Test Game", True, 
+                                  f"✅ Partie terminée après {events_simulated} événements. Gagnant: {winner_name}")
+                    
+                    # Vérifier que la partie est maintenant dans les statistiques
+                    stats_response = requests.get(f"{API_BASE}/statistics/completed-games", timeout=5)
+                    
+                    if stats_response.status_code == 200:
+                        completed_games = stats_response.json()
+                        
+                        # Chercher notre partie dans les statistiques
+                        test_game_found = any(game.get('id') == game_id for game in completed_games)
+                        
+                        if test_game_found:
+                            self.log_result("Test Game in Statistics", True, 
+                                          f"✅ Partie de test trouvée dans les statistiques")
+                            
+                            # Tester les gagnants
+                            winners_response = requests.get(f"{API_BASE}/statistics/winners", timeout=5)
+                            
+                            if winners_response.status_code == 200:
+                                winners = winners_response.json()
+                                test_winner_found = any(
+                                    winner.get('game_data', {}).get('game_id') == game_id 
+                                    for winner in winners
+                                )
+                                
+                                if test_winner_found:
+                                    self.log_result("Test Winner in Statistics", True, 
+                                                  f"✅ Gagnant de la partie de test trouvé dans les statistiques")
+                                else:
+                                    self.log_result("Test Winner in Statistics", False, 
+                                                  f"Gagnant de la partie de test non trouvé dans les statistiques")
+                            else:
+                                self.log_result("Test Winner in Statistics", False, 
+                                              f"Could not fetch winners - HTTP {winners_response.status_code}")
+                                
+                        else:
+                            self.log_result("Test Game in Statistics", False, 
+                                          f"Partie de test non trouvée dans les statistiques")
+                    else:
+                        self.log_result("Test Game in Statistics", False, 
+                                      f"Could not fetch statistics - HTTP {stats_response.status_code}")
+                    
+                    return game_id
+            
+            # Si on arrive ici, la partie n'est pas terminée
+            self.log_result("Complete Test Game", False, 
+                          f"Partie non terminée après {max_events} événements")
+            return game_id
+            
+        except Exception as e:
+            self.log_result("Create Test Game for Statistics", False, f"Error: {str(e)}")
+            return None
+
+    def test_identical_players_with_all_players_field(self):
+        """Test REVIEW REQUEST: Créer une partie avec des joueurs spécifiques via le champ all_players"""
+        try:
+            print("\n🎯 TESTING IDENTICAL PLAYERS WITH ALL_PLAYERS FIELD")
+            print("=" * 80)
+            
+            # Générer des joueurs spécifiques pour le test
+            players_response = requests.post(f"{API_BASE}/games/generate-players?count=10", timeout=10)
+            
+            if players_response.status_code != 200:
+                self.log_result("Generate Specific Players", False, 
+                              f"Could not generate players - HTTP {players_response.status_code}")
+                return
+                
+            generated_players = players_response.json()
+            
+            if len(generated_players) != 10:
+                self.log_result("Generate Specific Players", False, 
+                              f"Expected 10 players, got {len(generated_players)}")
+                return
+            
+            self.log_result("Generate Specific Players", True, 
+                          f"✅ Généré 10 joueurs spécifiques pour le test")
+            
+            # Créer une partie en utilisant le champ all_players
+            game_request = {
+                "player_count": 10,  # Sera ignoré car all_players est fourni
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": [],
+                "all_players": generated_players  # NOUVEAU CHAMP À TESTER
+            }
+            
+            create_response = requests.post(f"{API_BASE}/games/create", 
+                                          json=game_request, 
+                                          headers={"Content-Type": "application/json"},
+                                          timeout=15)
+            
+            if create_response.status_code != 200:
+                self.log_result("Create Game with All Players", False, 
+                              f"Could not create game with all_players - HTTP {create_response.status_code}")
+                return
+                
+            created_game = create_response.json()
+            game_id = created_game.get('id')
+            created_players = created_game.get('players', [])
+            
+            if not game_id:
+                self.log_result("Create Game with All Players", False, "No game ID returned")
+                return
+            
+            # Vérifier que les mêmes joueurs sont présents
+            if len(created_players) == len(generated_players):
+                # Comparer les noms des joueurs
+                generated_names = set(p.get('name') for p in generated_players)
+                created_names = set(p.get('name') for p in created_players)
+                
+                if generated_names == created_names:
+                    self.log_result("Identical Players Verification", True, 
+                                  f"✅ CORRECTION VALIDÉE: Les mêmes {len(created_players)} joueurs sont présents dans la partie créée")
+                    
+                    # Vérifier les détails des joueurs (stats, nationalités, etc.)
+                    details_match = True
+                    mismatches = []
+                    
+                    for gen_player in generated_players:
+                        # Trouver le joueur correspondant dans la partie créée
+                        created_player = next((p for p in created_players if p.get('name') == gen_player.get('name')), None)
+                        
+                        if created_player:
+                            # Comparer les détails importants
+                            if gen_player.get('nationality') != created_player.get('nationality'):
+                                details_match = False
+                                mismatches.append(f"Nationalité différente pour {gen_player.get('name')}")
+                            
+                            if gen_player.get('role') != created_player.get('role'):
+                                details_match = False
+                                mismatches.append(f"Rôle différent pour {gen_player.get('name')}")
+                        else:
+                            details_match = False
+                            mismatches.append(f"Joueur {gen_player.get('name')} non trouvé")
+                    
+                    if details_match:
+                        self.log_result("Identical Players Details", True, 
+                                      f"✅ Tous les détails des joueurs correspondent parfaitement")
+                    else:
+                        self.log_result("Identical Players Details", False, 
+                                      f"Détails des joueurs ne correspondent pas: {mismatches[:3]}")
+                    
+                    # Simuler un événement pour confirmer que ce sont les mêmes joueurs qui participent
+                    simulate_response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                    
+                    if simulate_response.status_code == 200:
+                        simulate_data = simulate_response.json()
+                        result = simulate_data.get('result', {})
+                        survivors = result.get('survivors', [])
+                        eliminated = result.get('eliminated', [])
+                        
+                        # Vérifier que les participants sont bien nos joueurs originaux
+                        participant_names = set()
+                        for survivor in survivors:
+                            participant_names.add(survivor.get('name'))
+                        for eliminated_player in eliminated:
+                            participant_names.add(eliminated_player.get('name'))
+                        
+                        if participant_names.issubset(generated_names):
+                            self.log_result("Identical Players Event Participation", True, 
+                                          f"✅ Événement simulé avec les mêmes joueurs: {len(participant_names)} participants")
+                        else:
+                            unexpected_names = participant_names - generated_names
+                            self.log_result("Identical Players Event Participation", False, 
+                                          f"Joueurs inattendus dans l'événement: {unexpected_names}")
+                    else:
+                        self.log_result("Identical Players Event Participation", False, 
+                                      f"Could not simulate event - HTTP {simulate_response.status_code}")
+                        
+                else:
+                    missing_names = generated_names - created_names
+                    extra_names = created_names - generated_names
+                    self.log_result("Identical Players Verification", False, 
+                                  f"Noms des joueurs ne correspondent pas. Manquants: {missing_names}, Extra: {extra_names}")
+                    
+            else:
+                self.log_result("Identical Players Verification", False, 
+                              f"Nombre de joueurs différent: généré {len(generated_players)}, créé {len(created_players)}")
+                
+        except Exception as e:
+            self.log_result("Identical Players with All Players Field", False, f"Error: {str(e)}")
+
     def test_agilite_field_correction(self):
         """Test REVIEW REQUEST 1: Vérifier que la route /api/games/{game_id}/final-ranking retourne bien 'agilité' dans player_stats"""
         try:
