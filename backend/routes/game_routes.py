@@ -506,6 +506,7 @@ async def get_realtime_updates(game_id: str):
         progress=progress,
         deaths=new_deaths,
         is_complete=is_complete,
+        is_paused=simulation.get("is_paused", False),
         final_result=final_result
     )
 
