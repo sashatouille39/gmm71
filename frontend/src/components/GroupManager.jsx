@@ -154,7 +154,14 @@ const GroupManager = ({ gameId = null, players, onGroupsCreated, onGroupsUpdated
     try {
       setLoading(true);
       
-      const response = await fetch(`${backendUrl}/api/games/${gameId}/groups/${groupId}`, {
+      let url;
+      if (gameId) {
+        url = `${backendUrl}/api/games/${gameId}/groups/${groupId}`;
+      } else {
+        url = `${backendUrl}/api/games/groups/preconfigured/${groupId}`;
+      }
+      
+      const response = await fetch(url, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -181,19 +188,29 @@ const GroupManager = ({ gameId = null, players, onGroupsCreated, onGroupsUpdated
     try {
       setLoading(true);
       
-      const response = await fetch(`${backendUrl}/api/games/${gameId}/groups/toggle-betrayals`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ allow_betrayals: allowBetrayals }),
-      });
+      if (gameId) {
+        const response = await fetch(`${backendUrl}/api/games/${gameId}/groups/toggle-betrayals`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ allow_betrayals: allowBetrayals }),
+        });
 
-      if (response.ok) {
-        await fetchGroups();
-        onGroupsUpdated && onGroupsUpdated();
+        if (response.ok) {
+          await fetchGroups();
+          onGroupsUpdated && onGroupsUpdated();
+        } else {
+          setError('Erreur lors de la mise à jour des trahisons');
+        }
       } else {
-        setError('Erreur lors de la mise à jour des trahisons');
+        // Pour les groupes pré-configurés, mettre à jour chacun individuellement
+        const updatePromises = groups.map(group => 
+          updateGroup(group.id, { allow_betrayals: allowBetrayals })
+        );
+        
+        await Promise.all(updatePromises);
+        await fetchGroups();
       }
     } catch (err) {
       setError('Erreur de connexion');
@@ -206,7 +223,14 @@ const GroupManager = ({ gameId = null, players, onGroupsCreated, onGroupsUpdated
     try {
       setLoading(true);
       
-      const response = await fetch(`${backendUrl}/api/games/${gameId}/groups`, {
+      let url;
+      if (gameId) {
+        url = `${backendUrl}/api/games/${gameId}/groups`;
+      } else {
+        url = `${backendUrl}/api/games/groups/preconfigured`;
+      }
+      
+      const response = await fetch(url, {
         method: 'DELETE',
       });
 
