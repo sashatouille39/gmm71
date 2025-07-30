@@ -4534,7 +4534,8 @@ class BackendTester:
         print(f"Backend URL: {BACKEND_URL}")
         print(f"API Base: {API_BASE}")
         print("=" * 80)
-        print("🎯 FOCUS: Testing preconfigured groups system as requested in French review")
+        print("🎯 FOCUS: Testing randomness improvements in event simulation as requested in French review")
+        print("🎯 SECONDARY: Testing preconfigured groups system")
         print("=" * 80)
         
         # Test de base pour vérifier que l'API fonctionne
