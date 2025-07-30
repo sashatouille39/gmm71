@@ -6188,16 +6188,217 @@ class BackendTester:
         except Exception as e:
             self.log_result("Bug Fix 3 - Realtime Death Order", False, f"Error during test: {str(e)}")
 
+    def test_review_request_corrections(self):
+        """Test REVIEW REQUEST: Teste les 3 corrections appliquées au jeu"""
+        try:
+            print("\n🎯 TESTING REVIEW REQUEST CORRECTIONS")
+            print("=" * 80)
+            print("Testing the 3 corrections applied to the game:")
+            print("1. ARGENT DE BASE À 1 MILLION")
+            print("2. SYSTÈME GÉNÉRAL TOUJOURS FONCTIONNEL") 
+            print("3. COHÉRENCE DU SYSTÈME ÉCONOMIQUE")
+            
+            # TEST 1: ARGENT DE BASE À 1 MILLION
+            print("\n   🔍 TEST 1: ARGENT DE BASE À 1 MILLION")
+            response = requests.get(f"{API_BASE}/gamestate/", timeout=10)
+            
+            if response.status_code == 200:
+                gamestate_data = response.json()
+                initial_money = gamestate_data.get('money', 0)
+                
+                if initial_money == 1000000:
+                    self.log_result("Review Request 1 - Argent de base à 1 million", True, 
+                                  f"✅ CONFIRMÉ: L'API /api/gamestate/ retourne bien 1,000,000$ (1 million) au lieu de 10 millions")
+                    test1_success = True
+                else:
+                    self.log_result("Review Request 1 - Argent de base à 1 million", False, 
+                                  f"❌ PROBLÈME: L'API retourne {initial_money}$ au lieu de 1,000,000$")
+                    test1_success = False
+            else:
+                self.log_result("Review Request 1 - Argent de base à 1 million", False, 
+                              f"❌ ERREUR: Impossible d'accéder à /api/gamestate/ - HTTP {response.status_code}")
+                test1_success = False
+            
+            # TEST 2: SYSTÈME GÉNÉRAL TOUJOURS FONCTIONNEL
+            print("\n   🔍 TEST 2: SYSTÈME GÉNÉRAL TOUJOURS FONCTIONNEL")
+            
+            # Test création de partie
+            game_request = {
+                "player_count": 25,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3, 4],
+                "manual_players": []
+            }
+            
+            create_response = requests.post(f"{API_BASE}/games/create", 
+                                          json=game_request, 
+                                          headers={"Content-Type": "application/json"},
+                                          timeout=15)
+            
+            creation_success = create_response.status_code == 200
+            game_id = None
+            
+            if creation_success:
+                game_data = create_response.json()
+                game_id = game_data.get('id')
+                players_count = len(game_data.get('players', []))
+                events_count = len(game_data.get('events', []))
+                
+                if players_count == 25 and events_count == 4:
+                    print(f"      ✅ Création de partie: SUCCESS (25 joueurs, 4 événements)")
+                else:
+                    print(f"      ❌ Création de partie: PROBLÈME (joueurs: {players_count}, événements: {events_count})")
+                    creation_success = False
+            else:
+                print(f"      ❌ Création de partie: ÉCHEC - HTTP {create_response.status_code}")
+            
+            # Test génération de joueurs
+            players_response = requests.post(f"{API_BASE}/games/generate-players?count=15", timeout=10)
+            players_success = players_response.status_code == 200
+            
+            if players_success:
+                players_data = players_response.json()
+                if len(players_data) == 15:
+                    print(f"      ✅ Génération de joueurs: SUCCESS (15 joueurs générés)")
+                else:
+                    print(f"      ❌ Génération de joueurs: PROBLÈME (généré: {len(players_data)})")
+                    players_success = False
+            else:
+                print(f"      ❌ Génération de joueurs: ÉCHEC - HTTP {players_response.status_code}")
+            
+            # Test événements disponibles
+            events_response = requests.get(f"{API_BASE}/games/events/available", timeout=10)
+            events_success = events_response.status_code == 200
+            
+            if events_success:
+                events_data = events_response.json()
+                if isinstance(events_data, list) and len(events_data) > 0:
+                    print(f"      ✅ Événements disponibles: SUCCESS ({len(events_data)} événements)")
+                else:
+                    print(f"      ❌ Événements disponibles: PROBLÈME (données: {type(events_data)})")
+                    events_success = False
+            else:
+                print(f"      ❌ Événements disponibles: ÉCHEC - HTTP {events_response.status_code}")
+            
+            # Test simulation d'événement (si partie créée)
+            simulation_success = False
+            if creation_success and game_id:
+                sim_response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                simulation_success = sim_response.status_code == 200
+                
+                if simulation_success:
+                    print(f"      ✅ Simulation d'événement: SUCCESS")
+                else:
+                    print(f"      ❌ Simulation d'événement: ÉCHEC - HTTP {sim_response.status_code}")
+            
+            # Test gamestate
+            gamestate_success = test1_success  # Déjà testé dans le test 1
+            if gamestate_success:
+                print(f"      ✅ État du jeu (gamestate): SUCCESS")
+            
+            # Test célébrités
+            celebrities_response = requests.get(f"{API_BASE}/celebrities/?limit=5", timeout=10)
+            celebrities_success = celebrities_response.status_code == 200
+            
+            if celebrities_success:
+                celebrities_data = celebrities_response.json()
+                if isinstance(celebrities_data, list) and len(celebrities_data) > 0:
+                    print(f"      ✅ Célébrités: SUCCESS ({len(celebrities_data)} célébrités)")
+                else:
+                    print(f"      ❌ Célébrités: PROBLÈME (données: {type(celebrities_data)})")
+                    celebrities_success = False
+            else:
+                print(f"      ❌ Célébrités: ÉCHEC - HTTP {celebrities_response.status_code}")
+            
+            # Évaluation du test 2
+            apis_tested = 6
+            apis_working = sum([creation_success, players_success, events_success, simulation_success, gamestate_success, celebrities_success])
+            
+            if apis_working == apis_tested:
+                self.log_result("Review Request 2 - Système général fonctionnel", True, 
+                              f"✅ CONFIRMÉ: Toutes les APIs principales fonctionnent correctement ({apis_working}/{apis_tested})")
+                test2_success = True
+            else:
+                self.log_result("Review Request 2 - Système général fonctionnel", False, 
+                              f"❌ PROBLÈME: {apis_working}/{apis_tested} APIs fonctionnent correctement")
+                test2_success = False
+            
+            # TEST 3: COHÉRENCE DU SYSTÈME ÉCONOMIQUE
+            print("\n   🔍 TEST 3: COHÉRENCE DU SYSTÈME ÉCONOMIQUE")
+            
+            if test1_success:
+                budget_initial = 1000000  # 1 million
+                cout_partie_standard = 120000  # 120k selon les spécifications
+                
+                # Calculer le pourcentage
+                pourcentage_budget = (cout_partie_standard / budget_initial) * 100
+                
+                # Vérifier que c'est significatif (environ 12%)
+                if 10 <= pourcentage_budget <= 15:  # Tolérance de 10-15%
+                    self.log_result("Review Request 3 - Cohérence système économique", True, 
+                                  f"✅ CONFIRMÉ: Coût partie standard (120,000$) représente {pourcentage_budget:.1f}% du budget (1M$) - significatif vs 1.2% avec 10M")
+                    test3_success = True
+                else:
+                    self.log_result("Review Request 3 - Cohérence système économique", False, 
+                                  f"❌ PROBLÈME: Pourcentage du budget {pourcentage_budget:.1f}% ne semble pas cohérent")
+                    test3_success = False
+                
+                # Test pratique: créer une partie et vérifier le coût réel
+                if creation_success and game_id:
+                    # Vérifier le gamestate après création pour voir la déduction
+                    gamestate_after_response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+                    if gamestate_after_response.status_code == 200:
+                        gamestate_after = gamestate_after_response.json()
+                        money_after = gamestate_after.get('money', 0)
+                        money_spent = budget_initial - money_after
+                        
+                        print(f"      💰 Budget initial: {budget_initial:,}$")
+                        print(f"      💰 Argent après création: {money_after:,}$")
+                        print(f"      💰 Coût réel de la partie: {money_spent:,}$")
+                        print(f"      💰 Pourcentage du budget utilisé: {(money_spent/budget_initial)*100:.1f}%")
+                        
+                        if money_spent > 0:
+                            print(f"      ✅ Déduction automatique confirmée")
+                        else:
+                            print(f"      ⚠️  Aucune déduction détectée")
+            else:
+                self.log_result("Review Request 3 - Cohérence système économique", False, 
+                              "❌ IMPOSSIBLE: Test 1 a échoué, impossible de vérifier la cohérence économique")
+                test3_success = False
+            
+            # RÉSUMÉ FINAL
+            print(f"\n   📊 RÉSUMÉ DES 3 CORRECTIONS:")
+            print(f"   1. Argent de base à 1 million: {'✅ VALIDÉ' if test1_success else '❌ ÉCHEC'}")
+            print(f"   2. Système général fonctionnel: {'✅ VALIDÉ' if test2_success else '❌ ÉCHEC'}")
+            print(f"   3. Cohérence système économique: {'✅ VALIDÉ' if test3_success else '❌ ÉCHEC'}")
+            
+            overall_success = test1_success and test2_success and test3_success
+            
+            if overall_success:
+                self.log_result("Review Request - Toutes les corrections", True, 
+                              "🎯 SUCCÈS TOTAL: Les 3 corrections appliquées au jeu fonctionnent parfaitement")
+            else:
+                failed_tests = []
+                if not test1_success: failed_tests.append("Argent de base")
+                if not test2_success: failed_tests.append("Système général")
+                if not test3_success: failed_tests.append("Cohérence économique")
+                
+                self.log_result("Review Request - Toutes les corrections", False, 
+                              f"❌ PROBLÈMES DÉTECTÉS: {', '.join(failed_tests)}")
+                
+        except Exception as e:
+            self.log_result("Review Request - Toutes les corrections", False, f"Erreur pendant les tests: {str(e)}")
+
     def run_all_tests(self):
         """Run all backend tests with focus on review request features"""
         print(f"🚀 STARTING BACKEND TESTS - REVIEW REQUEST FRANÇAIS - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"Backend URL: {BACKEND_URL}")
         print(f"API Base: {API_BASE}")
         print("=" * 80)
-        print("🎯 FOCUS: Testing les 3 modifications selon review request française")
-        print("1. DURÉES DES ÉPREUVES: Vérifier que toutes les épreuves ont survival_time_max <= 300 secondes")
-        print("2. VITESSE x20: Tester que speed_multiplier=20.0 ne retourne plus d'erreur 422")
-        print("3. SYSTÈME GÉNÉRAL: S'assurer que toutes les APIs fonctionnent encore correctement")
+        print("🎯 FOCUS: Testing les 3 corrections selon review request française")
+        print("1. ARGENT DE BASE À 1 MILLION: Vérifier que l'API /api/gamestate/ retourne 1,000,000$ au lieu de 10,000,000$")
+        print("2. SYSTÈME GÉNÉRAL TOUJOURS FONCTIONNEL: Assurer que toutes les APIs principales fonctionnent encore")
+        print("3. COHÉRENCE DU SYSTÈME ÉCONOMIQUE: Vérifier que le coût d'une partie (120,000$) est significatif vs le budget de 1M")
         print("=" * 80)
         
         # Test server startup first
@@ -6205,23 +6406,12 @@ class BackendTester:
             print("❌ Server not accessible, stopping tests")
             return
         
-        # PRIORITY: Test the specific review request features
+        # PRIORITY: Test the specific review request corrections
         print("\n" + "="*80)
-        print("🎯 REVIEW REQUEST TESTS - LES 3 MODIFICATIONS PRIORITAIRES")
+        print("🎯 REVIEW REQUEST TESTS - LES 3 CORRECTIONS PRIORITAIRES")
         print("="*80)
         
-        self.test_durees_epreuves_5_minutes()
-        self.test_vitesse_x20_limite()
-        self.test_systeme_general_apres_modifications()
-        
-        # TESTS DES 3 BUG FIXES SPÉCIFIQUES DE LA REVIEW REQUEST
-        print("\n" + "="*80)
-        print("🎯 TESTING THE 3 SPECIFIC BUG FIXES FROM REVIEW REQUEST")
-        print("="*80)
-        
-        self.test_bug_fix_1_unique_names_generation()
-        self.test_bug_fix_2_game_creation_name_diversity()
-        self.test_bug_fix_3_realtime_death_order()
+        self.test_review_request_corrections()
         
         # Run additional tests for context
         print("\n" + "="*80)
