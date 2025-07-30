@@ -67,7 +67,7 @@ const Statistics = ({ gameState }) => {
   const realGames = detailedStats?.completed_games || [];
   const realStats = {
     games: realGames,
-    topEvents: detailedStats?.event_statistics || {},
+    topEvents: detailedStats?.event_statistics || [],
     achievements: [
       { 
         name: 'Premier sang', 
