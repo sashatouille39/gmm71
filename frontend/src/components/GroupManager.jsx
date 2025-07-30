@@ -279,14 +279,33 @@ const GroupManager = ({ gameId = null, players, onGroupsCreated, onGroupsUpdated
             <div className="text-center py-8">
               <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600 mb-4">Aucun groupe créé</p>
-              <Button 
-                onClick={() => setShowCreateForm(true)}
-                disabled={loading || alivePlayers.length < 4}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                Créer des groupes
-              </Button>
-              {alivePlayers.length < 4 && (
+              <div className="flex gap-3 justify-center">
+                {gameId ? (
+                  // Mode partie: création automatique
+                  <Button 
+                    onClick={() => setShowCreateForm(true)}
+                    disabled={loading || alivePlayers.length < 4}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Créer automatiquement
+                  </Button>
+                ) : (
+                  // Mode pré-configuration: création manuelle
+                  <Button 
+                    onClick={() => setShowManualCreation(true)}
+                    disabled={loading || players.length < 2}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Créer des groupes
+                  </Button>
+                )}
+              </div>
+              {(!gameId && players.length < 2) && (
+                <p className="text-sm text-red-600 mt-2">
+                  Minimum 2 joueurs requis pour créer des groupes
+                </p>
+              )}
+              {(gameId && alivePlayers.length < 4) && (
                 <p className="text-sm text-red-600 mt-2">
                   Minimum 4 joueurs vivants requis pour créer des groupes
                 </p>
