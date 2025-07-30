@@ -107,90 +107,47 @@ function App() {
 
   const startNewGame = async (players, selectedEvents, gameOptions = {}) => {
     try {
-      // Créer la partie via l'API backend
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
-      
-      // Séparer les joueurs manuels des autres
-      const manualPlayers = players.filter(p => p.isCustom || p.isCelebrity);
-      const playerCount = players.length;
-      
-      // Préparer les données pour l'API backend
-      const gameRequest = {
-        player_count: playerCount,
-        manual_players: manualPlayers.map(player => ({
-          name: player.name,
-          nationality: player.nationality,
-          gender: player.gender,
-          role: player.role,
-          stats: player.stats,
-          portrait: player.portrait,
-          uniform: player.uniform || {
-            style: 'Standard',
-            color: '#FF0000',
-            pattern: 'Uni'
-          }
-        })),
-        selected_events: gameOptions.selectedEventIds || selectedEvents.map(event => event.id),
-        game_mode: gameOptions.gameMode || 'standard',
-        preserve_event_order: gameOptions.preserveEventOrder !== undefined ? gameOptions.preserveEventOrder : true
-      };
+      // Si une partie a déjà été créée (gameId fourni), récupérer les données de cette partie
+      if (gameOptions.gameId) {
+        const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+        const response = await fetch(`${backendUrl}/api/games/${gameOptions.gameId}`);
+        
+        if (!response.ok) {
+          throw new Error(`Erreur lors de la récupération de la partie: ${response.status}`);
+        }
 
-      const response = await fetch(`${backendUrl}/api/games/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(gameRequest)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || `Erreur API: ${response.status}`);
+        const game = await response.json();
+        
+        // Adapter le format de jeu pour le frontend
+        setCurrentGame({
+          id: game.id,
+          players: game.players,
+          events: game.events,
+          currentEventIndex: game.current_event_index || 0,
+          start_time: game.start_time,
+          completed: game.completed || false,
+          winner: game.winner || null,
+          earnings: game.earnings || 0,
+          total_cost: game.total_cost || 0,
+          event_results: game.event_results || []
+        });
+        
+        // Recharger le gameState depuis le backend
+        await loadGameStateFromBackend();
+        
+        console.log('Partie récupérée avec succès:', {
+          id: game.id,
+          playersCount: game.players.length,
+          eventsCount: game.events.length,
+          totalCost: game.total_cost
+        });
+      } else {
+        // Ancienne logique de fallback si pas de gameId (ne devrait pas arriver)
+        console.error('Aucun gameId fourni - la partie doit être créée avant d\'appeler startNewGame');
       }
-
-      const game = await response.json();
-      
-      // Adapter le format de jeu pour le frontend
-      setCurrentGame({
-        id: game.id,
-        players: game.players,
-        events: game.events,
-        currentEventIndex: game.current_event_index || 0,
-        start_time: game.start_time,
-        completed: game.completed || false,
-        winner: game.winner || null,
-        earnings: game.earnings || 0,
-        total_cost: game.total_cost || 0,
-        event_results: game.event_results || []
-      });
-      
-      // IMPORTANT: Recharger le gameState depuis le backend après création
-      // car le backend a automatiquement déduit l'argent
-      await loadGameStateFromBackend();
-      
-      console.log('Partie créée avec succès:', {
-        id: game.id,
-        playersCount: game.players.length,
-        eventsCount: game.events.length,
-        totalCost: game.total_cost,
-        preserveOrder: gameRequest.preserve_event_order
-      });
       
     } catch (error) {
-      console.error('Erreur lors de la création de la partie:', error);
-      alert(`Erreur lors de la création de la partie: ${error.message}`);
-      
-      // Fallback vers création locale en cas d'erreur
-      setCurrentGame({
-        id: `local_${Date.now()}`,
-        players,
-        events: selectedEvents,
-        currentEventIndex: 0,
-        start_time: new Date(),
-        completed: false,
-        total_cost: 0,
-        earnings: 0
-      });
+      console.error('Erreur lors du démarrage de la partie:', error);
     }
   };
 
