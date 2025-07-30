@@ -90,12 +90,31 @@ const VipSalon = ({ gameState, updateGameState }) => {
   const [currentVips, setCurrentVips] = useState([]);
   const [loadingVips, setLoadingVips] = useState(false);
   const [allVips, setAllVips] = useState([]);
+  const [pastWinners, setPastWinners] = useState([]);
+  const [loadingWinners, setLoadingWinners] = useState(false);
 
-  // Charger les VIPs lors du montage du composant
+  // Charger les VIPs et les gagnants lors du montage du composant
   useEffect(() => {
     loadSalonVips();
     loadAllVips();
+    loadPastWinners();
   }, [gameState.vipSalonLevel]);
+
+  const loadPastWinners = async () => {
+    try {
+      setLoadingWinners(true);
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      const response = await fetch(`${backendUrl}/api/statistics/winners`);
+      if (response.ok) {
+        const winners = await response.json();
+        setPastWinners(winners);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des gagnants:', error);
+    } finally {
+      setLoadingWinners(false);
+    }
+  };
 
   const loadSalonVips = async () => {
     try {
