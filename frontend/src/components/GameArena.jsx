@@ -716,7 +716,9 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
                       </div>
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-400">2 minutes</span>
+                        <span className="text-gray-400">
+                          {Math.round(currentEvent.survival_time_min/60)}-{Math.round(currentEvent.survival_time_max/60)} minutes
+                        </span>
                       </div>
                     </div>
                   </div>
