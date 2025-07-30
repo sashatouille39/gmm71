@@ -5202,15 +5202,16 @@ class BackendTester:
             self.log_result("Real-time Simulation Edge Cases", False, f"Error during test: {str(e)}")
 
     def run_all_tests(self):
-        """Run all backend tests with focus on French user corrections"""
-        print(f"🚀 STARTING BACKEND TESTS - FRENCH USER CORRECTIONS - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        """Run all backend tests with focus on real-time simulation system"""
+        print(f"🚀 STARTING BACKEND TESTS - REAL-TIME SIMULATION SYSTEM - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"Backend URL: {BACKEND_URL}")
         print(f"API Base: {API_BASE}")
         print("=" * 80)
-        print("🎯 FOCUS: Testing 3 specific corrections requested by French user")
-        print("1. Test création de partie - API /api/games/create with gameId return")
-        print("2. Test suppression modes de jeu - Only 'standard' mode available")
-        print("3. Test limite génération joueurs - API /api/games/generate-players with count parameter")
+        print("🎯 FOCUS: Testing new real-time event simulation routes requested by French user")
+        print("1. POST /api/games/{game_id}/simulate-event-realtime - Start real-time simulation")
+        print("2. GET /api/games/{game_id}/realtime-updates - Get real-time updates")
+        print("3. POST /api/games/{game_id}/update-simulation-speed - Change simulation speed")
+        print("4. DELETE /api/games/{game_id}/stop-simulation - Stop simulation")
         print("=" * 80)
         
         # Test server startup first
@@ -5218,8 +5219,14 @@ class BackendTester:
             print("❌ Server not accessible, stopping tests")
             return
         
-        # PRIORITY: Test the 3 specific French user corrections first
-        self.test_french_user_corrections()
+        # PRIORITY: Test the new real-time simulation system
+        print("\n" + "="*80)
+        print("🎯 REAL-TIME SIMULATION SYSTEM TESTS - REVIEW REQUEST FRANÇAIS")
+        print("="*80)
+        
+        self.test_realtime_simulation_system()
+        self.test_realtime_death_messages()
+        self.test_realtime_simulation_edge_cases()
         
         # Run additional basic tests for context
         print("\n" + "="*80)
@@ -5228,6 +5235,12 @@ class BackendTester:
         
         self.test_basic_routes()
         self.test_game_events_available()
+        self.test_generate_players()
+        
+        # Test game creation for context
+        game_id = self.test_create_game()
+        if game_id:
+            self.test_simulate_event(game_id)
         
         # Check backend logs
         self.check_backend_logs()
