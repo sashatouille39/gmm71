@@ -386,7 +386,7 @@ class EventsService:
                 "Empoisonnement par vapeurs",
                 "Panique, crise cardiaque dans tunnel"
             ],
-            survival_time_min=180, survival_time_max=360,
+            survival_time_min=120, survival_time_max=300,
             elimination_rate=0.3,
             special_mechanics=["Espaces confinés", "Gaz toxique"]
         ),
