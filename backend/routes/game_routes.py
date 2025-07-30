@@ -297,7 +297,7 @@ async def simulate_event(game_id: str):
                     
                     # Récupérer le classement final pour les statistiques
                     try:
-                        final_ranking_response = get_final_ranking(game_id)
+                        final_ranking_response = await get_final_ranking(game_id)
                         final_ranking = final_ranking_response.get('ranking', [])
                     except:
                         final_ranking = []
