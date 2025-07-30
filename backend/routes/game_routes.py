@@ -89,6 +89,7 @@ async def create_game(request: GameCreateRequest):
                     role=selected_role,
                     stats=stats,
                     portrait=GameService._generate_portrait(nationality_key),
+                    uniform=GameService._generate_uniform(),
                     alive=True,
                     health=100,
                     total_score=stats.intelligence + stats.force + stats.agilité
