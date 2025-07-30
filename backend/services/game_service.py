@@ -567,32 +567,47 @@ class GameService:
             # Malus de difficulté
             difficulty_malus = (event.difficulty - 5) * 0.5
             
-            # Score de base + bonus - malus + facteur aléatoire RENFORCÉ
-            survival_score = stat_bonus + (role_bonus * 10) + group_bonus - difficulty_malus + random.uniform(0, 15)
+            # Score de base + bonus - malus + facteur aléatoire RENFORCÉ (augmenté de 0-15 à 0-25)
+            survival_score = stat_bonus + (role_bonus * 10) + group_bonus - difficulty_malus + random.uniform(0, 25)
             
             player_scores.append((player, survival_score))
         
         # Trier par score de survie (les meilleurs en premier)
         player_scores.sort(key=lambda x: x[1], reverse=True)
         
-        # Mélange aléatoire des joueurs ayant des scores très similaires (écart < 2 points)
-        # pour éviter que les numéros se suivent
+        # AMÉLIORATION MAJEURE: Mélange aléatoire plus agressif des joueurs ayant des scores similaires
+        # Augmentation de l'écart de 2 à 4 points pour plus de mélange
         final_scores = []
         i = 0
         while i < len(player_scores):
-            # Grouper les joueurs avec des scores similaires
+            # Grouper les joueurs avec des scores similaires (écart augmenté à 4 points)
             similar_group = [player_scores[i]]
             j = i + 1
-            while j < len(player_scores) and abs(player_scores[j][1] - player_scores[i][1]) < 2.0:
+            while j < len(player_scores) and abs(player_scores[j][1] - player_scores[i][1]) < 4.0:
                 similar_group.append(player_scores[j])
                 j += 1
             
-            # Mélanger aléatoirement ce groupe
-            random.shuffle(similar_group)
+            # Mélanger aléatoirement ce groupe PLUSIEURS FOIS pour plus de randomness
+            for _ in range(3):  # Triple mélange pour plus d'aléatoire
+                random.shuffle(similar_group)
+            
             final_scores.extend(similar_group)
             i = j
         
         player_scores = final_scores
+        
+        # NOUVEAU: Mélange final supplémentaire pour briser les patterns restants
+        # Diviser en chunks et mélanger chaque chunk
+        chunk_size = max(5, len(player_scores) // 10)  # Chunks de 5 minimum ou 10% des joueurs
+        final_mixed_scores = []
+        
+        for chunk_start in range(0, len(player_scores), chunk_size):
+            chunk_end = min(chunk_start + chunk_size, len(player_scores))
+            chunk = player_scores[chunk_start:chunk_end]
+            random.shuffle(chunk)
+            final_mixed_scores.extend(chunk)
+        
+        player_scores = final_mixed_scores
         
         # Sélectionner exactement target_survivors survivants (les meilleurs)
         survivors_selected = player_scores[:target_survivors]
