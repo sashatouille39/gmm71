@@ -874,17 +874,12 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
                         Éliminations en direct
                       </h3>
                       <div className="max-h-32 overflow-y-auto space-y-2">
-                        {realtimeDeaths.slice(-5).map((death, index) => (
+                        {realtimeDeaths.map((death, index) => (
                           <div key={index} className="text-sm text-gray-300 p-2 bg-red-900/10 rounded border-l-2 border-red-500">
                             💀 {death.message}
                           </div>
                         ))}
                       </div>
-                      {realtimeDeaths.length > 5 && (
-                        <div className="text-xs text-gray-500 mt-2">
-                          ... et {realtimeDeaths.length - 5} autres éliminations
-                        </div>
-                      )}
                     </div>
                   )}
 
