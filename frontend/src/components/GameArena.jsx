@@ -273,6 +273,54 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
     }
   };
 
+  // Fonction pour mettre en pause la simulation
+  const pauseSimulation = async () => {
+    if (!isPlaying || isPaused) return;
+    
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      const response = await fetch(`${backendUrl}/api/games/${currentGame.id}/pause-simulation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (response.ok) {
+        setIsPaused(true);
+        console.log('Simulation mise en pause');
+      } else {
+        console.error('Erreur lors de la mise en pause:', response.status);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la mise en pause:', error);
+    }
+  };
+
+  // Fonction pour reprendre la simulation
+  const resumeSimulation = async () => {
+    if (!isPlaying || !isPaused) return;
+    
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      const response = await fetch(`${backendUrl}/api/games/${currentGame.id}/resume-simulation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (response.ok) {
+        setIsPaused(false);
+        console.log('Simulation reprise');
+      } else {
+        console.error('Erreur lors de la reprise:', response.status);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la reprise:', error);
+    }
+  };
+
   // Nettoyer l'interval si le composant est démonté
   useEffect(() => {
     return () => {
