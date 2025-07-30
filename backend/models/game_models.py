@@ -114,6 +114,21 @@ class EventResult(BaseModel):
     eliminated: List[Dict[str, Any]]
     total_participants: int
 
+class RealtimeEventUpdate(BaseModel):
+    """Mise à jour en temps réel d'un événement"""
+    event_id: int
+    event_name: str
+    elapsed_time: float  # Temps écoulé en secondes
+    total_duration: float  # Durée totale en secondes
+    progress: float  # Pourcentage de progression (0-100)
+    deaths: List[Dict[str, Any]]  # Nouvelles morts depuis la dernière mise à jour
+    is_complete: bool = False
+    final_result: Optional[EventResult] = None
+
+class RealtimeSimulationRequest(BaseModel):
+    """Demande de simulation en temps réel"""
+    speed_multiplier: float = Field(default=1.0, ge=0.1, le=10.0)  # Vitesse de simulation
+
 class Game(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     players: List[Player]
