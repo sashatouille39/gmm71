@@ -476,51 +476,102 @@ const Statistics = ({ gameState }) => {
 
           {/* Analyses */}
           <TabsContent value="analytics" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-black/50 border-red-500/30">
-                <CardHeader>
-                  <CardTitle className="text-white">Tendances temporelles</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-64 bg-gray-800/30 rounded-lg flex items-center justify-center">
-                    <div className="text-center text-gray-400">
-                      <TrendingUp className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                      <p>Graphique des performances</p>
-                      <p className="text-xs">(Données en temps réel)</p>
+            {isLoading ? (
+              <div className="text-center py-12 text-gray-400">
+                <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p>Chargement des analyses...</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="bg-black/50 border-red-500/30">
+                  <CardHeader>
+                    <CardTitle className="text-white">Tendances temporelles</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-64 bg-gray-800/30 rounded-lg p-4">
+                      {realGames.length > 0 ? (
+                        <div className="space-y-3">
+                          <div className="text-sm text-gray-400 mb-4">Évolution des gains par partie</div>
+                          {realGames.slice(-10).map((game, index) => (
+                            <div key={game.id} className="flex justify-between items-center">
+                              <span className="text-xs text-gray-400">Partie #{game.id.slice(-4)}</span>
+                              <div className="flex items-center gap-2">
+                                <div 
+                                  className="bg-red-500 h-2 rounded"
+                                  style={{ 
+                                    width: `${Math.max(10, (game.earnings / 50000) * 100)}px` 
+                                  }}
+                                ></div>
+                                <span className="text-xs text-green-400">${game.earnings.toLocaleString()}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center text-gray-400 h-full flex items-center justify-center flex-col">
+                          <TrendingUp className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                          <p>Aucune donnée disponible</p>
+                          <p className="text-xs">Jouez des parties pour voir les tendances</p>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              <Card className="bg-black/50 border-red-500/30">
-                <CardHeader>
-                  <CardTitle className="text-white">Analyses des rôles</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {Object.entries({
-                      'Le Zéro': { appearances: 2, survival: 100, color: 'text-purple-400' },
-                      'L\'Intelligent': { appearances: 47, survival: 72, color: 'text-blue-400' },
-                      'Sportif': { appearances: 89, survival: 45, color: 'text-green-400' },
-                      'La Brute': { appearances: 92, survival: 38, color: 'text-red-400' },
-                      'Peureux': { appearances: 78, survival: 12, color: 'text-gray-400' },
-                      'Normal': { appearances: 534, survival: 28, color: 'text-white' }
-                    }).map(([role, stats]) => (
-                      <div key={role} className="flex justify-between items-center p-2 bg-gray-800/20 rounded">
-                        <div>
-                          <span className={`font-medium ${stats.color}`}>{role}</span>
-                          <div className="text-xs text-gray-400">{stats.appearances} apparitions</div>
-                        </div>
-                        <div className="text-right">
-                          <div className={stats.color}>{stats.survival}%</div>
-                          <div className="text-xs text-gray-400">survie</div>
-                        </div>
+                <Card className="bg-black/50 border-red-500/30">
+                  <CardHeader>
+                    <CardTitle className="text-white">Analyses des rôles</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {roleStats.length > 0 ? (
+                      <div className="space-y-4">
+                        {roleStats.map((roleData) => {
+                          const roleDisplayNames = {
+                            'normal': 'Normal',
+                            'sportif': 'Sportif',
+                            'intelligent': 'L\'Intelligent',
+                            'brute': 'La Brute',
+                            'peureux': 'Peureux',
+                            'zero': 'Le Zéro'
+                          };
+                          
+                          const roleColors = {
+                            'normal': 'text-white',
+                            'sportif': 'text-green-400',
+                            'intelligent': 'text-blue-400',
+                            'brute': 'text-red-400',
+                            'peureux': 'text-gray-400',
+                            'zero': 'text-purple-400'
+                          };
+                          
+                          const displayName = roleDisplayNames[roleData.role] || roleData.role;
+                          const color = roleColors[roleData.role] || 'text-white';
+                          
+                          return (
+                            <div key={roleData.role} className="flex justify-between items-center p-2 bg-gray-800/20 rounded">
+                              <div>
+                                <span className={`font-medium ${color}`}>{displayName}</span>
+                                <div className="text-xs text-gray-400">{roleData.appearances} apparitions</div>
+                              </div>
+                              <div className="text-right">
+                                <div className={color}>{roleData.survival_rate}%</div>
+                                <div className="text-xs text-gray-400">survie</div>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-400">
+                        <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                        <p>Aucune donnée de rôle disponible</p>
+                        <p className="text-xs">Terminez des parties pour voir les statistiques</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
