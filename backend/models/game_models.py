@@ -128,7 +128,7 @@ class RealtimeEventUpdate(BaseModel):
 
 class RealtimeSimulationRequest(BaseModel):
     """Demande de simulation en temps réel"""
-    speed_multiplier: float = Field(default=1.0, ge=0.1, le=10.0)  # Vitesse de simulation
+    speed_multiplier: float = Field(default=1.0, ge=0.1, le=20.0)  # Vitesse de simulation
 
 class Game(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
