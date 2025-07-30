@@ -536,7 +536,7 @@ class EventsService:
                 "Dévoré par requins après chute",
                 "Glissade, coup mortel contre bord"
             ],
-            survival_time_min=180, survival_time_max=360,
+            survival_time_min=120, survival_time_max=300,
             elimination_rate=0.5,
             special_mechanics=["Glace fragile", "Requins en dessous"]
         ),
