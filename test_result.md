@@ -661,7 +661,7 @@
 
 ## test_plan:
   current_focus:
-    - "Système de groupes pré-configurés"
+    - "Amélioration de l'aléatoire dans la simulation d'événements"
   stuck_tasks:
     - "Intégration MongoDB"
   test_all: false
