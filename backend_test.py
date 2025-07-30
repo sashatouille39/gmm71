@@ -3914,7 +3914,7 @@ class BackendTester:
         print(f"Backend URL: {BACKEND_URL}")
         print(f"API Base: {API_BASE}")
         print("=" * 80)
-        print("🎯 FOCUS: Testing payment system synchronization as requested in French review")
+        print("🎯 FOCUS: Testing group system as requested in French review")
         print("=" * 80)
         
         # Test de base pour vérifier que l'API fonctionne
@@ -3922,8 +3922,9 @@ class BackendTester:
             print("❌ Server startup failed - stopping tests")
             return
         
-        # TEST PRINCIPAL: Système de synchronisation des paiements selon la review request
-        self.test_payment_system_synchronization()
+        # TESTS PRINCIPAUX: Système de groupes selon la review request
+        self.test_group_system_comprehensive()
+        self.test_group_cooperation_logic()
         
         # Tests complémentaires pour valider le contexte
         self.test_basic_routes()
