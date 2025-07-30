@@ -85,12 +85,11 @@ const GameSetup = ({ gameState, onStartGame }) => {
     try {
       // Appel de l'API backend pour générer les joueurs avec des noms authentiques
       const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
-      const response = await fetch(`${backendUrl}/api/games/generate-players`, {
+      const response = await fetch(`${backendUrl}/api/games/generate-players?count=${playerCount}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ count: playerCount })
+        }
       });
 
       if (!response.ok) {
