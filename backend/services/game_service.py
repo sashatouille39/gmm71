@@ -567,8 +567,8 @@ class GameService:
             # Malus de difficulté
             difficulty_malus = (event.difficulty - 5) * 0.5
             
-            # Score de base + bonus - malus + facteur aléatoire
-            survival_score = stat_bonus + (role_bonus * 10) + group_bonus - difficulty_malus + random.uniform(0, 5)
+            # Score de base + bonus - malus + facteur aléatoire RENFORCÉ
+            survival_score = stat_bonus + (role_bonus * 10) + group_bonus - difficulty_malus + random.uniform(0, 15)
             
             player_scores.append((player, survival_score))
         
