@@ -848,9 +848,9 @@
 
 ## test_plan:
   current_focus:
-    - "Route de simulation en temps réel"
-    - "Route de mises à jour temps réel"
-    - "Route d'arrêt de simulation"
+    - "Durées des épreuves limitées à 5 minutes"
+    - "Limite de vitesse x20 en simulation temps réel"
+    - "Vérification système général après modifications"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
