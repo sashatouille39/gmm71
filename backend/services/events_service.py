@@ -80,7 +80,7 @@ class EventsService:
                 "Étranglement par fil de fer",
                 "Brûlure au fer rouge"
             ],
-            survival_time_min=300, survival_time_max=600,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.3,
             special_mechanics=["Précision requise", "Limite de temps"]
         ),
