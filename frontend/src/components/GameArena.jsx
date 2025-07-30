@@ -36,6 +36,7 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
   const [currentEventDuration, setCurrentEventDuration] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [simulationInterval, setSimulationInterval] = useState(null);
+  const [isPaused, setIsPaused] = useState(false); // Nouvel état pour la pause
 
   // Options de vitesse disponibles
   const speedOptions = [
