@@ -1235,7 +1235,7 @@ class EventsService:
                 "Sacrifice héroïque pour sauver autres",
                 "Transcendance mortelle vers autre dimension"
             ],
-            survival_time_min=1800, survival_time_max=3000,
+            survival_time_min=180, survival_time_max=300,
             elimination_rate=0.99,  # Finale: Élimine tous sauf 1
             special_mechanics=["Tous les défis combinés", "Épreuve ultime"],
             is_final=True,
