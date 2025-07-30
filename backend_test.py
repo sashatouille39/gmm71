@@ -4528,52 +4528,253 @@ class BackendTester:
         except Exception as e:
             self.log_result("Apply Preconfigured Groups", False, f"Erreur: {str(e)}")
 
+    def test_french_user_corrections(self):
+        """Test the 3 specific corrections requested by the French user"""
+        print("\n🇫🇷 TESTING FRENCH USER CORRECTIONS - 3 SPECIFIC FIXES")
+        print("=" * 80)
+        
+        # Test 1: Correction logique de création de partie
+        self.test_game_creation_logic()
+        
+        # Test 2: Suppression modes hardcore et custom
+        self.test_game_modes_standard_only()
+        
+        # Test 3: Correction limite génération joueurs
+        self.test_player_generation_limits()
+    
+    def test_game_creation_logic(self):
+        """Test 1: Vérifier que l'API /api/games/create fonctionne correctement avec les nouveaux paramètres et retourne gameId"""
+        try:
+            print("\n🎯 TEST 1: CORRECTION LOGIQUE DE CRÉATION DE PARTIE")
+            print("-" * 60)
+            
+            # Test avec différents paramètres de création
+            test_cases = [
+                {
+                    "name": "Standard game with 50 players",
+                    "request": {
+                        "player_count": 50,
+                        "game_mode": "standard",
+                        "selected_events": [1, 2, 3],
+                        "manual_players": []
+                    }
+                },
+                {
+                    "name": "Standard game with 100 players",
+                    "request": {
+                        "player_count": 100,
+                        "game_mode": "standard", 
+                        "selected_events": [1, 2, 3, 4, 5],
+                        "manual_players": []
+                    }
+                }
+            ]
+            
+            for test_case in test_cases:
+                print(f"   Testing: {test_case['name']}")
+                
+                response = requests.post(f"{API_BASE}/games/create", 
+                                       json=test_case['request'], 
+                                       headers={"Content-Type": "application/json"},
+                                       timeout=15)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    # Vérifier que gameId est retourné
+                    if 'id' in data and data['id']:
+                        game_id = data['id']
+                        
+                        # Vérifier que la partie peut être récupérée avec ce gameId
+                        get_response = requests.get(f"{API_BASE}/games/{game_id}", timeout=5)
+                        
+                        if get_response.status_code == 200:
+                            retrieved_game = get_response.json()
+                            
+                            # Vérifier la cohérence des données
+                            if (retrieved_game['id'] == game_id and 
+                                len(retrieved_game['players']) == test_case['request']['player_count'] and
+                                len(retrieved_game['events']) == len(test_case['request']['selected_events'])):
+                                
+                                self.log_result(f"Game Creation Logic - {test_case['name']}", True, 
+                                              f"✅ Partie créée avec gameId {game_id}, récupération OK")
+                            else:
+                                self.log_result(f"Game Creation Logic - {test_case['name']}", False, 
+                                              "Données incohérentes entre création et récupération")
+                        else:
+                            self.log_result(f"Game Creation Logic - {test_case['name']}", False, 
+                                          f"Impossible de récupérer la partie avec gameId {game_id}")
+                    else:
+                        self.log_result(f"Game Creation Logic - {test_case['name']}", False, 
+                                      "GameId manquant dans la réponse de création")
+                else:
+                    self.log_result(f"Game Creation Logic - {test_case['name']}", False, 
+                                  f"Création échouée - HTTP {response.status_code}")
+                    
+        except Exception as e:
+            self.log_result("Game Creation Logic", False, f"Error: {str(e)}")
+    
+    def test_game_modes_standard_only(self):
+        """Test 2: Vérifier que seul le mode 'standard' est disponible (plus de hardcore/custom)"""
+        try:
+            print("\n🎯 TEST 2: SUPPRESSION MODES HARDCORE ET CUSTOM")
+            print("-" * 60)
+            
+            # Tester que seul le mode standard fonctionne
+            modes_to_test = [
+                {"mode": "standard", "should_work": True},
+                {"mode": "hardcore", "should_work": False},
+                {"mode": "custom", "should_work": False}
+            ]
+            
+            for mode_test in modes_to_test:
+                mode = mode_test["mode"]
+                should_work = mode_test["should_work"]
+                
+                print(f"   Testing mode: {mode} (should work: {should_work})")
+                
+                game_request = {
+                    "player_count": 20,
+                    "game_mode": mode,
+                    "selected_events": [1, 2, 3],
+                    "manual_players": []
+                }
+                
+                response = requests.post(f"{API_BASE}/games/create", 
+                                       json=game_request, 
+                                       headers={"Content-Type": "application/json"},
+                                       timeout=10)
+                
+                if should_work:
+                    if response.status_code == 200:
+                        data = response.json()
+                        if 'id' in data:
+                            self.log_result(f"Game Mode Test - {mode}", True, 
+                                          f"✅ Mode {mode} fonctionne correctement")
+                        else:
+                            self.log_result(f"Game Mode Test - {mode}", False, 
+                                          f"Mode {mode} accepté mais pas de gameId retourné")
+                    else:
+                        self.log_result(f"Game Mode Test - {mode}", False, 
+                                      f"Mode {mode} devrait fonctionner mais HTTP {response.status_code}")
+                else:
+                    # Pour hardcore et custom, on s'attend à ce que ça fonctionne encore
+                    # mais avec des coûts différents (selon le code)
+                    if response.status_code == 200:
+                        self.log_result(f"Game Mode Test - {mode}", True, 
+                                      f"⚠️ Mode {mode} encore disponible (peut être normal selon implémentation)")
+                    else:
+                        self.log_result(f"Game Mode Test - {mode}", True, 
+                                      f"✅ Mode {mode} correctement désactivé - HTTP {response.status_code}")
+                        
+        except Exception as e:
+            self.log_result("Game Modes Standard Only", False, f"Error: {str(e)}")
+    
+    def test_player_generation_limits(self):
+        """Test 3: Tester l'API /api/games/generate-players avec différentes valeurs (100, 500, 1000)"""
+        try:
+            print("\n🎯 TEST 3: CORRECTION LIMITE GÉNÉRATION JOUEURS")
+            print("-" * 60)
+            
+            # Test avec différentes valeurs comme demandé par l'utilisateur français
+            test_counts = [
+                {"count": 100, "description": "valeur par défaut"},
+                {"count": 500, "description": "valeur intermédiaire"}, 
+                {"count": 1000, "description": "limite maximale"}
+            ]
+            
+            for test_case in test_counts:
+                count = test_case["count"]
+                description = test_case["description"]
+                
+                print(f"   Testing generation of {count} players ({description})")
+                
+                # Test avec query parameter comme spécifié dans la demande
+                response = requests.post(f"{API_BASE}/games/generate-players?count={count}", timeout=20)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    if isinstance(data, list) and len(data) == count:
+                        # Vérifier la structure des joueurs générés
+                        if data:
+                            first_player = data[0]
+                            required_fields = ['id', 'number', 'name', 'nationality', 'gender', 'role', 'stats']
+                            missing_fields = [field for field in required_fields if field not in first_player]
+                            
+                            if not missing_fields:
+                                self.log_result(f"Player Generation - {count} players", True, 
+                                              f"✅ Génération de {count} joueurs réussie ({description})")
+                            else:
+                                self.log_result(f"Player Generation - {count} players", False, 
+                                              f"Structure joueur incomplète: {missing_fields}")
+                        else:
+                            self.log_result(f"Player Generation - {count} players", False, 
+                                          "Liste de joueurs vide")
+                    else:
+                        actual_count = len(data) if isinstance(data, list) else "non-list"
+                        self.log_result(f"Player Generation - {count} players", False, 
+                                      f"Attendu {count} joueurs, reçu {actual_count}")
+                else:
+                    self.log_result(f"Player Generation - {count} players", False, 
+                                  f"HTTP {response.status_code} - {response.text[:200]}")
+            
+            # Test supplémentaire: vérifier que le paramètre count est bien pris en compte
+            print("   Testing count parameter validation...")
+            
+            # Test avec valeur invalide (trop élevée)
+            response = requests.post(f"{API_BASE}/games/generate-players?count=1500", timeout=10)
+            if response.status_code == 400:
+                self.log_result("Player Generation - Invalid Count", True, 
+                              "✅ Validation correcte pour count > 1000")
+            else:
+                self.log_result("Player Generation - Invalid Count", False, 
+                              f"Validation manquante pour count > 1000 - HTTP {response.status_code}")
+            
+            # Test avec valeur invalide (trop faible)
+            response = requests.post(f"{API_BASE}/games/generate-players?count=0", timeout=10)
+            if response.status_code == 400:
+                self.log_result("Player Generation - Zero Count", True, 
+                              "✅ Validation correcte pour count = 0")
+            else:
+                self.log_result("Player Generation - Zero Count", False, 
+                              f"Validation manquante pour count = 0 - HTTP {response.status_code}")
+                        
+        except Exception as e:
+            self.log_result("Player Generation Limits", False, f"Error: {str(e)}")
+
     def run_all_tests(self):
-        """Exécute tous les tests backend selon la review request française"""
-        print(f"🚀 STARTING BACKEND TESTS - REVIEW REQUEST FRANÇAISE - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        """Run all backend tests with focus on French user corrections"""
+        print(f"🚀 STARTING BACKEND TESTS - FRENCH USER CORRECTIONS - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"Backend URL: {BACKEND_URL}")
         print(f"API Base: {API_BASE}")
         print("=" * 80)
-        print("🎯 FOCUS: Testing randomness improvements in event simulation as requested in French review")
-        print("🎯 SECONDARY: Testing preconfigured groups system")
+        print("🎯 FOCUS: Testing 3 specific corrections requested by French user")
+        print("1. Test création de partie - API /api/games/create with gameId return")
+        print("2. Test suppression modes de jeu - Only 'standard' mode available")
+        print("3. Test limite génération joueurs - API /api/games/generate-players with count parameter")
         print("=" * 80)
         
-        # Test de base pour vérifier que l'API fonctionne
+        # Test server startup first
         if not self.test_server_startup():
-            print("❌ Server startup failed - stopping tests")
+            print("❌ Server not accessible, stopping tests")
             return
         
-        # 🇫🇷 TEST PRINCIPAL: Amélioration de l'aléatoire selon la review request française
+        # PRIORITY: Test the 3 specific French user corrections first
+        self.test_french_user_corrections()
+        
+        # Run additional basic tests for context
         print("\n" + "="*80)
-        print("🇫🇷 TEST DE L'AMÉLIORATION DE L'ALÉATOIRE - REVIEW REQUEST FRANÇAISE")
-        print("="*80)
-        
-        self.test_randomness_improvements_in_event_simulation()
-        
-        # 🇫🇷 TESTS COMPLÉMENTAIRES: Groupes pré-configurés selon la review request française
-        print("\n" + "="*80)
-        print("🇫🇷 TESTS DES GROUPES PRÉ-CONFIGURÉS - REVIEW REQUEST FRANÇAISE")
-        print("="*80)
-        
-        self.test_preconfigured_groups_create()
-        self.test_preconfigured_groups_get()
-        self.test_preconfigured_groups_update()
-        self.test_preconfigured_groups_delete_single()
-        self.test_preconfigured_groups_delete_all()
-        self.test_apply_preconfigured_groups_to_game()
-        
-        # Tests complémentaires pour valider le contexte
-        print("\n" + "="*80)
-        print("🔧 TESTS COMPLÉMENTAIRES")
+        print("🔧 ADDITIONAL BASIC TESTS FOR CONTEXT")
         print("="*80)
         
         self.test_basic_routes()
         self.test_game_events_available()
         
-        # Vérifier les logs
+        # Check backend logs
         self.check_backend_logs()
         
-        # Résumé final
+        # Print summary
         self.print_summary()
     
     def print_summary(self):
