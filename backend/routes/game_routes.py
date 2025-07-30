@@ -717,14 +717,12 @@ async def delete_game(game_id: str, user_id: str = "default_user"):
 
 @router.post("/generate-players", response_model=List[Player])
 async def generate_players(count: int = 100):
-    """Génère une liste de joueurs aléatoires"""
+    """Génère une liste de joueurs aléatoires avec noms uniques"""
     if count < 1 or count > 1000:
         raise HTTPException(status_code=400, detail="Le nombre doit être entre 1 et 1000")
     
-    players = []
-    for i in range(1, count + 1):
-        player = GameService.generate_random_player(i)
-        players.append(player)
+    # Utiliser la nouvelle méthode pour éviter les noms en double
+    players = GameService.generate_multiple_players(count)
     
     return players
 
