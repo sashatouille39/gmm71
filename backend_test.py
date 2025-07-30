@@ -5968,11 +5968,10 @@ class BackendTester:
         print(f"Backend URL: {BACKEND_URL}")
         print(f"API Base: {API_BASE}")
         print("=" * 80)
-        print("🎯 FOCUS: Testing nouvelles fonctionnalités de simulation selon review request française")
-        print("1. Test changement de vitesse corrigé (plus d'erreur 500)")
-        print("2. Test des messages de mort simplifiés (plus de 'X a été tué par Y')")
-        print("3. Test des nouvelles routes pause/resume")
-        print("4. Test état de pause dans realtime-updates")
+        print("🎯 FOCUS: Testing les 3 modifications selon review request française")
+        print("1. DURÉES DES ÉPREUVES: Vérifier que toutes les épreuves ont survival_time_max <= 300 secondes")
+        print("2. VITESSE x20: Tester que speed_multiplier=20.0 ne retourne plus d'erreur 422")
+        print("3. SYSTÈME GÉNÉRAL: S'assurer que toutes les APIs fonctionnent encore correctement")
         print("=" * 80)
         
         # Test server startup first
@@ -5982,17 +5981,16 @@ class BackendTester:
         
         # PRIORITY: Test the specific review request features
         print("\n" + "="*80)
-        print("🎯 REVIEW REQUEST TESTS - NOUVELLES FONCTIONNALITÉS DE SIMULATION")
+        print("🎯 REVIEW REQUEST TESTS - LES 3 MODIFICATIONS PRIORITAIRES")
         print("="*80)
         
-        self.test_speed_change_correction()
-        self.test_simplified_death_messages()
-        self.test_pause_resume_routes()
-        self.test_pause_state_in_realtime_updates()
+        self.test_durees_epreuves_5_minutes()
+        self.test_vitesse_x20_limite()
+        self.test_systeme_general_apres_modifications()
         
-        # Run additional basic tests for context
+        # Run additional tests for context
         print("\n" + "="*80)
-        print("🔧 ADDITIONAL BASIC TESTS FOR CONTEXT")
+        print("🔧 ADDITIONAL TESTS FOR CONTEXT")
         print("="*80)
         
         self.test_basic_routes()
