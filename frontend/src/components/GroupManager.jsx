@@ -36,6 +36,18 @@ const GroupManager = ({ gameId = null, players, onGroupsCreated, onGroupsUpdated
     fetchGroups();
   }, [gameId]);
 
+  useEffect(() => {
+    // Nettoyer les groupes qui n'ont pas la structure correcte
+    if (groups.length > 0) {
+      const validGroups = groups.filter(group => 
+        group && (group.members || group.member_ids)
+      );
+      if (validGroups.length !== groups.length) {
+        setGroups(validGroups);
+      }
+    }
+  }, [groups]);
+
   const fetchGroups = async () => {
     try {
       setLoading(true);
