@@ -878,7 +878,7 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
                       {isPlaying ? (
                         <>
                           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                          En cours...
+                          {isPaused ? 'En pause...' : 'En cours...'}
                         </>
                       ) : (
                         <>
@@ -887,6 +887,27 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
                         </>
                       )}
                     </Button>
+                    
+                    {/* Bouton Pause/Resume */}
+                    {isPlaying && (
+                      <Button
+                        onClick={isPaused ? resumeSimulation : pauseSimulation}
+                        variant="outline"
+                        className={isPaused ? "border-green-500 text-green-400 hover:bg-green-500/10" : "border-yellow-500 text-yellow-400 hover:bg-yellow-500/10"}
+                      >
+                        {isPaused ? (
+                          <>
+                            <Play className="w-4 h-4 mr-2" />
+                            Reprendre
+                          </>
+                        ) : (
+                          <>
+                            <Pause className="w-4 h-4 mr-2" />
+                            Pause
+                          </>
+                        )}
+                      </Button>
+                    )}
                     
                     {!isPlaying && (
                       <Button
