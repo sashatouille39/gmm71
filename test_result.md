@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-## user_problem_statement: "j'ai besoin que tu corriges un problème sur ce jeu : quand on simule les épreuves; on ne peut pas changer la vitesse alors qu'il y a les options, ça bug. Et enfin quand on simule on voit les éliminations en direct mais j'aimerai qu'on ne sache pas en direct qui a tué qui juste ça dit que le joueur est mort et par la même occasion j'aimerai que le nombre d'éliminations qui est en haut en gros se mette à jour en temps réel en fonction des éliminations en direct. J'aimerai aussi pouvoir mettre en pause l'épreuve si par exemple on veut aller pisser mais pas louper pour autant."
+## user_problem_statement: "Teste les 3 modifications que je viens d'appliquer au jeu : 1. DURÉES DES ÉPREUVES : Vérifie que toutes les épreuves ont maintenant une durée maximum de 5 minutes (300 secondes). 2. VITESSE x20 : Teste la nouvelle limite de vitesse en créant une simulation temps réel puis en essayant de changer la vitesse à x20. L'API ne devrait plus retourner d'erreur 422 pour speed_multiplier=20.0. 3. SYSTÈME GÉNÉRAL : Assure-toi que toutes les APIs fonctionnent encore correctement après ces modifications."
 
 ## backend:
   - task: "Correction logique de création de partie"
