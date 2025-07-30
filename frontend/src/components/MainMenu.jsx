@@ -55,11 +55,11 @@ const MainMenu = ({ gameState, hasActiveGame, onRefreshGameState }) => {
     {
       id: 'play',
       title: 'Jouer',
-      description: 'Créer une nouvelle partie ou reprendre',
+      description: 'Créer une nouvelle partie',
       icon: Play,
       path: '/game-setup',
       color: 'from-red-600 to-red-800',
-      badge: hasActiveGame ? 'Partie en cours' : null
+      badge: null // Supprimer le badge "Partie en cours" problématique
     },
     {
       id: 'stats',
