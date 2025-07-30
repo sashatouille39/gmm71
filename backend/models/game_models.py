@@ -151,6 +151,33 @@ class GameStats(BaseModel):
     favorite_celebrity: Optional[str] = None
     has_seen_zero: bool = False
 
+class CompletedGame(BaseModel):
+    """Modèle pour une partie terminée"""
+    id: str
+    date: str
+    duration: str
+    total_players: int
+    survivors: int
+    winner: Optional[str] = None
+    earnings: int = 0
+    events_played: List[str] = []
+    final_ranking: List[Dict[str, Any]] = []
+
+class RoleStats(BaseModel):
+    """Statistiques pour un rôle spécifique"""
+    role: str
+    appearances: int = 0
+    survival_rate: float = 0.0
+    wins: int = 0
+    average_score: float = 0.0
+
+class DetailedGameStats(BaseModel):
+    """Statistiques détaillées incluant l'historique"""
+    basic_stats: GameStats
+    completed_games: List[CompletedGame] = []
+    role_statistics: List[RoleStats] = []
+    event_statistics: Dict[str, Dict[str, Any]] = {}
+
 class GameState(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str = "default_user"  # Pour l'instant un seul utilisateur
