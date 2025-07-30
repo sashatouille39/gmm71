@@ -129,92 +129,157 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
   const simulateEvent = async () => {
     setIsPlaying(true);
     setAnimationPhase('preparation');
+    setRealtimeDeaths([]);
+    setEventProgress(0);
+    setElapsedTime(0);
     
     try {
-      // Animation de préparation
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setAnimationPhase('action');
-      
-      // Animation d'action
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setAnimationPhase('results');
-      
-      // Appeler l'API backend pour simuler l'événement
       const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
-      const response = await fetch(`${backendUrl}/api/games/${currentGame.id}/simulate-event`, {
+      
+      // Démarrer la simulation en temps réel
+      const response = await fetch(`${backendUrl}/api/games/${currentGame.id}/simulate-event-realtime`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
+        body: JSON.stringify({
+          speed_multiplier: speedMultiplier
+        })
       });
       
       if (!response.ok) {
         throw new Error(`Erreur API: ${response.status}`);
       }
       
-      const { result, game } = await response.json();
+      const startData = await response.json();
+      setCurrentEventDuration(startData.duration);
+      setAnimationPhase('action');
       
-      // Fonction pour adapter un joueur du format backend vers frontend
-      const adaptPlayer = (player) => ({
-        ...player,
-        totalScore: player.total_score || 0, // Convertir snake_case vers camelCase
-        survivedEvents: player.survived_events || 0 // Convertir snake_case vers camelCase
-      });
-      
-      // Adapter le format de jeu pour le frontend avec conversion complète des champs
-      const adaptedGame = {
-        id: game.id,
-        players: game.players.map(adaptPlayer), // CRITIQUE: adapter tous les joueurs
-        events: game.events,
-        currentEventIndex: game.current_event_index || 0, // CORRECTION: convertir snake_case vers camelCase
-        completed: game.completed || false, // CRITIQUE: s'assurer que completed est préservé
-        start_time: game.start_time,
-        end_time: game.end_time,
-        winner: game.winner ? adaptPlayer(game.winner) : null, // CRITIQUE: adapter le gagnant aussi
-        total_cost: game.total_cost || 0,
-        earnings: game.earnings || 0,
-        event_results: game.event_results || []
-      };
-      
-      // Mettre à jour l'état du jeu avec les résultats du backend
-      setCurrentGame(adaptedGame);
-      
-      // NOUVEAU: Si le jeu est terminé, collecter automatiquement les gains VIP
-      if (adaptedGame.completed) {
-        console.log('🎉 Jeu terminé ! Collecte automatique des gains VIP...');
-        await collectVipEarningsAutomatically(currentGame.id);
-      }
-      
-      // Mettre à jour les stats des célébrités si nécessaire
-      if (result.survivors) {
-        for (const survivorData of result.survivors) {
-          if (survivorData.player && survivorData.player.isCelebrity) {
-            await updateCelebrityStats(survivorData.player.celebrityId, {
-              survived_events: survivorData.player.survived_events || 0,
-              total_score: survivorData.player.total_score || 0
-            });
+      // Démarrer le polling pour les mises à jour en temps réel
+      const interval = setInterval(async () => {
+        try {
+          const updateResponse = await fetch(`${backendUrl}/api/games/${currentGame.id}/realtime-updates`);
+          
+          if (!updateResponse.ok) {
+            console.error('Erreur lors de la récupération des mises à jour');
+            return;
           }
+          
+          const updateData = await updateResponse.json();
+          
+          // Mettre à jour la progression
+          setEventProgress(updateData.progress);
+          setElapsedTime(updateData.elapsed_time);
+          
+          // Ajouter les nouvelles morts au feed
+          if (updateData.deaths && updateData.deaths.length > 0) {
+            setRealtimeDeaths(prev => [...prev, ...updateData.deaths]);
+          }
+          
+          // Vérifier si l'événement est terminé
+          if (updateData.is_complete) {
+            clearInterval(interval);
+            setSimulationInterval(null);
+            
+            // Traiter les résultats finaux
+            if (updateData.final_result) {
+              const result = updateData.final_result;
+              
+              // Fonction pour adapter un joueur du format backend vers frontend
+              const adaptPlayer = (player) => ({
+                ...player,
+                totalScore: player.total_score || 0,
+                survivedEvents: player.survived_events || 0
+              });
+              
+              // Récupérer la partie mise à jour
+              const gameResponse = await fetch(`${backendUrl}/api/games/${currentGame.id}`);
+              if (gameResponse.ok) {
+                const updatedGame = await gameResponse.json();
+                const adaptedGame = {
+                  id: updatedGame.id,
+                  players: updatedGame.players.map(adaptPlayer),
+                  events: updatedGame.events,
+                  currentEventIndex: updatedGame.current_event_index || 0,
+                  completed: updatedGame.completed || false,
+                  start_time: updatedGame.start_time,
+                  end_time: updatedGame.end_time,
+                  winner: updatedGame.winner ? adaptPlayer(updatedGame.winner) : null,
+                  total_cost: updatedGame.total_cost || 0,
+                  earnings: updatedGame.earnings || 0,
+                  event_results: updatedGame.event_results || []
+                };
+                
+                setCurrentGame(adaptedGame);
+                
+                // Si le jeu est terminé, collecter automatiquement les gains VIP
+                if (adaptedGame.completed) {
+                  console.log('🎉 Jeu terminé ! Collecte automatique des gains VIP...');
+                  await collectVipEarningsAutomatically(currentGame.id);
+                }
+              }
+              
+              setAnimationPhase('results');
+              
+              console.log('Événement simulé avec succès:', {
+                survivors: result.survivors?.length || 0,
+                eliminated: result.eliminated?.length || 0,
+                totalParticipants: result.total_participants || 0
+              });
+            }
+            
+            setIsPlaying(false);
+          }
+          
+        } catch (error) {
+          console.error('Erreur lors de la récupération des mises à jour:', error);
         }
-      }
+      }, 500); // Vérifier les mises à jour toutes les 500ms
       
-      // Traiter les victoires si le jeu est terminé
-      if (game.completed && game.winner && game.winner.isCelebrity) {
-        await updateCelebrityVictory(game.winner.celebrityId);
-      }
-      
-      console.log('Événement simulé avec succès:', {
-        survivors: result.survivors?.length || 0,
-        eliminated: result.eliminated?.length || 0,
-        totalParticipants: result.total_participants || 0
-      });
+      setSimulationInterval(interval);
       
     } catch (error) {
-      console.error('Erreur lors de la simulation:', error);
-      alert('Erreur lors de la simulation de l\'événement. Vérifiez votre connexion.');
-    } finally {
+      console.error('Erreur lors du démarrage de la simulation:', error);
+      alert('Erreur lors du démarrage de la simulation. Vérifiez votre connexion.');
       setIsPlaying(false);
     }
   };
+
+  // Fonction pour changer la vitesse de simulation
+  const changeSimulationSpeed = async (newSpeed) => {
+    if (!isPlaying) {
+      setSpeedMultiplier(newSpeed);
+      return;
+    }
+    
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      const response = await fetch(`${backendUrl}/api/games/${currentGame.id}/update-simulation-speed`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          speed_multiplier: newSpeed
+        })
+      });
+      
+      if (response.ok) {
+        setSpeedMultiplier(newSpeed);
+      }
+    } catch (error) {
+      console.error('Erreur lors du changement de vitesse:', error);
+    }
+  };
+
+  // Nettoyer l'interval si le composant est démonté
+  useEffect(() => {
+    return () => {
+      if (simulationInterval) {
+        clearInterval(simulationInterval);
+      }
+    };
+  }, [simulationInterval]);
 
   // Fonction pour mettre à jour les stats des célébrités après un jeu
   const updateCelebrityStats = async (celebrityIdOrPlayers, stats) => {
