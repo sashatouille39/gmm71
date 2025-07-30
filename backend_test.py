@@ -7269,24 +7269,4 @@ class BackendTester:
 
 if __name__ == "__main__":
     tester = BackendTester()
-    
-    # Run the specific French user tests
-    print("🇫🇷 RUNNING FRENCH USER SPECIFIC TESTS")
-    print("=" * 80)
-    
-    tester.test_french_user_economic_system()
-    tester.test_french_user_vip_routes()
-    tester.test_french_user_vip_earnings()
-    
-    # Generate final summary
-    print("\n" + "=" * 80)
-    print("🏁 FRENCH USER TESTS COMPLETED")
-    print(f"📊 Results: {tester.passed_tests}/{tester.total_tests} tests passed ({(tester.passed_tests/tester.total_tests)*100:.1f}%)")
-    
-    if tester.passed_tests == tester.total_tests:
-        print("✅ ALL FRENCH USER TESTS PASSED - Problems are resolved!")
-    else:
-        failed_tests = tester.total_tests - tester.passed_tests
-        print(f"❌ {failed_tests} tests failed - Check the details above")
-    
-    print("=" * 80)
+    tester.run_all_tests()
