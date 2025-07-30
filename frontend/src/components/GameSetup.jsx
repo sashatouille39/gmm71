@@ -332,6 +332,22 @@ const GameSetup = ({ gameState, onStartGame }) => {
                       <UserPlus className="w-4 h-4 mr-2" />
                       Créer manuellement
                     </Button>
+
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowGroupManager(true)}
+                      disabled={players.length < 2}
+                      className="w-full border-blue-500 text-blue-400 hover:bg-blue-500/10"
+                    >
+                      <Users className="w-4 h-4 mr-2" />
+                      Gérer les Groupes
+                    </Button>
+                    
+                    {players.length < 2 && (
+                      <p className="text-xs text-gray-500 text-center">
+                        Minimum 2 joueurs requis pour créer des groupes
+                      </p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
