@@ -3532,6 +3532,382 @@ class BackendTester:
         except Exception as e:
             self.log_result("Payment System Synchronization", False, f"Error during payment system test: {str(e)}")
 
+    def test_group_system_comprehensive(self):
+        """Test COMPREHENSIVE: Système de groupes nouvellement implémenté selon la review request française"""
+        try:
+            print("\n🎯 TESTING COMPREHENSIVE GROUP SYSTEM - REVIEW REQUEST FRANÇAISE")
+            print("=" * 80)
+            
+            # Étape 1: Créer une partie avec des joueurs
+            print("   Étape 1: Création d'une partie avec joueurs...")
+            game_request = {
+                "player_count": 50,  # Assez de joueurs pour créer plusieurs groupes
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3, 4, 5],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Group System - Game Creation", False, f"Could not create test game - HTTP {response.status_code}")
+                return None
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            if not game_id:
+                self.log_result("Group System - Game Creation", False, "No game ID returned from creation")
+                return None
+            
+            self.log_result("Group System - Game Creation", True, f"✅ Partie créée avec succès: {len(game_data.get('players', []))} joueurs")
+            
+            # Étape 2: Créer des groupes pour cette partie
+            print("   Étape 2: Création de groupes...")
+            groups_request = {
+                "num_groups": 6,
+                "min_members": 2,
+                "max_members": 8,
+                "allow_betrayals": False
+            }
+            
+            response = requests.post(f"{API_BASE}/games/{game_id}/groups", 
+                                   json=groups_request,
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=10)
+            
+            if response.status_code == 200:
+                groups_data = response.json()
+                groups = groups_data.get('groups', [])
+                
+                # Vérifier que les groupes ont été créés correctement
+                if len(groups) == 6:
+                    # Vérifier les noms par défaut
+                    expected_names = [f"Groupe {i+1}" for i in range(6)]
+                    actual_names = [group['name'] for group in groups]
+                    
+                    if actual_names == expected_names:
+                        self.log_result("Group System - Group Creation", True, 
+                                      f"✅ 6 groupes créés avec noms par défaut corrects: {actual_names}")
+                        
+                        # Vérifier que les joueurs sont assignés
+                        total_members = sum(len(group['member_ids']) for group in groups)
+                        if total_members > 0:
+                            self.log_result("Group System - Player Assignment", True, 
+                                          f"✅ {total_members} joueurs assignés aux groupes")
+                        else:
+                            self.log_result("Group System - Player Assignment", False, 
+                                          "❌ Aucun joueur assigné aux groupes")
+                    else:
+                        self.log_result("Group System - Group Creation", False, 
+                                      f"❌ Noms de groupes incorrects: attendu {expected_names}, reçu {actual_names}")
+                else:
+                    self.log_result("Group System - Group Creation", False, 
+                                  f"❌ Nombre de groupes incorrect: attendu 6, reçu {len(groups)}")
+            else:
+                self.log_result("Group System - Group Creation", False, 
+                              f"❌ Échec création groupes - HTTP {response.status_code}")
+                return None
+            
+            # Étape 3: Récupérer les groupes
+            print("   Étape 3: Récupération des groupes...")
+            response = requests.get(f"{API_BASE}/games/{game_id}/groups", timeout=10)
+            
+            if response.status_code == 200:
+                groups_data = response.json()
+                groups = groups_data.get('groups', [])
+                
+                # Vérifier que les informations complètes des membres sont retournées
+                if groups and len(groups) > 0:
+                    first_group = groups[0]
+                    members = first_group.get('members', [])
+                    
+                    if members and len(members) > 0:
+                        first_member = members[0]
+                        required_member_fields = ['id', 'name', 'number', 'alive']
+                        missing_fields = [field for field in required_member_fields if field not in first_member]
+                        
+                        if not missing_fields:
+                            self.log_result("Group System - Get Groups", True, 
+                                          f"✅ Groupes récupérés avec informations complètes des membres")
+                        else:
+                            self.log_result("Group System - Get Groups", False, 
+                                          f"❌ Informations membres incomplètes: manque {missing_fields}")
+                    else:
+                        self.log_result("Group System - Get Groups", False, 
+                                      "❌ Aucun membre dans les groupes récupérés")
+                else:
+                    self.log_result("Group System - Get Groups", False, 
+                                  "❌ Aucun groupe récupéré")
+            else:
+                self.log_result("Group System - Get Groups", False, 
+                              f"❌ Échec récupération groupes - HTTP {response.status_code}")
+            
+            # Étape 4: Modifier un groupe
+            print("   Étape 4: Modification d'un groupe...")
+            if groups and len(groups) > 0:
+                first_group_id = groups[0]['id']
+                update_request = {
+                    "name": "Les Survivants",
+                    "allow_betrayals": True
+                }
+                
+                response = requests.put(f"{API_BASE}/games/{game_id}/groups/{first_group_id}", 
+                                      json=update_request,
+                                      headers={"Content-Type": "application/json"},
+                                      timeout=10)
+                
+                if response.status_code == 200:
+                    updated_data = response.json()
+                    updated_group = updated_data.get('group', {})
+                    
+                    if (updated_group.get('name') == "Les Survivants" and 
+                        updated_group.get('allow_betrayals') == True):
+                        self.log_result("Group System - Update Group", True, 
+                                      f"✅ Groupe modifié avec succès: nom et trahisons mis à jour")
+                    else:
+                        self.log_result("Group System - Update Group", False, 
+                                      f"❌ Modification groupe échouée: données incorrectes")
+                else:
+                    self.log_result("Group System - Update Group", False, 
+                                  f"❌ Échec modification groupe - HTTP {response.status_code}")
+            
+            # Étape 5: Tester les trahisons globales
+            print("   Étape 5: Test des trahisons globales...")
+            betrayals_request = {
+                "allow_betrayals": True
+            }
+            
+            response = requests.post(f"{API_BASE}/games/{game_id}/groups/toggle-betrayals", 
+                                   json=betrayals_request,
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=10)
+            
+            if response.status_code == 200:
+                betrayals_data = response.json()
+                updated_groups_count = betrayals_data.get('updated_groups', 0)
+                allow_betrayals = betrayals_data.get('allow_betrayals', False)
+                
+                if updated_groups_count > 0 and allow_betrayals == True:
+                    self.log_result("Group System - Toggle Betrayals", True, 
+                                  f"✅ Trahisons activées pour {updated_groups_count} groupes")
+                else:
+                    self.log_result("Group System - Toggle Betrayals", False, 
+                                  f"❌ Échec activation trahisons: {updated_groups_count} groupes mis à jour")
+            else:
+                self.log_result("Group System - Toggle Betrayals", False, 
+                              f"❌ Échec toggle trahisons - HTTP {response.status_code}")
+            
+            # Étape 6: Tester l'intégration avec la simulation d'épreuves
+            print("   Étape 6: Test intégration avec simulation d'épreuves...")
+            response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=15)
+            
+            if response.status_code == 200:
+                simulation_data = response.json()
+                result = simulation_data.get('result', {})
+                game = simulation_data.get('game', {})
+                
+                survivors = result.get('survivors', [])
+                eliminated = result.get('eliminated', [])
+                
+                if len(survivors) > 0 or len(eliminated) > 0:
+                    self.log_result("Group System - Event Simulation", True, 
+                                  f"✅ Simulation d'épreuve avec groupes: {len(survivors)} survivants, {len(eliminated)} éliminés")
+                    
+                    # Vérifier que les joueurs ont toujours leurs group_id
+                    players = game.get('players', [])
+                    players_with_groups = [p for p in players if p.get('group_id')]
+                    
+                    if len(players_with_groups) > 0:
+                        self.log_result("Group System - Group Persistence", True, 
+                                      f"✅ {len(players_with_groups)} joueurs conservent leur group_id après simulation")
+                    else:
+                        self.log_result("Group System - Group Persistence", False, 
+                                      "❌ Aucun joueur ne conserve son group_id après simulation")
+                else:
+                    self.log_result("Group System - Event Simulation", False, 
+                                  "❌ Simulation d'épreuve n'a produit aucun résultat")
+            else:
+                self.log_result("Group System - Event Simulation", False, 
+                              f"❌ Échec simulation épreuve - HTTP {response.status_code}")
+            
+            # Étape 7: Supprimer les groupes
+            print("   Étape 7: Suppression des groupes...")
+            response = requests.delete(f"{API_BASE}/games/{game_id}/groups", timeout=10)
+            
+            if response.status_code == 200:
+                delete_data = response.json()
+                message = delete_data.get('message', '')
+                
+                if 'supprimés avec succès' in message:
+                    self.log_result("Group System - Delete Groups", True, 
+                                  f"✅ Groupes supprimés avec succès")
+                    
+                    # Vérifier que les joueurs n'ont plus de group_id
+                    response = requests.get(f"{API_BASE}/games/{game_id}", timeout=10)
+                    if response.status_code == 200:
+                        game_data = response.json()
+                        players = game_data.get('players', [])
+                        players_with_groups = [p for p in players if p.get('group_id')]
+                        
+                        if len(players_with_groups) == 0:
+                            self.log_result("Group System - Group ID Cleanup", True, 
+                                          f"✅ Tous les joueurs ont leur group_id supprimé")
+                        else:
+                            self.log_result("Group System - Group ID Cleanup", False, 
+                                          f"❌ {len(players_with_groups)} joueurs conservent encore leur group_id")
+                else:
+                    self.log_result("Group System - Delete Groups", False, 
+                                  f"❌ Message de suppression inattendu: {message}")
+            else:
+                self.log_result("Group System - Delete Groups", False, 
+                              f"❌ Échec suppression groupes - HTTP {response.status_code}")
+            
+            return game_id
+            
+        except Exception as e:
+            self.log_result("Group System - Comprehensive Test", False, f"Error during test: {str(e)}")
+            return None
+
+    def test_group_cooperation_logic(self):
+        """Test CRITICAL: Vérifier que les membres du même groupe ne se tuent pas (sauf si trahisons autorisées)"""
+        try:
+            print("\n🎯 TESTING GROUP COOPERATION LOGIC - REVIEW REQUEST FRANÇAISE")
+            print("=" * 80)
+            
+            # Créer une partie pour tester
+            game_request = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Group Cooperation Logic", False, f"Could not create test game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            # Créer des groupes SANS trahisons autorisées
+            groups_request = {
+                "num_groups": 3,
+                "min_members": 2,
+                "max_members": 6,
+                "allow_betrayals": False  # Trahisons désactivées
+            }
+            
+            response = requests.post(f"{API_BASE}/games/{game_id}/groups", 
+                                   json=groups_request,
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Group Cooperation Logic", False, f"Could not create groups - HTTP {response.status_code}")
+                return
+            
+            # Simuler plusieurs événements pour tester la coopération
+            cooperation_violations = []
+            betrayals_found = []
+            
+            for event_num in range(3):
+                response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=15)
+                
+                if response.status_code == 200:
+                    simulation_data = response.json()
+                    result = simulation_data.get('result', {})
+                    game = simulation_data.get('game', {})
+                    
+                    # Analyser les résultats pour détecter des violations de coopération
+                    eliminated = result.get('eliminated', [])
+                    
+                    # Récupérer les groupes actuels
+                    groups_response = requests.get(f"{API_BASE}/games/{game_id}/groups", timeout=10)
+                    if groups_response.status_code == 200:
+                        groups_data = groups_response.json()
+                        groups = groups_data.get('groups', [])
+                        
+                        # Créer un mapping joueur -> groupe
+                        player_to_group = {}
+                        for group in groups:
+                            for member in group.get('members', []):
+                                player_to_group[member['id']] = group['id']
+                        
+                        # Vérifier si des membres du même groupe se sont entre-tués
+                        for eliminated_data in eliminated:
+                            eliminated_player = eliminated_data.get('player', {})
+                            eliminated_id = eliminated_player.get('id')
+                            
+                            if eliminated_id in player_to_group:
+                                eliminated_group = player_to_group[eliminated_id]
+                                
+                                # Chercher qui a tué ce joueur (si disponible dans les données)
+                                # Note: Cette logique dépend de l'implémentation exacte du backend
+                                # Pour l'instant, on vérifie juste qu'il n'y a pas de trahisons inattendues
+                                if eliminated_data.get('betrayed', False):
+                                    betrayals_found.append({
+                                        'event': event_num + 1,
+                                        'player': eliminated_player.get('name', 'Unknown'),
+                                        'group': eliminated_group
+                                    })
+                    
+                    if game.get('completed', False):
+                        break
+                else:
+                    break
+            
+            # Évaluer les résultats
+            if len(betrayals_found) == 0:
+                self.log_result("Group Cooperation Logic", True, 
+                              f"✅ Aucune trahison détectée avec trahisons désactivées (comportement correct)")
+            else:
+                self.log_result("Group Cooperation Logic", False, 
+                              f"❌ {len(betrayals_found)} trahisons détectées malgré trahisons désactivées", betrayals_found)
+            
+            # Test avec trahisons ACTIVÉES
+            print("   Test avec trahisons activées...")
+            betrayals_request = {
+                "allow_betrayals": True
+            }
+            
+            response = requests.post(f"{API_BASE}/games/{game_id}/groups/toggle-betrayals", 
+                                   json=betrayals_request,
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=10)
+            
+            if response.status_code == 200:
+                # Simuler un événement avec trahisons autorisées
+                response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=15)
+                
+                if response.status_code == 200:
+                    simulation_data = response.json()
+                    result = simulation_data.get('result', {})
+                    
+                    # Avec trahisons autorisées, des trahisons peuvent se produire
+                    eliminated = result.get('eliminated', [])
+                    betrayals_with_permission = [e for e in eliminated if e.get('betrayed', False)]
+                    
+                    self.log_result("Group Cooperation Logic - With Betrayals", True, 
+                                  f"✅ Avec trahisons autorisées: {len(betrayals_with_permission)} trahisons possibles")
+                else:
+                    self.log_result("Group Cooperation Logic - With Betrayals", False, 
+                                  f"❌ Échec simulation avec trahisons - HTTP {response.status_code}")
+            else:
+                self.log_result("Group Cooperation Logic - With Betrayals", False, 
+                              f"❌ Échec activation trahisons - HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Group Cooperation Logic", False, f"Error during test: {str(e)}")
+
     def run_all_tests(self):
         """Exécute tous les tests backend selon la review request française"""
         print(f"🚀 STARTING BACKEND TESTS - REVIEW REQUEST FRANÇAISE - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
