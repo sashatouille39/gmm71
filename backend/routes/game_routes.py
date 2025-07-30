@@ -338,6 +338,211 @@ async def simulate_event(game_id: str):
     games_db[game_id] = game
     return {"result": result, "game": game}
 
+# Stockage pour les simulations en temps réel
+active_simulations = {}
+
+@router.post("/{game_id}/simulate-event-realtime")
+async def simulate_event_realtime(game_id: str, request: RealtimeSimulationRequest):
+    """Démarre une simulation d'événement en temps réel"""
+    if game_id not in games_db:
+        raise HTTPException(status_code=404, detail="Partie non trouvée")
+    
+    game = games_db[game_id]
+    
+    if game.completed:
+        raise HTTPException(status_code=400, detail="La partie est terminée")
+    
+    if game.current_event_index >= len(game.events):
+        raise HTTPException(status_code=400, detail="Plus d'événements disponibles")
+    
+    # Vérifier si une simulation est déjà en cours
+    if game_id in active_simulations:
+        raise HTTPException(status_code=400, detail="Une simulation est déjà en cours pour cette partie")
+    
+    current_event = game.events[game.current_event_index]
+    alive_players = [p for p in game.players if p.alive]
+    
+    if len(alive_players) <= 1:
+        game.completed = True
+        game.end_time = datetime.utcnow()
+        if alive_players:
+            game.winner = max(alive_players, key=lambda p: p.total_score)
+        games_db[game_id] = game
+        raise HTTPException(status_code=400, detail="Partie terminée - pas assez de joueurs")
+    
+    # Calculer la durée réelle de l'événement
+    import random
+    event_duration = random.randint(current_event.survival_time_min, current_event.survival_time_max)
+    
+    # Pré-calculer tous les résultats de la simulation
+    game_groups = {gid: g for gid, g in groups_db.items() if gid.startswith(f"{game_id}_")}
+    final_result = GameService.simulate_event(game.players, current_event, game_groups)
+    
+    # Créer la timeline des morts
+    deaths_timeline = []
+    total_deaths = len(final_result.eliminated)
+    
+    for i, eliminated_player in enumerate(final_result.eliminated):
+        # Répartir les morts sur la durée de l'événement (éviter la fin pour le suspense)
+        death_time = random.uniform(10, event_duration * 0.85)  # Entre 10 sec et 85% de la durée
+        
+        death_info = {
+            "time": death_time,
+            "player": eliminated_player,
+            "message": f"{eliminated_player['name']} ({eliminated_player['number']}) est mort"
+        }
+        
+        # Vérifier s'il y a un tueur pour ce joueur
+        for survivor in final_result.survivors:
+            survivor_player = survivor["player"]
+            if eliminated_player["player"].id in survivor_player.killed_players:
+                death_info["message"] = f"{eliminated_player['name']} ({eliminated_player['number']}) a été tué par {survivor_player.name} ({survivor_player.number})"
+                break
+        
+        deaths_timeline.append(death_info)
+    
+    # Trier par temps de mort
+    deaths_timeline.sort(key=lambda x: x["time"])
+    
+    # Sauvegarder la simulation active
+    active_simulations[game_id] = {
+        "event": current_event,
+        "start_time": datetime.utcnow(),
+        "duration": event_duration,
+        "speed_multiplier": request.speed_multiplier,
+        "deaths_timeline": deaths_timeline,
+        "final_result": final_result,
+        "deaths_sent": 0  # Compteur des morts déjà envoyées
+    }
+    
+    return {
+        "message": "Simulation en temps réel démarrée",
+        "event_name": current_event.name,
+        "duration": event_duration,
+        "speed_multiplier": request.speed_multiplier,
+        "total_participants": len(alive_players)
+    }
+
+@router.get("/{game_id}/realtime-updates")
+async def get_realtime_updates(game_id: str):
+    """Récupère les mises à jour en temps réel d'une simulation"""
+    if game_id not in active_simulations:
+        raise HTTPException(status_code=404, detail="Aucune simulation en cours")
+    
+    simulation = active_simulations[game_id]
+    current_time = datetime.utcnow()
+    elapsed_real_time = (current_time - simulation["start_time"]).total_seconds()
+    
+    # Calculer le temps écoulé dans la simulation (avec multiplicateur de vitesse)
+    elapsed_sim_time = elapsed_real_time * simulation["speed_multiplier"]
+    
+    # Calculer la progression
+    progress = min(100.0, (elapsed_sim_time / simulation["duration"]) * 100)
+    
+    # Trouver les nouvelles morts à envoyer
+    new_deaths = []
+    deaths_timeline = simulation["deaths_timeline"]
+    deaths_sent = simulation["deaths_sent"]
+    
+    for i in range(deaths_sent, len(deaths_timeline)):
+        death = deaths_timeline[i]
+        if death["time"] <= elapsed_sim_time:
+            new_deaths.append({
+                "message": death["message"],
+                "player_name": death["player"]["name"],
+                "player_number": death["player"]["number"]
+            })
+            simulation["deaths_sent"] = i + 1
+        else:
+            break
+    
+    # Vérifier si l'événement est terminé
+    is_complete = elapsed_sim_time >= simulation["duration"]
+    final_result = None
+    
+    if is_complete:
+        # Appliquer les résultats finaux au jeu
+        game = games_db[game_id]
+        
+        # Mettre à jour les joueurs dans la partie
+        for i, player in enumerate(game.players):
+            # Chercher le joueur dans les résultats pour mettre à jour ses stats
+            for survivor_data in simulation["final_result"].survivors:
+                if survivor_data["number"] == player.number:
+                    game.players[i].kills = survivor_data.get("kills", player.kills)
+                    game.players[i].total_score = survivor_data.get("total_score", player.total_score)
+                    game.players[i].survived_events = survivor_data.get("survived_events", player.survived_events)
+                    break
+            
+            for eliminated_data in simulation["final_result"].eliminated:
+                if eliminated_data["number"] == player.number:
+                    game.players[i].alive = False
+                    break
+        
+        game.event_results.append(simulation["final_result"])
+        game.current_event_index += 1
+        
+        # Vérifier si la partie est terminée
+        alive_players_after = [p for p in game.players if p.alive]
+        if len(alive_players_after) <= 1 or game.current_event_index >= len(game.events):
+            game.completed = True
+            game.end_time = datetime.utcnow()
+            if alive_players_after:
+                game.winner = max(alive_players_after, key=lambda p: p.total_score)
+        
+        games_db[game_id] = game
+        final_result = simulation["final_result"]
+        
+        # Nettoyer la simulation active
+        del active_simulations[game_id]
+    
+    return RealtimeEventUpdate(
+        event_id=simulation["event"].id,
+        event_name=simulation["event"].name,
+        elapsed_time=elapsed_sim_time,
+        total_duration=simulation["duration"],
+        progress=progress,
+        deaths=new_deaths,
+        is_complete=is_complete,
+        final_result=final_result
+    )
+
+@router.post("/{game_id}/update-simulation-speed")
+async def update_simulation_speed(game_id: str, request: RealtimeSimulationRequest):
+    """Met à jour la vitesse de simulation en cours"""
+    if game_id not in active_simulations:
+        raise HTTPException(status_code=404, detail="Aucune simulation en cours")
+    
+    simulation = active_simulations[game_id]
+    old_speed = simulation["speed_multiplier"]
+    
+    # Calculer le temps écoulé avec l'ancienne vitesse
+    current_time = datetime.utcnow()
+    elapsed_real_time = (current_time - simulation["start_time"]).total_seconds()
+    elapsed_sim_time = elapsed_real_time * old_speed
+    
+    # Mettre à jour pour la nouvelle vitesse
+    simulation["speed_multiplier"] = request.speed_multiplier
+    # Ajuster le temps de début pour maintenir la continuité
+    new_start_time = current_time - datetime.timedelta(seconds=elapsed_sim_time / request.speed_multiplier)
+    simulation["start_time"] = new_start_time
+    
+    active_simulations[game_id] = simulation
+    
+    return {
+        "message": f"Vitesse mise à jour de x{old_speed} à x{request.speed_multiplier}",
+        "new_speed": request.speed_multiplier
+    }
+
+@router.delete("/{game_id}/stop-simulation")
+async def stop_simulation(game_id: str):
+    """Arrête une simulation en cours"""
+    if game_id not in active_simulations:
+        raise HTTPException(status_code=404, detail="Aucune simulation en cours")
+    
+    del active_simulations[game_id]
+    return {"message": "Simulation arrêtée"}
+
 @router.get("/{game_id}/vip-earnings-status")
 async def get_vip_earnings_status(game_id: str):
     """Obtient le statut des gains VIP d'une partie"""
