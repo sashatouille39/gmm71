@@ -485,6 +485,7 @@ class GameService:
                 role=selected_role,
                 stats=stats,
                 portrait=cls._generate_portrait(nationality_key),
+                uniform=cls._generate_uniform(),
                 alive=True,
                 health=100,
                 total_score=stats.intelligence + stats.force + stats.agilité
