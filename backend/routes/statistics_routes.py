@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Query
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from models.game_models import DetailedGameStats, CompletedGame, RoleStats
 from services.statistics_service import StatisticsService
 from routes.gamestate_routes import game_states_db
