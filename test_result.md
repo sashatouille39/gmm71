@@ -540,15 +540,57 @@
 
   - task: "Route de changement de vitesse"
     implemented: true
-    working: false
+    working: true
     file: "routes/game_routes.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "testing"
           comment: "❌ ROUTE DE CHANGEMENT DE VITESSE AVEC PROBLÈME MINEUR! Tests effectués selon la review request française: 1) **POST /api/games/{game_id}/update-simulation-speed**: ⚠️ PROBLÈME - Retourne erreur 500 lors du test de changement de vitesse de x1.0 à x5.0. 2) **Logique de calcul**: ✅ CONFIRMÉ - La logique semble correcte: calcule elapsed_sim_time avec ancienne vitesse, ajuste start_time pour nouvelle vitesse. 3) **Validation des paramètres**: ✅ CONFIRMÉ - Accepte speed_multiplier entre 0.1 et 10.0 selon le modèle Pydantic. 4) **Gestion des erreurs**: ✅ CONFIRMÉ - Erreur 404 appropriée quand aucune simulation n'est en cours. Backend tests: 0/1 passed (0% success rate). La route de changement de vitesse nécessite une correction pour résoudre l'erreur 500 lors du changement de vitesse."
+        - working: true
+          agent: "testing"
+          comment: "✅ CORRECTION COMPLÈTEMENT VALIDÉE - PROBLÈME FRANÇAIS RÉSOLU! Tests exhaustifs effectués selon la review request française sur la correction du changement de vitesse: 1) **POST /api/games/{game_id}/update-simulation-speed**: ✅ CONFIRMÉ - Plus d'erreur 500! Tous les changements de vitesse fonctionnent parfaitement (x2.0, x5.0, x10.0). 2) **Test complet du flux**: ✅ CONFIRMÉ - Création partie → Démarrage simulation x1.0 → Changement vers x2.0 (SUCCESS) → Changement vers x5.0 (SUCCESS) → Changement vers x10.0 (SUCCESS). 3) **Gestion des erreurs**: ✅ CONFIRMÉ - Erreur 404 appropriée quand aucune simulation n'est en cours. 4) **Messages de réponse**: ✅ CONFIRMÉ - Messages de confirmation corrects pour chaque changement de vitesse. Backend tests: 1/1 passed (100% success rate). Le problème d'erreur 500 lors du changement de vitesse signalé dans la review request française est complètement résolu - la route fonctionne maintenant parfaitement selon les spécifications."
+
+  - task: "Messages de mort simplifiés"
+    implemented: true
+    working: true
+    file: "routes/game_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ MESSAGES DE MORT EN TEMPS RÉEL PARFAITEMENT FORMATÉS! Tests spécifiques effectués selon la review request française sur les messages 'X est mort' et 'Y tué par Z': 1) **Format des messages simples**: ✅ CONFIRMÉ - Messages 'X est mort' correctement générés avec nom complet et numéro du joueur (ex: 'Logan Thompson (004) est mort'). 2) **Format des messages avec tueur**: ✅ CONFIRMÉ - Messages 'X a été tué par Y' correctement générés avec noms complets et numéros (ex: 'Olivia Wilson (007) a été tué par Sota Sato (018)'). 3) **Répartition des messages**: ✅ CONFIRMÉ - Mix approprié de morts simples et morts avec tueur selon la logique de jeu. 4) **Structure des données**: ✅ CONFIRMÉ - Chaque message contient message, player_name, player_number pour utilisation frontend. 5) **Validation format**: ✅ CONFIRMÉ - 100% des messages respectent les formats français attendus. Backend tests: 1/1 passed (100% success rate). Les messages de mort en temps réel sont parfaitement formatés selon les spécifications françaises de la review request."
+        - working: true
+          agent: "testing"
+          comment: "✅ SIMPLIFICATION COMPLÈTEMENT VALIDÉE - REVIEW REQUEST FRANÇAISE ACCOMPLIE! Tests exhaustifs effectués selon la demande spécifique de simplification des messages de mort: 1) **Format simplifié uniquement**: ✅ CONFIRMÉ - Tous les messages de mort utilisent maintenant le format simplifié 'X (numéro) est mort' exclusivement. 2) **Élimination format complexe**: ✅ CONFIRMÉ - Plus aucun message 'X a été tué par Y' - format complexe complètement supprimé comme demandé. 3) **Test en temps réel**: ✅ CONFIRMÉ - Simulation temps réel testée avec 3 messages de mort reçus, tous au format simplifié (ex: 'Zahra Benali (010) est mort', 'Lars Olsson (008) est mort', 'Jean Goossens (009) est mort'). 4) **Analyse des messages**: ✅ CONFIRMÉ - 3 messages simplifiés, 0 messages complexes (100% de simplification réussie). Backend tests: 1/1 passed (100% success rate). La demande de simplification des messages de mort de la review request française est parfaitement implémentée - plus de messages 'X a été tué par Y', uniquement 'X (numéro) est mort'."
+
+  - task: "Routes pause/resume simulation"
+    implemented: true
+    working: true
+    file: "routes/game_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ NOUVELLES ROUTES PAUSE/RESUME PARFAITEMENT IMPLÉMENTÉES - REVIEW REQUEST FRANÇAISE ACCOMPLIE! Tests exhaustifs effectués selon la demande spécifique des nouvelles routes pause/resume: 1) **POST /api/games/{game_id}/pause-simulation**: ✅ CONFIRMÉ - Route fonctionnelle qui met en pause une simulation en cours avec message de confirmation. Retourne erreur 404 appropriée quand aucune simulation n'est en cours, erreur 400 appropriée quand déjà en pause. 2) **POST /api/games/{game_id}/resume-simulation**: ✅ CONFIRMÉ - Route fonctionnelle qui reprend une simulation en pause avec message de confirmation. Retourne erreur 404 appropriée quand aucune simulation n'existe, erreur 400 appropriée quand pas en pause. 3) **Gestion des codes d'erreur**: ✅ CONFIRMÉ - Tous les codes d'erreur appropriés: 404 si pas de simulation, 400 si déjà en pause, 400 si pas en pause pour resume. 4) **Test complet du flux**: ✅ CONFIRMÉ - Pause sans simulation (404) → Démarrage simulation → Pause (SUCCESS) → Pause déjà en pause (400) → Resume (SUCCESS) → Resume pas en pause (400) → Resume sans simulation (404). Backend tests: 6/6 passed (100% success rate). Les nouvelles routes pause/resume demandées dans la review request française fonctionnent parfaitement avec tous les codes d'erreur appropriés."
+
+  - task: "État de pause dans realtime-updates"
+    implemented: true
+    working: true
+    file: "routes/game_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ ÉTAT DE PAUSE DANS REALTIME-UPDATES PARFAITEMENT IMPLÉMENTÉ - REVIEW REQUEST FRANÇAISE ACCOMPLIE! Tests exhaustifs effectués selon la demande spécifique de l'état de pause dans les mises à jour temps réel: 1) **Champ is_paused**: ✅ CONFIRMÉ - GET /api/games/{game_id}/realtime-updates retourne correctement is_paused: false quand simulation active, is_paused: true quand en pause. 2) **Arrêt de progression en pause**: ✅ CONFIRMÉ - Quand en pause, la progression s'arrête complètement (progress et deaths restent inchangés pendant l'attente). 3) **Reprise de progression**: ✅ CONFIRMÉ - Après resume, is_paused retourne à false et la progression reprend normalement. 4) **Test complet du flux**: ✅ CONFIRMÉ - État initial (is_paused=false, progress=0.4%) → Pause (is_paused=true, progress=0.4%) → Attente 2 sec (progress inchangé=0.4%, deaths=0) → Resume (is_paused=false, progress=0.7%). Backend tests: 4/4 passed (100% success rate). L'état de pause dans realtime-updates fonctionne parfaitement selon les spécifications de la review request française - le champ is_paused fonctionne correctement et la progression s'arrête quand en pause."
 
   - task: "Route d'arrêt de simulation"
     implemented: true
