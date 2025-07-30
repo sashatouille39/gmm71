@@ -123,6 +123,7 @@ class RealtimeEventUpdate(BaseModel):
     progress: float  # Pourcentage de progression (0-100)
     deaths: List[Dict[str, Any]]  # Nouvelles morts depuis la dernière mise à jour
     is_complete: bool = False
+    is_paused: bool = False  # Nouvel état pour la pause
     final_result: Optional[EventResult] = None
 
 class RealtimeSimulationRequest(BaseModel):
