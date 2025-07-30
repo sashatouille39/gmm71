@@ -4323,7 +4323,7 @@ class BackendTester:
         print(f"Backend URL: {BACKEND_URL}")
         print(f"API Base: {API_BASE}")
         print("=" * 80)
-        print("🎯 FOCUS: Testing group system as requested in French review")
+        print("🎯 FOCUS: Testing preconfigured groups system as requested in French review")
         print("=" * 80)
         
         # Test de base pour vérifier que l'API fonctionne
@@ -4331,11 +4331,23 @@ class BackendTester:
             print("❌ Server startup failed - stopping tests")
             return
         
-        # TESTS PRINCIPAUX: Système de groupes selon la review request
-        self.test_group_system_comprehensive()
-        self.test_group_cooperation_logic()
+        # 🇫🇷 TESTS PRINCIPAUX: Groupes pré-configurés selon la review request française
+        print("\n" + "="*80)
+        print("🇫🇷 TESTS DES GROUPES PRÉ-CONFIGURÉS - REVIEW REQUEST FRANÇAISE")
+        print("="*80)
+        
+        self.test_preconfigured_groups_create()
+        self.test_preconfigured_groups_get()
+        self.test_preconfigured_groups_update()
+        self.test_preconfigured_groups_delete_single()
+        self.test_preconfigured_groups_delete_all()
+        self.test_apply_preconfigured_groups_to_game()
         
         # Tests complémentaires pour valider le contexte
+        print("\n" + "="*80)
+        print("🔧 TESTS COMPLÉMENTAIRES")
+        print("="*80)
+        
         self.test_basic_routes()
         self.test_game_events_available()
         
