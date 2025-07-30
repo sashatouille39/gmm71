@@ -590,6 +590,37 @@ async def get_realtime_updates(game_id: str):
             game.end_time = datetime.utcnow()
             if alive_players_after:
                 game.winner = max(alive_players_after, key=lambda p: p.total_score)
+                
+            # NOUVELLE FONCTIONNALITÉ : Sauvegarder automatiquement les statistiques
+            try:
+                from services.statistics_service import StatisticsService
+                from routes.gamestate_routes import game_states_db
+                
+                # Définir l'utilisateur par défaut
+                user_id = "default_user"
+                
+                # Récupérer le classement final pour les statistiques
+                try:
+                    final_ranking_response = get_final_ranking(game_id)
+                    final_ranking = final_ranking_response.get('ranking', [])
+                except:
+                    final_ranking = []
+                
+                # Sauvegarder la partie terminée dans les statistiques
+                StatisticsService.save_completed_game(user_id, game, final_ranking)
+                
+                # Mettre à jour les stats de base dans gamestate
+                if user_id in game_states_db:
+                    game_state = game_states_db[user_id]
+                    game_state.game_stats.total_games_played += 1
+                    game_state.game_stats.total_kills += len([p for p in game.players if not p.alive])
+                    if hasattr(game, 'earnings'):
+                        game_state.game_stats.total_earnings += game.earnings
+                    game_state.updated_at = datetime.utcnow()
+                    game_states_db[user_id] = game_state
+            except Exception as e:
+                print(f"Erreur lors de la sauvegarde des statistiques: {e}")
+                # Continue même en cas d'erreur de sauvegarde
         
         games_db[game_id] = game
         final_result = simulation["final_result"]
