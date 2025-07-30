@@ -6,7 +6,8 @@ import random
 from models.game_models import (
     Game, Player, GameState, GameStats, GameCreateRequest, 
     PlayerCreateRequest, GameStateUpdate, PurchaseRequest,
-    Celebrity, VipCharacter, EventType, EventResult, PlayerGroup
+    Celebrity, VipCharacter, EventType, EventResult, PlayerGroup,
+    RealtimeEventUpdate, RealtimeSimulationRequest
 )
 from services.game_service import GameService
 from services.vip_service import VipService
