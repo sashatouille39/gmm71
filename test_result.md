@@ -105,7 +105,19 @@
 ## user_problem_statement: "Teste les 3 modifications que je viens d'appliquer au jeu : 1. DURÉES DES ÉPREUVES : Vérifie que toutes les épreuves ont maintenant une durée maximum de 5 minutes (300 secondes). 2. VITESSE x20 : Teste la nouvelle limite de vitesse en créant une simulation temps réel puis en essayant de changer la vitesse à x20. L'API ne devrait plus retourner d'erreur 422 pour speed_multiplier=20.0. 3. SYSTÈME GÉNÉRAL : Assure-toi que toutes les APIs fonctionnent encore correctement après ces modifications."
 
 ## backend:
-  - task: "Correction logique de création de partie"
+  - task: "Durées des épreuves limitées à 5 minutes"
+    implemented: true
+    working: true
+    file: "services/events_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ CORRECTION VALIDÉE - REVIEW REQUEST 1 ACCOMPLIE! Tests exhaustifs effectués sur toutes les 81 épreuves disponibles via /api/games/events/available: 1) **Vérification complète**: ✅ CONFIRMÉ - Toutes les 81 épreuves ont survival_time_max <= 300 secondes (5 minutes maximum). 2) **Exemples validés**: Feu rouge/Feu vert: 300s, Pont de verre: 180s, Duel au pistolet: 60s, Le Jugement Final: 300s. 3) **Aucune exception**: 0 épreuve dépasse la limite de 300 secondes. 4) **Cohérence système**: Toutes les épreuves respectent la nouvelle contrainte de durée maximale. Backend tests: 1/1 passed (100% success rate). La modification des durées des épreuves est parfaitement implémentée selon les spécifications de la review request."
+
+  - task: "Limite de vitesse x20 en simulation temps réel"
     implemented: true
     working: true
     file: "routes/game_routes.py"
@@ -113,15 +125,21 @@
     priority: "high"
     needs_retesting: false
     status_history:
-        - working: false
-          agent: "main"
-          comment: "PROBLÈME IDENTIFIÉ : Duplication dans la logique de création de partie. GameSetup.jsx crée la partie via API puis appelle onStartGame qui essaie de créer une nouvelle partie, causant des conflits."
-        - working: false
-          agent: "main"
-          comment: "CORRECTION IMPLÉMENTÉE : Simplifié la logique - GameSetup.jsx crée la partie, et startNewGame dans App.js récupère maintenant la partie existante via le gameId au lieu de créer une nouvelle partie."
         - working: true
           agent: "testing"
-          comment: "✅ CORRECTION VALIDÉE - PROBLÈME FRANÇAIS RÉSOLU! Tests exhaustifs effectués selon la review request française sur la correction logique de création de partie: 1) **Test Standard game with 50 players**: ✅ CONFIRMÉ - Partie créée avec gameId 8c08f349-37c8-4718-9a4c-69cecf03d036, récupération OK. 2) **Test Standard game with 100 players**: ✅ CONFIRMÉ - Partie créée avec gameId e206ba60-ff4b-4477-87c9-ad1b63675255, récupération OK. 3) **Vérification gameId retourné**: ✅ CONFIRMÉ - L'API /api/games/create retourne correctement un gameId dans la réponse. 4) **Vérification récupération partie**: ✅ CONFIRMÉ - La partie peut être récupérée avec le gameId via GET /api/games/{id}. 5) **Cohérence des données**: ✅ CONFIRMÉ - Les données entre création et récupération sont cohérentes (même nombre de joueurs et événements). Backend tests: 2/2 passed (100% success rate). Le problème 'rien ne se passe quand je clique sur lancer la partie' signalé par l'utilisateur français est complètement résolu - l'API fonctionne correctement avec les nouveaux paramètres."
+          comment: "✅ CORRECTION VALIDÉE - REVIEW REQUEST 2 ACCOMPLIE! Tests exhaustifs effectués sur la nouvelle limite de vitesse: 1) **Création simulation temps réel**: ✅ CONFIRMÉ - Simulation démarrée avec succès à vitesse x1.0. 2) **Test changement vitesse x20**: ✅ CONFIRMÉ - Changement de vitesse à x20.0 accepté sans erreur 422. 3) **Réponse API**: ✅ CONFIRMÉ - Message de confirmation 'Vitesse mise à jour de x1.0 à x20.0' reçu. 4) **Plus d'erreur 422**: ✅ CONFIRMÉ - L'API ne retourne plus d'erreur de validation pour speed_multiplier=20.0. Backend tests: 1/1 passed (100% success rate). La nouvelle limite de vitesse x20 fonctionne parfaitement selon les spécifications de la review request."
+
+  - task: "Vérification système général après modifications"
+    implemented: true
+    working: true
+    file: "routes/game_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ SYSTÈME GÉNÉRAL PARFAITEMENT FONCTIONNEL - REVIEW REQUEST 3 ACCOMPLIE! Tests exhaustifs effectués sur toutes les APIs principales après les modifications: 1) **Création de partie**: ✅ CONFIRMÉ - Parties créées avec succès (25 joueurs, 4 événements). 2) **Génération de joueurs**: ✅ CONFIRMÉ - Génération de 15 joueurs fonctionnelle. 3) **Événements disponibles**: ✅ CONFIRMÉ - 81 événements récupérés correctement. 4) **Simulation d'événement**: ✅ CONFIRMÉ - Simulation d'événements opérationnelle. 5) **État du jeu (gamestate)**: ✅ CONFIRMÉ - API gamestate fonctionnelle. 6) **Célébrités**: ✅ CONFIRMÉ - API célébrités opérationnelle. Backend tests: 6/6 passed (100% success rate). Toutes les APIs principales fonctionnent encore correctement après les 3 modifications appliquées."
 
   - task: "Suppression modes hardcore et custom"
     implemented: true
