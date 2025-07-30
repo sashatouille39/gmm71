@@ -68,19 +68,33 @@ const GroupManager = ({ gameId = null, players, onGroupsCreated, onGroupsUpdated
       setLoading(true);
       setError('');
       
-      const response = await fetch(`${backendUrl}/api/games/${gameId}/groups`, {
+      let url, payload;
+      
+      if (gameId) {
+        // Création pour une partie spécifique (mode auto)
+        url = `${backendUrl}/api/games/${gameId}/groups`;
+        payload = createForm;
+      } else {
+        // Création de groupes pré-configurés (mode manuel)
+        url = `${backendUrl}/api/games/groups/preconfigured`;
+        payload = { groups: manualGroups };
+      }
+      
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(createForm),
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
         const data = await response.json();
-        setGroups(data.groups || []);
+        setGroups(data.groups || data.applied_groups || []);
         setShowCreateForm(false);
-        onGroupsCreated && onGroupsCreated(data.groups);
+        setShowManualCreation(false);
+        setManualGroups([]);
+        onGroupsCreated && onGroupsCreated(data.groups || data.applied_groups);
       } else {
         const errorData = await response.json();
         setError(errorData.detail || 'Erreur lors de la création des groupes');
@@ -90,6 +104,50 @@ const GroupManager = ({ gameId = null, players, onGroupsCreated, onGroupsUpdated
     } finally {
       setLoading(false);
     }
+  };
+
+  const createManualGroup = () => {
+    if (!newGroupName.trim()) {
+      setError('Veuillez saisir un nom de groupe');
+      return;
+    }
+
+    const selectedPlayerIds = Object.keys(selectedPlayers).filter(id => selectedPlayers[id]);
+    
+    if (selectedPlayerIds.length < 2) {
+      setError('Un groupe doit contenir au moins 2 joueurs');
+      return;
+    }
+
+    const newGroup = {
+      name: newGroupName.trim(),
+      member_ids: selectedPlayerIds,
+      allow_betrayals: false
+    };
+
+    setManualGroups(prev => [...prev, newGroup]);
+    setNewGroupName('');
+    setSelectedPlayers({});
+    setError('');
+  };
+
+  const removeManualGroup = (index) => {
+    setManualGroups(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const togglePlayerSelection = (playerId) => {
+    setSelectedPlayers(prev => ({
+      ...prev,
+      [playerId]: !prev[playerId]
+    }));
+  };
+
+  const saveManualGroups = async () => {
+    if (manualGroups.length === 0) {
+      setError('Créez au moins un groupe avant de sauvegarder');
+      return;
+    }
+    await createGroups();
   };
 
   const updateGroup = async (groupId, updates) => {
