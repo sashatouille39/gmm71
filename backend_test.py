@@ -7114,15 +7114,15 @@ class BackendTester:
             self.log_result("Real Past Winners", False, f"Error during test: {str(e)}")
 
     def run_all_tests(self):
-        """Run all backend tests with focus on review request features"""
-        print(f"🚀 STARTING BACKEND TESTS - REVIEW REQUEST FRANÇAIS - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        """Run all backend tests with focus on statistics and winners system"""
+        print(f"🚀 STARTING BACKEND TESTS - STATISTICS & WINNERS SYSTEM - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"Backend URL: {BACKEND_URL}")
         print(f"API Base: {API_BASE}")
         print("=" * 80)
-        print("🎯 FOCUS: Testing les 3 corrections selon review request française")
-        print("1. Test du remboursement à 100%")
-        print("2. Test de la sauvegarde automatique des statistiques")
-        print("3. Test des vrais anciens gagnants")
+        print("🎯 FOCUS: Testing système de statistiques et gagnants selon review request")
+        print("1. Test des statistiques - event_statistics comme tableau")
+        print("2. Test des parties terminées et gagnants")
+        print("3. Test des joueurs identiques avec all_players")
         print("=" * 80)
         
         # Test server startup first
@@ -7132,13 +7132,14 @@ class BackendTester:
         
         # PRIORITY: Test the specific review request corrections
         print("\n" + "="*80)
-        print("🎯 REVIEW REQUEST TESTS - LES 3 CORRECTIONS PRIORITAIRES")
+        print("🎯 REVIEW REQUEST TESTS - SYSTÈME STATISTIQUES ET GAGNANTS")
         print("="*80)
         
         # Test the 3 specific corrections from the review request
-        self.test_refund_system_100_percent()
-        self.test_automatic_statistics_saving()
-        self.test_real_past_winners()
+        self.test_statistics_detailed_event_statistics_array()
+        self.test_completed_games_and_winners()
+        self.test_create_completed_game_for_testing()
+        self.test_identical_players_with_all_players_field()
         
         # Run additional tests for context
         print("\n" + "="*80)
