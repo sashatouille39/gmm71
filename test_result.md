@@ -832,11 +832,8 @@
   current_focus:
     - "Route de simulation en temps réel"
     - "Route de mises à jour temps réel"
-    - "Route de changement de vitesse"
     - "Route d'arrêt de simulation"
-    - "Messages de mort en temps réel"
-  stuck_tasks:
-    - "Route de changement de vitesse"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
