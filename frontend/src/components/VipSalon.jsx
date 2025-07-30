@@ -462,32 +462,136 @@ const VipSalon = ({ gameState, updateGameState }) => {
                   {ownedCelebrities.length} possédées
                 </Badge>
                 <Badge variant="outline" className="text-gray-400">
-                  {MOCK_CELEBRITIES.length} disponibles
+                  {/* Calculer le total : célébrités normales + vrais gagnants */}
+                  {MOCK_CELEBRITIES.filter(c => c.category !== "Ancien vainqueur" && c.category !== "Ancienne vainqueur").length + pastWinners.length} disponibles
                 </Badge>
+                {pastWinners.length > 0 && (
+                  <Badge variant="outline" className="text-green-400 border-green-400">
+                    {pastWinners.length} anciens gagnants
+                  </Badge>
+                )}
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {MOCK_CELEBRITIES.map((celebrity) => {
-                const isOwned = gameState.ownedCelebrities?.includes(celebrity.id);
+              {/* Afficher les célébrités normales (filtrer les faux anciens gagnants) */}
+              {MOCK_CELEBRITIES
+                .filter(celebrity => celebrity.category !== "Ancien vainqueur" && celebrity.category !== "Ancienne vainqueur")
+                .map((celebrity) => {
+                  const isOwned = gameState.ownedCelebrities?.includes(celebrity.id);
+                  
+                  return (
+                    <Card 
+                      key={celebrity.id} 
+                      className={`transition-all cursor-pointer ${
+                        isOwned 
+                          ? 'bg-green-900/20 border-green-500/30' 
+                          : 'bg-gray-800/50 border-gray-600/30 hover:bg-gray-700/50'
+                      }`}
+                      onClick={() => setSelectedCelebrity(celebrity)}
+                    >
+                      <CardContent className="p-6">
+                        <div className="text-center mb-4">
+                          <div className="w-16 h-16 bg-gray-600 rounded-full mx-auto mb-3 flex items-center justify-center">
+                            <Star className="w-8 h-8 text-yellow-400" />
+                          </div>
+                          <h3 className="text-white font-bold">{celebrity.name}</h3>
+                          <p className="text-gray-400 text-sm">{celebrity.category}</p>
+                        </div>
+
+                        <div className="space-y-2 mb-4">
+                          {/* Étoiles */}
+                          <div className="flex justify-center">
+                            {[...Array(5)].map((_, i) => (
+                              <Star 
+                                key={i} 
+                                className={`w-4 h-4 ${
+                                  i < celebrity.stars ? 'text-yellow-400 fill-current' : 'text-gray-600'
+                                }`} 
+                              />
+                            ))}
+                          </div>
+
+                          {/* Stats */}
+                          <div className="text-xs space-y-1">
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Intel:</span>
+                              <span className="text-white">{celebrity.stats.intelligence}/10</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Force:</span>
+                              <span className="text-white">{celebrity.stats.force}/10</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Agilité:</span>
+                              <span className="text-white">{celebrity.stats.agilité}/10</span>
+                            </div>
+                          </div>
+
+                          {celebrity.wins && (
+                            <div className="flex justify-center">
+                              <Badge variant="outline" className="text-purple-400 border-purple-400 text-xs">
+                                {celebrity.wins} victoires
+                              </Badge>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="text-center">
+                          {isOwned ? (
+                            <Badge variant="outline" className="text-green-400 border-green-400">
+                              Possédée
+                            </Badge>
+                          ) : (
+                            <div className="space-y-2">
+                              <div className="text-yellow-400 font-bold">
+                                ${celebrity.price.toLocaleString()}
+                              </div>
+                              <Button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  purchaseCelebrity(celebrity);
+                                }}
+                                disabled={gameState.money < celebrity.price}
+                                className={`w-full text-xs ${
+                                  gameState.money >= celebrity.price
+                                    ? 'bg-red-600 hover:bg-red-700'
+                                    : 'bg-gray-600 cursor-not-allowed'
+                                }`}
+                              >
+                                <ShoppingCart className="w-3 h-3 mr-1" />
+                                Acheter
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+
+              {/* Afficher les vrais anciens gagnants */}
+              {pastWinners.map((winner) => {
+                const isOwned = gameState.ownedCelebrities?.includes(winner.id);
                 
                 return (
                   <Card 
-                    key={celebrity.id} 
-                    className={`transition-all cursor-pointer ${
+                    key={winner.id} 
+                    className={`transition-all cursor-pointer border-2 ${
                       isOwned 
                         ? 'bg-green-900/20 border-green-500/30' 
-                        : 'bg-gray-800/50 border-gray-600/30 hover:bg-gray-700/50'
+                        : 'bg-gradient-to-br from-yellow-900/30 to-red-900/30 border-yellow-400/50 hover:border-yellow-400/70'
                     }`}
-                    onClick={() => setSelectedCelebrity(celebrity)}
+                    onClick={() => setSelectedCelebrity(winner)}
                   >
                     <CardContent className="p-6">
                       <div className="text-center mb-4">
-                        <div className="w-16 h-16 bg-gray-600 rounded-full mx-auto mb-3 flex items-center justify-center">
-                          <Star className="w-8 h-8 text-yellow-400" />
+                        <div className="w-16 h-16 bg-gradient-to-br from-yellow-600 to-red-600 rounded-full mx-auto mb-3 flex items-center justify-center">
+                          <Crown className="w-8 h-8 text-yellow-200" />
                         </div>
-                        <h3 className="text-white font-bold">{celebrity.name}</h3>
-                        <p className="text-gray-400 text-sm">{celebrity.category}</p>
+                        <h3 className="text-white font-bold">{winner.name}</h3>
+                        <p className="text-yellow-400 text-sm font-medium">{winner.category}</p>
+                        <p className="text-gray-400 text-xs">{winner.nationality}</p>
                       </div>
 
                       <div className="space-y-2 mb-4">
@@ -497,35 +601,33 @@ const VipSalon = ({ gameState, updateGameState }) => {
                             <Star 
                               key={i} 
                               className={`w-4 h-4 ${
-                                i < celebrity.stars ? 'text-yellow-400 fill-current' : 'text-gray-600'
+                                i < winner.stars ? 'text-yellow-400 fill-current' : 'text-gray-600'
                               }`} 
                             />
                           ))}
                         </div>
 
-                        {/* Stats */}
+                        {/* Stats améliorées */}
                         <div className="text-xs space-y-1">
                           <div className="flex justify-between">
                             <span className="text-gray-400">Intel:</span>
-                            <span className="text-white">{celebrity.stats.intelligence}/10</span>
+                            <span className="text-blue-400 font-bold">{winner.stats.intelligence}/10</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-400">Force:</span>
-                            <span className="text-white">{celebrity.stats.force}/10</span>
+                            <span className="text-red-400 font-bold">{winner.stats.force}/10</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-400">Agilité:</span>
-                            <span className="text-white">{celebrity.stats.agilité}/10</span>
+                            <span className="text-green-400 font-bold">{winner.stats.agilité}/10</span>
                           </div>
                         </div>
 
-                        {celebrity.wins && (
-                          <div className="flex justify-center">
-                            <Badge variant="outline" className="text-purple-400 border-purple-400 text-xs">
-                              {celebrity.wins} victoires
-                            </Badge>
-                          </div>
-                        )}
+                        <div className="flex justify-center">
+                          <Badge variant="outline" className="text-yellow-400 border-yellow-400 text-xs">
+                            👑 Vainqueur
+                          </Badge>
+                        </div>
                       </div>
 
                       <div className="text-center">
@@ -536,21 +638,21 @@ const VipSalon = ({ gameState, updateGameState }) => {
                         ) : (
                           <div className="space-y-2">
                             <div className="text-yellow-400 font-bold">
-                              ${celebrity.price.toLocaleString()}
+                              ${winner.price.toLocaleString()}
                             </div>
                             <Button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                purchaseCelebrity(celebrity);
+                                purchaseCelebrity(winner);
                               }}
-                              disabled={gameState.money < celebrity.price}
+                              disabled={gameState.money < winner.price}
                               className={`w-full text-xs ${
-                                gameState.money >= celebrity.price
-                                  ? 'bg-red-600 hover:bg-red-700'
+                                gameState.money >= winner.price
+                                  ? 'bg-yellow-600 hover:bg-yellow-700 text-black font-bold'
                                   : 'bg-gray-600 cursor-not-allowed'
                               }`}
                             >
-                              <ShoppingCart className="w-3 h-3 mr-1" />
+                              <Crown className="w-3 h-3 mr-1" />
                               Acheter
                             </Button>
                           </div>
@@ -560,6 +662,19 @@ const VipSalon = ({ gameState, updateGameState }) => {
                   </Card>
                 );
               })}
+
+              {/* Message si pas de gagnants */}
+              {pastWinners.length === 0 && !loadingWinners && (
+                <Card className="bg-gray-800/30 border-gray-600/30 col-span-full">
+                  <CardContent className="p-8 text-center">
+                    <Crown className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                    <h3 className="text-white font-bold mb-2">Aucun ancien gagnant</h3>
+                    <p className="text-gray-400 text-sm">
+                      Terminez vos premières parties pour voir apparaître vos gagnants dans la boutique !
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </TabsContent>
 
