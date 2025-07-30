@@ -5700,16 +5700,16 @@ class BackendTester:
             self.log_result("Pause State in Realtime Updates", False, f"Error during test: {str(e)}")
 
     def run_all_tests(self):
-        """Run all backend tests with focus on real-time simulation system"""
-        print(f"🚀 STARTING BACKEND TESTS - REAL-TIME SIMULATION SYSTEM - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        """Run all backend tests with focus on review request features"""
+        print(f"🚀 STARTING BACKEND TESTS - REVIEW REQUEST FRANÇAIS - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"Backend URL: {BACKEND_URL}")
         print(f"API Base: {API_BASE}")
         print("=" * 80)
-        print("🎯 FOCUS: Testing new real-time event simulation routes requested by French user")
-        print("1. POST /api/games/{game_id}/simulate-event-realtime - Start real-time simulation")
-        print("2. GET /api/games/{game_id}/realtime-updates - Get real-time updates")
-        print("3. POST /api/games/{game_id}/update-simulation-speed - Change simulation speed")
-        print("4. DELETE /api/games/{game_id}/stop-simulation - Stop simulation")
+        print("🎯 FOCUS: Testing nouvelles fonctionnalités de simulation selon review request française")
+        print("1. Test changement de vitesse corrigé (plus d'erreur 500)")
+        print("2. Test des messages de mort simplifiés (plus de 'X a été tué par Y')")
+        print("3. Test des nouvelles routes pause/resume")
+        print("4. Test état de pause dans realtime-updates")
         print("=" * 80)
         
         # Test server startup first
@@ -5717,14 +5717,15 @@ class BackendTester:
             print("❌ Server not accessible, stopping tests")
             return
         
-        # PRIORITY: Test the new real-time simulation system
+        # PRIORITY: Test the specific review request features
         print("\n" + "="*80)
-        print("🎯 REAL-TIME SIMULATION SYSTEM TESTS - REVIEW REQUEST FRANÇAIS")
+        print("🎯 REVIEW REQUEST TESTS - NOUVELLES FONCTIONNALITÉS DE SIMULATION")
         print("="*80)
         
-        self.test_realtime_simulation_system()
-        self.test_realtime_death_messages()
-        self.test_realtime_simulation_edge_cases()
+        self.test_speed_change_correction()
+        self.test_simplified_death_messages()
+        self.test_pause_resume_routes()
+        self.test_pause_state_in_realtime_updates()
         
         # Run additional basic tests for context
         print("\n" + "="*80)
