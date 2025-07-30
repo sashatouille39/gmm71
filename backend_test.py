@@ -5699,6 +5699,269 @@ class BackendTester:
         except Exception as e:
             self.log_result("Pause State in Realtime Updates", False, f"Error during test: {str(e)}")
 
+    def test_durees_epreuves_5_minutes(self):
+        """Test REVIEW REQUEST 1: Vérifier que toutes les épreuves ont maintenant une durée maximum de 5 minutes (300 secondes)"""
+        try:
+            print("\n🎯 TESTING DURÉES DES ÉPREUVES - REVIEW REQUEST 1")
+            print("=" * 80)
+            print("Vérification que toutes les épreuves ont survival_time_max <= 300 secondes")
+            
+            response = requests.get(f"{API_BASE}/games/events/available", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Durées des Épreuves 5 Minutes", False, f"Could not get events - HTTP {response.status_code}")
+                return
+                
+            events = response.json()
+            
+            if not isinstance(events, list) or len(events) == 0:
+                self.log_result("Durées des Épreuves 5 Minutes", False, "No events found or invalid response format")
+                return
+            
+            # Vérifier chaque épreuve
+            events_over_300s = []
+            events_checked = 0
+            
+            for event in events:
+                event_name = event.get('name', 'Unknown')
+                event_id = event.get('id', 'Unknown')
+                
+                # Chercher le champ survival_time_max
+                survival_time_max = event.get('survival_time_max')
+                
+                if survival_time_max is not None:
+                    events_checked += 1
+                    if survival_time_max > 300:
+                        events_over_300s.append({
+                            'id': event_id,
+                            'name': event_name,
+                            'survival_time_max': survival_time_max
+                        })
+                        print(f"   ❌ Épreuve '{event_name}' (ID: {event_id}): {survival_time_max}s > 300s")
+                    else:
+                        print(f"   ✅ Épreuve '{event_name}' (ID: {event_id}): {survival_time_max}s <= 300s")
+            
+            if events_over_300s:
+                self.log_result("Durées des Épreuves 5 Minutes", False, 
+                              f"❌ {len(events_over_300s)} épreuves dépassent 300 secondes", events_over_300s)
+            elif events_checked == 0:
+                self.log_result("Durées des Épreuves 5 Minutes", False, 
+                              "❌ Aucune épreuve n'a le champ survival_time_max")
+            else:
+                self.log_result("Durées des Épreuves 5 Minutes", True, 
+                              f"✅ CORRECTION VALIDÉE: Toutes les {events_checked} épreuves ont survival_time_max <= 300 secondes")
+                
+        except Exception as e:
+            self.log_result("Durées des Épreuves 5 Minutes", False, f"Error during test: {str(e)}")
+
+    def test_vitesse_x20_limite(self):
+        """Test REVIEW REQUEST 2: Tester la nouvelle limite de vitesse x20 en simulation temps réel"""
+        try:
+            print("\n🎯 TESTING VITESSE x20 LIMITE - REVIEW REQUEST 2")
+            print("=" * 80)
+            print("Test de la nouvelle limite de vitesse - l'API ne devrait plus retourner d'erreur 422 pour speed_multiplier=20.0")
+            
+            # Créer une partie pour tester
+            game_request = {
+                "player_count": 30,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Vitesse x20 Limite", False, f"Could not create test game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            if not game_id:
+                self.log_result("Vitesse x20 Limite", False, "No game ID returned from creation")
+                return
+            
+            # Démarrer une simulation temps réel avec vitesse normale
+            realtime_request = {
+                "speed_multiplier": 1.0
+            }
+            
+            response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event-realtime", 
+                                   json=realtime_request,
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Vitesse x20 Limite", False, f"Could not start realtime simulation - HTTP {response.status_code}")
+                return
+            
+            print("   ✅ Simulation temps réel démarrée avec succès")
+            
+            # Maintenant tester le changement de vitesse à x20
+            speed_change_request = {
+                "speed_multiplier": 20.0
+            }
+            
+            response = requests.post(f"{API_BASE}/games/{game_id}/update-simulation-speed", 
+                                   json=speed_change_request,
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.log_result("Vitesse x20 Limite", True, 
+                              f"✅ CORRECTION VALIDÉE: Changement de vitesse à x20 accepté sans erreur 422")
+                print(f"   ✅ Réponse API: {data.get('message', 'Success')}")
+                
+            elif response.status_code == 422:
+                # Vérifier le message d'erreur pour comprendre pourquoi
+                try:
+                    error_data = response.json()
+                    error_detail = error_data.get('detail', 'Unknown validation error')
+                    self.log_result("Vitesse x20 Limite", False, 
+                                  f"❌ PROBLÈME: Erreur 422 encore présente pour speed_multiplier=20.0", error_detail)
+                except:
+                    self.log_result("Vitesse x20 Limite", False, 
+                                  f"❌ PROBLÈME: Erreur 422 encore présente pour speed_multiplier=20.0")
+            else:
+                self.log_result("Vitesse x20 Limite", False, 
+                              f"❌ Erreur inattendue lors du changement de vitesse - HTTP {response.status_code}")
+            
+            # Arrêter la simulation pour nettoyer
+            try:
+                requests.delete(f"{API_BASE}/games/{game_id}/stop-simulation", timeout=5)
+            except:
+                pass  # Ignore cleanup errors
+                
+        except Exception as e:
+            self.log_result("Vitesse x20 Limite", False, f"Error during test: {str(e)}")
+
+    def test_systeme_general_apres_modifications(self):
+        """Test REVIEW REQUEST 3: S'assurer que toutes les APIs fonctionnent encore correctement après les modifications"""
+        try:
+            print("\n🎯 TESTING SYSTÈME GÉNÉRAL APRÈS MODIFICATIONS - REVIEW REQUEST 3")
+            print("=" * 80)
+            print("Vérification que toutes les APIs principales fonctionnent encore correctement")
+            
+            tests_passed = 0
+            total_tests = 0
+            
+            # Test 1: Création de partie
+            total_tests += 1
+            game_request = {
+                "player_count": 25,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3, 4],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data = response.json()
+                game_id = game_data.get('id')
+                if game_id and len(game_data.get('players', [])) == 25:
+                    tests_passed += 1
+                    print("   ✅ Création de partie: OK")
+                else:
+                    print("   ❌ Création de partie: Structure de réponse incorrecte")
+            else:
+                print(f"   ❌ Création de partie: HTTP {response.status_code}")
+            
+            # Test 2: Génération de joueurs
+            total_tests += 1
+            response = requests.post(f"{API_BASE}/games/generate-players?count=15", timeout=10)
+            
+            if response.status_code == 200:
+                players = response.json()
+                if isinstance(players, list) and len(players) == 15:
+                    tests_passed += 1
+                    print("   ✅ Génération de joueurs: OK")
+                else:
+                    print(f"   ❌ Génération de joueurs: Nombre incorrect ({len(players) if isinstance(players, list) else 'non-list'})")
+            else:
+                print(f"   ❌ Génération de joueurs: HTTP {response.status_code}")
+            
+            # Test 3: Récupération des événements disponibles
+            total_tests += 1
+            response = requests.get(f"{API_BASE}/games/events/available", timeout=5)
+            
+            if response.status_code == 200:
+                events = response.json()
+                if isinstance(events, list) and len(events) > 0:
+                    tests_passed += 1
+                    print(f"   ✅ Événements disponibles: OK ({len(events)} événements)")
+                else:
+                    print("   ❌ Événements disponibles: Liste vide ou format incorrect")
+            else:
+                print(f"   ❌ Événements disponibles: HTTP {response.status_code}")
+            
+            # Test 4: Simulation d'événement (si on a un game_id)
+            if 'game_id' in locals():
+                total_tests += 1
+                response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if response.status_code == 200:
+                    sim_data = response.json()
+                    if 'result' in sim_data and 'game' in sim_data:
+                        tests_passed += 1
+                        print("   ✅ Simulation d'événement: OK")
+                    else:
+                        print("   ❌ Simulation d'événement: Structure de réponse incorrecte")
+                else:
+                    print(f"   ❌ Simulation d'événement: HTTP {response.status_code}")
+            
+            # Test 5: État du jeu (gamestate)
+            total_tests += 1
+            response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+            
+            if response.status_code == 200:
+                gamestate = response.json()
+                if 'money' in gamestate:
+                    tests_passed += 1
+                    print("   ✅ État du jeu (gamestate): OK")
+                else:
+                    print("   ❌ État du jeu (gamestate): Champ 'money' manquant")
+            else:
+                print(f"   ❌ État du jeu (gamestate): HTTP {response.status_code}")
+            
+            # Test 6: Célébrités
+            total_tests += 1
+            response = requests.get(f"{API_BASE}/celebrities/?limit=5", timeout=5)
+            
+            if response.status_code == 200:
+                celebrities = response.json()
+                if isinstance(celebrities, list) and len(celebrities) > 0:
+                    tests_passed += 1
+                    print(f"   ✅ Célébrités: OK ({len(celebrities)} célébrités)")
+                else:
+                    print("   ❌ Célébrités: Liste vide ou format incorrect")
+            else:
+                print(f"   ❌ Célébrités: HTTP {response.status_code}")
+            
+            # Évaluation finale
+            success_rate = (tests_passed / total_tests) * 100
+            
+            if success_rate >= 90:
+                self.log_result("Système Général Après Modifications", True, 
+                              f"✅ SYSTÈME GÉNÉRAL FONCTIONNEL: {tests_passed}/{total_tests} tests réussis ({success_rate:.1f}%)")
+            elif success_rate >= 70:
+                self.log_result("Système Général Après Modifications", True, 
+                              f"⚠️ SYSTÈME MAJORITAIREMENT FONCTIONNEL: {tests_passed}/{total_tests} tests réussis ({success_rate:.1f}%)")
+            else:
+                self.log_result("Système Général Après Modifications", False, 
+                              f"❌ PROBLÈMES SYSTÈME: Seulement {tests_passed}/{total_tests} tests réussis ({success_rate:.1f}%)")
+                
+        except Exception as e:
+            self.log_result("Système Général Après Modifications", False, f"Error during test: {str(e)}")
+
     def run_all_tests(self):
         """Run all backend tests with focus on review request features"""
         print(f"🚀 STARTING BACKEND TESTS - REVIEW REQUEST FRANÇAIS - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
