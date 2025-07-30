@@ -6486,9 +6486,9 @@ class BackendTester:
             print("\n🎯 TESTING AUTOMATIC STATISTICS SAVING - REVIEW REQUEST 2")
             print("=" * 80)
             
-            # Étape 1: Créer une partie avec au moins 2 joueurs
+            # Étape 1: Créer une partie avec au moins 2 joueurs (minimum 20 requis)
             game_request = {
-                "player_count": 10,  # Plus de joueurs pour assurer qu'on peut finir la partie
+                "player_count": 20,  # Minimum requis par l'API
                 "game_mode": "standard",
                 "selected_events": [1, 2, 3],  # Quelques événements
                 "manual_players": []
@@ -6601,9 +6601,9 @@ class BackendTester:
             print("\n🎯 TESTING REAL PAST WINNERS - REVIEW REQUEST 3")
             print("=" * 80)
             
-            # Étape 1: Créer et terminer une partie pour avoir un gagnant
+            # Étape 1: Créer et terminer une partie pour avoir un gagnant (minimum 20 joueurs requis)
             game_request = {
-                "player_count": 8,  # Moins de joueurs pour finir plus vite
+                "player_count": 20,  # Minimum requis par l'API
                 "game_mode": "standard",
                 "selected_events": [1, 2, 3],
                 "manual_players": []
