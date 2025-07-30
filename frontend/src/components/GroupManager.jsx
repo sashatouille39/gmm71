@@ -39,7 +39,17 @@ const GroupManager = ({ gameId = null, players, onGroupsCreated, onGroupsUpdated
   const fetchGroups = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${backendUrl}/api/games/${gameId}/groups`);
+      
+      let url;
+      if (gameId) {
+        // Récupérer les groupes d'une partie spécifique
+        url = `${backendUrl}/api/games/${gameId}/groups`;
+      } else {
+        // Récupérer les groupes pré-configurés
+        url = `${backendUrl}/api/games/groups/preconfigured`;
+      }
+      
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
         setGroups(data.groups || []);
