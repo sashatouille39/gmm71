@@ -631,7 +631,7 @@
 
 ## test_plan:
   current_focus:
-    - "Intégration MongoDB"
+    - "Système de groupes pré-configurés"
   stuck_tasks:
     - "Intégration MongoDB"
   test_all: false
