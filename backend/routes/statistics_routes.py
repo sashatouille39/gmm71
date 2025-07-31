@@ -140,19 +140,16 @@ async def get_role_statistics(user_id: str = "default_user"):
         raise HTTPException(status_code=500, detail=f"Erreur lors du calcul des stats de rôles: {str(e)}")
 
 @router.post("/save-completed-game")
-async def save_completed_game(
-    game_id: str,
-    user_id: str = "default_user"
-):
+async def save_completed_game(request: SaveCompletedGameRequest):
     """Sauvegarde une partie terminée (appelé automatiquement à la fin d'une partie)"""
     try:
         # Importer game_db pour récupérer la partie
         from routes.game_routes import games_db
         
-        if game_id not in games_db:
+        if request.game_id not in games_db:
             raise HTTPException(status_code=404, detail="Partie non trouvée")
         
-        game = games_db[game_id]
+        game = games_db[request.game_id]
         
         if not game.completed:
             raise HTTPException(status_code=400, detail="La partie n'est pas terminée")
@@ -161,7 +158,7 @@ async def save_completed_game(
         try:
             import requests
             backendUrl = "http://localhost:8001"  # URL interne
-            ranking_response = requests.get(f"{backendUrl}/api/games/{game_id}/final-ranking", timeout=5)
+            ranking_response = requests.get(f"{backendUrl}/api/games/{request.game_id}/final-ranking", timeout=5)
             
             if ranking_response.status_code == 200:
                 ranking_data = ranking_response.json()
@@ -172,11 +169,11 @@ async def save_completed_game(
             final_ranking = []
         
         # Sauvegarder la partie
-        completed_game = StatisticsService.save_completed_game(user_id, game, final_ranking)
+        completed_game = StatisticsService.save_completed_game(request.user_id, game, final_ranking)
         
         # Mettre à jour les stats de base dans gamestate
-        if user_id in game_states_db:
-            game_state = game_states_db[user_id]
+        if request.user_id in game_states_db:
+            game_state = game_states_db[request.user_id]
             game_state.game_stats.total_games_played += 1
             game_state.game_stats.total_kills += len([p for p in game.players if not p.alive])
             if hasattr(game, 'earnings'):
