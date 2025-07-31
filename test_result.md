@@ -410,6 +410,54 @@
           agent: "testing"
           comment: "Minor: Détecté 41 nationalités au lieu de 43 attendues (manque 2 nationalités), mais 100% de noms authentiques confirmés. Fonctionnalité principale opérationnelle."
 
+  - task: "Route de classement final - Erreur HTTP 500"
+    implemented: true
+    working: false
+    file: "routes/game_routes.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ PROBLÈME CRITIQUE IDENTIFIÉ: Route GET /api/games/{game_id}/final-ranking retourne HTTP 500 (erreur serveur interne). Tests effectués: partie créée avec succès (25 joueurs), simulation réussie jusqu'à 1 survivant en 4 événements, partie marquée completed=true avec winner défini, MAIS l'appel à final-ranking génère une erreur 500. Logs backend montrent des erreurs internes. Cette route est essentielle pour afficher le classement final aux utilisateurs français. Nécessite investigation et correction urgente."
+
+  - task: "Sauvegarde des statistiques - Erreur HTTP 422"
+    implemented: true
+    working: false
+    file: "routes/statistics_routes.py"
+    stuck_count: 1
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ PROBLÈME: Route POST /api/statistics/save-completed-game retourne HTTP 422 lors de la tentative de sauvegarde d'une partie terminée. Impossible de tester la sauvegarde des statistiques car la création de partie pour ce test échoue avec une erreur de validation. Nécessite vérification des paramètres requis et de la validation des données."
+
+  - task: "Routes de statistiques - Fonctionnelles"
+    implemented: true
+    working: true
+    file: "routes/statistics_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ ROUTES DE STATISTIQUES VALIDÉES: Tests exhaustifs effectués selon la review request française: 1) **GET /api/statistics/detailed**: ✅ CONFIRMÉ - Route fonctionnelle avec event_statistics en tableau (0 éléments), structure correcte avec basic_stats, completed_games, role_statistics, event_statistics. 2) **GET /api/statistics/roles**: ✅ CONFIRMÉ - Route fonctionnelle retournant 6 rôles. 3) **GET /api/celebrities/stats/summary**: ✅ CONFIRMÉ - Route fonctionnelle retournant 1000 célébrités avec structure complète (total_celebrities, by_category, by_stars). Backend tests: 3/3 passed (100% success rate). Les routes de statistiques répondent parfaitement aux besoins de la review request française."
+
+  - task: "Système gains VIP - Parfaitement fonctionnel"
+    implemented: true
+    working: true
+    file: "routes/game_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ SYSTÈME GAINS VIP PARFAITEMENT VALIDÉ - REVIEW REQUEST FRANÇAISE ACCOMPLIE! Tests exhaustifs effectués selon la demande spécifique: 1) **GET /api/games/{game_id}/vip-earnings-status**: ✅ CONFIRMÉ - Statut des gains opérationnel avec structure correcte (game_id, completed, earnings_available, can_collect). 2) **Génération des gains**: ✅ CONFIRMÉ - Gains VIP générés correctement (3,930,484$ dans le test). 3) **POST /api/games/{game_id}/collect-vip-earnings**: ✅ CONFIRMÉ - Collection des gains réussie, argent correctement ajouté au portefeuille. 4) **GET /api/gamestate/**: ✅ CONFIRMÉ - Vérification que l'argent s'ajoute bien au solde (5,421,632$ → 9,352,116$ après collection). 5) **Synchronisation complète**: ✅ CONFIRMÉ - Le système de gains VIP fonctionne de bout en bout sans problème. Backend tests: 4/4 passed (100% success rate). Le problème 'l'argent VIP qui ne s'ajoute pas au solde' signalé par l'utilisateur français est complètement résolu."
+
   - task: "API Routes de base"
     implemented: true
     working: true
