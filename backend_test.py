@@ -7598,6 +7598,30 @@ class BackendTester:
         
         # Résumé final
         self.print_final_summary()
+
+    def print_final_summary(self):
+        """Affiche le résumé final des tests"""
+        print("\n" + "="*80)
+        print("📊 RÉSUMÉ FINAL DES TESTS")
+        print("="*80)
+        
+        success_count = self.passed_tests
+        total_count = self.total_tests
+        failure_count = total_count - success_count
+        success_rate = (success_count / total_count * 100) if total_count > 0 else 0
+        
+        print(f"✅ Tests réussis: {success_count}/{total_count} ({success_rate:.1f}%)")
+        print(f"❌ Tests échoués: {failure_count}")
+        
+        if failure_count > 0:
+            print("\n🔍 TESTS ÉCHOUÉS:")
+            for result in self.results:
+                if "❌ FAIL" in result["status"]:
+                    print(f"   - {result['test']}: {result['message']}")
+        
+        print("\n" + "="*80)
+        print(f"🏁 TESTS TERMINÉS - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print("="*80)
         print("\n" + "="*80)
         print("🔧 ADDITIONAL TESTS FOR CONTEXT")
         print("="*80)
