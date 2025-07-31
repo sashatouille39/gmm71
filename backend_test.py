@@ -7113,6 +7113,442 @@ class BackendTester:
         except Exception as e:
             self.log_result("Real Past Winners", False, f"Error during test: {str(e)}")
 
+    def test_statistics_routes_french_review(self):
+        """Test REVIEW REQUEST: Routes de statistiques selon la demande française"""
+        try:
+            print("\n🎯 TESTING STATISTICS ROUTES - FRENCH REVIEW REQUEST")
+            print("=" * 80)
+            
+            # Test 1: GET /api/statistics/detailed - Vérifier si les données sont cohérentes
+            response = requests.get(f"{API_BASE}/statistics/detailed", timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Vérifier la structure de base
+                required_fields = ['basic_stats', 'completed_games', 'role_statistics', 'event_statistics']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    # Vérifier que event_statistics est un tableau (pas un objet)
+                    event_statistics = data.get('event_statistics')
+                    if isinstance(event_statistics, list):
+                        self.log_result("Statistics Detailed Route", True, 
+                                      f"✅ Route fonctionnelle avec event_statistics en tableau ({len(event_statistics)} éléments)")
+                    else:
+                        self.log_result("Statistics Detailed Route", False, 
+                                      f"❌ event_statistics n'est pas un tableau: {type(event_statistics)}")
+                else:
+                    self.log_result("Statistics Detailed Route", False, 
+                                  f"Structure incomplète: {missing_fields}")
+            else:
+                self.log_result("Statistics Detailed Route", False, 
+                              f"HTTP {response.status_code}", response.text[:200])
+            
+            # Test 2: GET /api/statistics/roles - Statistiques des rôles
+            response = requests.get(f"{API_BASE}/statistics/roles", timeout=10)
+            
+            if response.status_code == 200:
+                roles_data = response.json()
+                if isinstance(roles_data, list):
+                    self.log_result("Statistics Roles Route", True, 
+                                  f"✅ Route fonctionnelle ({len(roles_data)} rôles)")
+                else:
+                    self.log_result("Statistics Roles Route", False, 
+                                  f"Format incorrect: {type(roles_data)}")
+            else:
+                self.log_result("Statistics Roles Route", False, 
+                              f"HTTP {response.status_code}", response.text[:200])
+            
+            # Test 3: GET /api/celebrities/stats/summary - Statistiques célébrités
+            response = requests.get(f"{API_BASE}/celebrities/stats/summary", timeout=10)
+            
+            if response.status_code == 200:
+                celebrity_stats = response.json()
+                required_celebrity_fields = ['total_celebrities', 'by_category', 'by_stars']
+                missing_celebrity_fields = [field for field in required_celebrity_fields if field not in celebrity_stats]
+                
+                if not missing_celebrity_fields:
+                    self.log_result("Celebrity Stats Summary Route", True, 
+                                  f"✅ Route fonctionnelle ({celebrity_stats.get('total_celebrities', 0)} célébrités)")
+                else:
+                    self.log_result("Celebrity Stats Summary Route", False, 
+                                  f"Structure incomplète: {missing_celebrity_fields}")
+            else:
+                self.log_result("Celebrity Stats Summary Route", False, 
+                              f"HTTP {response.status_code}", response.text[:200])
+                
+        except Exception as e:
+            self.log_result("Statistics Routes French Review", False, f"Error: {str(e)}")
+
+    def test_final_ranking_system(self):
+        """Test REVIEW REQUEST: Système de classement final"""
+        try:
+            print("\n🎯 TESTING FINAL RANKING SYSTEM - FRENCH REVIEW REQUEST")
+            print("=" * 80)
+            
+            # Créer une partie complète avec joueurs et événements
+            game_request = {
+                "player_count": 25,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3, 4],  # 4 événements
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Final Ranking - Game Creation", False, 
+                              f"Impossible de créer la partie - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            if not game_id:
+                self.log_result("Final Ranking - Game Creation", False, "Pas d'ID de partie")
+                return
+            
+            self.log_result("Final Ranking - Game Creation", True, 
+                          f"✅ Partie créée avec {len(game_data.get('players', []))} joueurs")
+            
+            # Simuler des événements jusqu'à la fin de la partie
+            max_events = 10
+            event_count = 0
+            game_completed = False
+            
+            while event_count < max_events and not game_completed:
+                event_count += 1
+                
+                response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if response.status_code != 200:
+                    self.log_result("Final Ranking - Event Simulation", False, 
+                                  f"Simulation échouée à l'événement {event_count}")
+                    break
+                
+                data = response.json()
+                game = data.get('game', {})
+                game_completed = game.get('completed', False)
+                
+                survivors = len([p for p in game.get('players', []) if p.get('alive', False)])
+                print(f"   Événement {event_count}: {survivors} survivants, terminé: {game_completed}")
+                
+                if game_completed:
+                    break
+            
+            if not game_completed:
+                self.log_result("Final Ranking - Game Completion", False, 
+                              f"Partie non terminée après {event_count} événements")
+                return
+            
+            self.log_result("Final Ranking - Game Completion", True, 
+                          f"✅ Partie terminée après {event_count} événements")
+            
+            # Test du classement final
+            response = requests.get(f"{API_BASE}/games/{game_id}/final-ranking", timeout=10)
+            
+            if response.status_code == 200:
+                ranking_data = response.json()
+                
+                required_ranking_fields = ['game_id', 'completed', 'total_players', 'ranking']
+                missing_ranking_fields = [field for field in required_ranking_fields if field not in ranking_data]
+                
+                if not missing_ranking_fields:
+                    ranking = ranking_data.get('ranking', [])
+                    
+                    if ranking and len(ranking) > 0:
+                        # Vérifier la structure du classement
+                        first_entry = ranking[0]
+                        required_entry_fields = ['position', 'player', 'game_stats', 'player_stats']
+                        missing_entry_fields = [field for field in required_entry_fields if field not in first_entry]
+                        
+                        if not missing_entry_fields:
+                            # Vérifier que les positions sont correctes
+                            positions_correct = all(
+                                ranking[i]['position'] == i + 1 
+                                for i in range(len(ranking))
+                            )
+                            
+                            if positions_correct:
+                                winner = ranking_data.get('winner')
+                                winner_name = winner.get('name') if winner else 'Aucun'
+                                
+                                self.log_result("Final Ranking System", True, 
+                                              f"✅ Classement final fonctionnel: {len(ranking)} joueurs classés, gagnant: {winner_name}")
+                            else:
+                                self.log_result("Final Ranking System", False, 
+                                              "Positions du classement incorrectes")
+                        else:
+                            self.log_result("Final Ranking System", False, 
+                                          f"Structure entrée classement incomplète: {missing_entry_fields}")
+                    else:
+                        self.log_result("Final Ranking System", False, 
+                                      "Classement vide")
+                else:
+                    self.log_result("Final Ranking System", False, 
+                                  f"Structure classement incomplète: {missing_ranking_fields}")
+            else:
+                self.log_result("Final Ranking System", False, 
+                              f"Route classement final - HTTP {response.status_code}", response.text[:200])
+                
+        except Exception as e:
+            self.log_result("Final Ranking System", False, f"Error: {str(e)}")
+
+    def test_vip_earnings_system(self):
+        """Test REVIEW REQUEST: Système gains VIP"""
+        try:
+            print("\n🎯 TESTING VIP EARNINGS SYSTEM - FRENCH REVIEW REQUEST")
+            print("=" * 80)
+            
+            # Créer une partie pour tester les gains VIP
+            game_request = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("VIP Earnings - Game Creation", False, 
+                              f"Impossible de créer la partie - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            if not game_id:
+                self.log_result("VIP Earnings - Game Creation", False, "Pas d'ID de partie")
+                return
+            
+            # Test 1: GET /api/games/{game_id}/vip-earnings-status - Statut des gains
+            response = requests.get(f"{API_BASE}/games/{game_id}/vip-earnings-status", timeout=10)
+            
+            if response.status_code == 200:
+                status_data = response.json()
+                
+                required_status_fields = ['game_id', 'completed', 'earnings_available', 'can_collect']
+                missing_status_fields = [field for field in required_status_fields if field not in status_data]
+                
+                if not missing_status_fields:
+                    self.log_result("VIP Earnings Status Route", True, 
+                                  f"✅ Statut gains VIP: {status_data.get('earnings_available', 0)}$ disponibles")
+                else:
+                    self.log_result("VIP Earnings Status Route", False, 
+                                  f"Structure statut incomplète: {missing_status_fields}")
+            else:
+                self.log_result("VIP Earnings Status Route", False, 
+                              f"HTTP {response.status_code}", response.text[:200])
+            
+            # Simuler quelques événements pour générer des gains
+            for i in range(2):
+                response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                if response.status_code == 200:
+                    data = response.json()
+                    game = data.get('game', {})
+                    earnings = game.get('earnings', 0)
+                    print(f"   Après événement {i+1}: {earnings}$ de gains")
+            
+            # Terminer la partie
+            max_events = 8
+            for i in range(max_events):
+                response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                if response.status_code == 200:
+                    data = response.json()
+                    game = data.get('game', {})
+                    if game.get('completed', False):
+                        break
+            
+            # Vérifier le statut après fin de partie
+            response = requests.get(f"{API_BASE}/games/{game_id}/vip-earnings-status", timeout=10)
+            
+            if response.status_code == 200:
+                final_status = response.json()
+                earnings_available = final_status.get('earnings_available', 0)
+                can_collect = final_status.get('can_collect', False)
+                
+                if earnings_available > 0 and can_collect:
+                    self.log_result("VIP Earnings Generation", True, 
+                                  f"✅ Gains VIP générés: {earnings_available}$ collectables")
+                    
+                    # Test 2: Vérifier l'argent avant collection
+                    gamestate_response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+                    money_before = 0
+                    if gamestate_response.status_code == 200:
+                        gamestate = gamestate_response.json()
+                        money_before = gamestate.get('money', 0)
+                    
+                    # Test 3: POST /api/games/{game_id}/collect-vip-earnings - Collection des gains
+                    response = requests.post(f"{API_BASE}/games/{game_id}/collect-vip-earnings", timeout=10)
+                    
+                    if response.status_code == 200:
+                        collect_data = response.json()
+                        earnings_collected = collect_data.get('earnings_collected', 0)
+                        new_total_money = collect_data.get('new_total_money', 0)
+                        
+                        if earnings_collected > 0:
+                            self.log_result("VIP Earnings Collection", True, 
+                                          f"✅ Gains collectés: {earnings_collected}$, nouveau total: {new_total_money}$")
+                            
+                            # Test 4: GET /api/gamestate/ - Vérifier que l'argent s'ajoute bien au solde
+                            gamestate_response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+                            
+                            if gamestate_response.status_code == 200:
+                                final_gamestate = gamestate_response.json()
+                                final_money = final_gamestate.get('money', 0)
+                                
+                                expected_money = money_before + earnings_collected
+                                if abs(final_money - expected_money) < 1:  # Tolérance de 1$
+                                    self.log_result("VIP Earnings Money Addition", True, 
+                                                  f"✅ Argent correctement ajouté au solde: {final_money}$")
+                                else:
+                                    self.log_result("VIP Earnings Money Addition", False, 
+                                                  f"❌ Argent incorrect: attendu {expected_money}$, obtenu {final_money}$")
+                            else:
+                                self.log_result("VIP Earnings Money Addition", False, 
+                                              f"Impossible de vérifier le gamestate - HTTP {gamestate_response.status_code}")
+                        else:
+                            self.log_result("VIP Earnings Collection", False, 
+                                          "Aucun gain collecté")
+                    else:
+                        self.log_result("VIP Earnings Collection", False, 
+                                      f"HTTP {response.status_code}", response.text[:200])
+                else:
+                    self.log_result("VIP Earnings Generation", False, 
+                                  f"Pas de gains générés ou non collectables: {earnings_available}$, can_collect: {can_collect}")
+            else:
+                self.log_result("VIP Earnings Final Status", False, 
+                              f"HTTP {response.status_code}", response.text[:200])
+                
+        except Exception as e:
+            self.log_result("VIP Earnings System", False, f"Error: {str(e)}")
+
+    def test_statistics_save_system(self):
+        """Test REVIEW REQUEST: Sauvegarde des statistiques"""
+        try:
+            print("\n🎯 TESTING STATISTICS SAVE SYSTEM - FRENCH REVIEW REQUEST")
+            print("=" * 80)
+            
+            # Créer et terminer une partie pour tester la sauvegarde
+            game_request = {
+                "player_count": 15,
+                "game_mode": "standard",
+                "selected_events": [1, 2],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Statistics Save - Game Creation", False, 
+                              f"Impossible de créer la partie - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            # Terminer la partie rapidement
+            max_events = 6
+            for i in range(max_events):
+                response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                if response.status_code == 200:
+                    data = response.json()
+                    game = data.get('game', {})
+                    if game.get('completed', False):
+                        break
+            
+            # Test 1: POST /api/statistics/save-completed-game - Vérifier que les parties se sauvegardent
+            response = requests.post(f"{API_BASE}/statistics/save-completed-game?game_id={game_id}", timeout=10)
+            
+            if response.status_code == 200:
+                save_data = response.json()
+                
+                if 'message' in save_data and 'completed_game' in save_data:
+                    self.log_result("Statistics Save Completed Game", True, 
+                                  f"✅ Partie sauvegardée: {save_data.get('message')}")
+                else:
+                    self.log_result("Statistics Save Completed Game", False, 
+                                  "Structure de réponse incorrecte")
+            else:
+                self.log_result("Statistics Save Completed Game", False, 
+                              f"HTTP {response.status_code}", response.text[:200])
+            
+            # Test 2: Vérifier que les vraies statistiques s'accumulent
+            # Récupérer les statistiques avant
+            response = requests.get(f"{API_BASE}/statistics/detailed", timeout=10)
+            stats_before = {}
+            if response.status_code == 200:
+                stats_before = response.json()
+            
+            # Créer et terminer une autre partie
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data2 = response.json()
+                game_id2 = game_data2.get('id')
+                
+                # Terminer cette partie aussi
+                for i in range(max_events):
+                    response = requests.post(f"{API_BASE}/games/{game_id2}/simulate-event", timeout=10)
+                    if response.status_code == 200:
+                        data = response.json()
+                        game = data.get('game', {})
+                        if game.get('completed', False):
+                            break
+                
+                # Récupérer les statistiques après
+                response = requests.get(f"{API_BASE}/statistics/detailed", timeout=10)
+                
+                if response.status_code == 200:
+                    stats_after = response.json()
+                    
+                    # Comparer les statistiques
+                    games_before = stats_before.get('basic_stats', {}).get('total_games_played', 0)
+                    games_after = stats_after.get('basic_stats', {}).get('total_games_played', 0)
+                    
+                    if games_after > games_before:
+                        self.log_result("Statistics Accumulation", True, 
+                                      f"✅ Statistiques s'accumulent: {games_before} → {games_after} parties")
+                    else:
+                        self.log_result("Statistics Accumulation", False, 
+                                      f"❌ Statistiques ne s'accumulent pas: {games_before} → {games_after}")
+                else:
+                    self.log_result("Statistics Accumulation", False, 
+                                  "Impossible de récupérer les statistiques après")
+            
+            # Test 3: Vérifier les parties terminées
+            response = requests.get(f"{API_BASE}/statistics/completed-games", timeout=10)
+            
+            if response.status_code == 200:
+                completed_games = response.json()
+                
+                if isinstance(completed_games, list) and len(completed_games) > 0:
+                    self.log_result("Statistics Completed Games List", True, 
+                                  f"✅ {len(completed_games)} parties terminées dans l'historique")
+                else:
+                    self.log_result("Statistics Completed Games List", False, 
+                                  "Aucune partie terminée trouvée")
+            else:
+                self.log_result("Statistics Completed Games List", False, 
+                              f"HTTP {response.status_code}", response.text[:200])
+                
+        except Exception as e:
+            self.log_result("Statistics Save System", False, f"Error: {str(e)}")
+
     def run_all_tests(self):
         """Run all backend tests with focus on statistics and winners system"""
         print(f"🚀 STARTING BACKEND TESTS - STATISTICS & WINNERS SYSTEM - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
