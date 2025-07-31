@@ -981,10 +981,10 @@
 
 ## test_plan:
   current_focus:
-    - "Argent de base à 1 million"
-    - "Système général toujours fonctionnel"
-    - "Cohérence du système économique"
-  stuck_tasks: []
+    - "Route de classement final - Erreur HTTP 500"
+    - "Sauvegarde des statistiques - Erreur HTTP 422"
+  stuck_tasks:
+    - "Route de classement final - Erreur HTTP 500"
   test_all: false
   test_priority: "high_first"
 
