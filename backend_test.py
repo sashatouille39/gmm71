@@ -7550,34 +7550,54 @@ class BackendTester:
             self.log_result("Statistics Save System", False, f"Error: {str(e)}")
 
     def run_all_tests(self):
-        """Run all backend tests with focus on statistics and winners system"""
-        print(f"🚀 STARTING BACKEND TESTS - STATISTICS & WINNERS SYSTEM - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        """Exécute tous les tests backend selon la review request française"""
+        print(f"\n🎯 DÉMARRAGE DES TESTS BACKEND - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print("=" * 80)
         print(f"Backend URL: {BACKEND_URL}")
         print(f"API Base: {API_BASE}")
         print("=" * 80)
-        print("🎯 FOCUS: Testing système de statistiques et gagnants selon review request")
-        print("1. Test des statistiques - event_statistics comme tableau")
-        print("2. Test des parties terminées et gagnants")
-        print("3. Test des joueurs identiques avec all_players")
-        print("=" * 80)
         
-        # Test server startup first
+        # Tests de base
         if not self.test_server_startup():
-            print("❌ Server not accessible, stopping tests")
+            print("❌ ARRÊT: Serveur non accessible")
             return
         
-        # PRIORITY: Test the specific review request corrections
-        print("\n" + "="*80)
-        print("🎯 REVIEW REQUEST TESTS - SYSTÈME STATISTIQUES ET GAGNANTS")
-        print("="*80)
+        # TESTS PRIORITAIRES SELON LA REVIEW REQUEST FRANÇAISE
+        print("\n🇫🇷 TESTS PRIORITAIRES SELON LA REVIEW REQUEST FRANÇAISE")
+        print("=" * 80)
         
-        # Test the 3 specific corrections from the review request
-        self.test_statistics_detailed_event_statistics_array()
-        self.test_completed_games_and_winners()
-        self.test_create_completed_game_for_testing()
-        self.test_identical_players_with_all_players_field()
+        # 1. Routes de statistiques
+        self.test_statistics_routes_french_review()
         
-        # Run additional tests for context
+        # 2. Classement final
+        self.test_final_ranking_system()
+        
+        # 3. Système gains VIP
+        self.test_vip_earnings_system()
+        
+        # 4. Sauvegarde des statistiques
+        self.test_statistics_save_system()
+        
+        # Tests complémentaires
+        print("\n📋 TESTS COMPLÉMENTAIRES")
+        print("=" * 80)
+        
+        self.test_basic_routes()
+        self.test_game_events_available()
+        self.test_generate_players()
+        
+        # Test de création de partie pour obtenir un game_id
+        game_id = self.test_create_game()
+        
+        # Tests avec game_id
+        if game_id:
+            self.test_simulate_event(game_id)
+        
+        # Vérification des logs
+        self.check_backend_logs()
+        
+        # Résumé final
+        self.print_final_summary()
         print("\n" + "="*80)
         print("🔧 ADDITIONAL TESTS FOR CONTEXT")
         print("="*80)
