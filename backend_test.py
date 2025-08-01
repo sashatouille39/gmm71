@@ -8206,6 +8206,7 @@ class BackendTester:
         print("=" * 80)
         
         # PRIORITY: Run the specific review request test first
+        self.test_final_ranking_route_structure()
         self.test_statistics_data_structure_review()
         
         # TEST PRINCIPAL: Système de statistiques corrigé (REVIEW REQUEST)
