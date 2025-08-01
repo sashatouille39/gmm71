@@ -208,20 +208,20 @@ const FinalRanking = () => {
                   </div>
                   <div className="space-y-2">
                     <div className="text-2xl font-bold text-green-400">
-                      {entry.stats.total_score} pts
+                      {entry.game_stats.total_score} pts
                     </div>
                     <div className="text-sm text-gray-400">
-                      {entry.stats.survived_events} épreuves survécues
+                      {entry.game_stats.survived_events} épreuves survécues
                     </div>
                     <div className="text-sm text-gray-400">
                       <span 
-                        className={`${entry.stats.kills > 0 ? 'cursor-pointer hover:text-red-300 hover:underline' : ''}`}
-                        onClick={() => handleKillsClick(entry.player, entry.stats.kills)}
+                        className={`${entry.game_stats.kills > 0 ? 'cursor-pointer hover:text-red-300 hover:underline' : ''}`}
+                        onClick={() => handleKillsClick(entry.player, entry.game_stats.kills)}
                       >
-                        {entry.stats.kills} éliminations
+                        {entry.game_stats.kills} éliminations
                       </span>
                       {' • '}
-                      {entry.stats.betrayals} trahisons
+                      {entry.game_stats.betrayals} trahisons
                     </div>
                     <div className="text-xs text-gray-500">
                       Int: {entry.player_stats.intelligence} | For: {entry.player_stats.force} | Agi: {entry.player_stats.agilité}
