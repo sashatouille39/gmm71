@@ -223,7 +223,7 @@ const FinalRanking = ({ gameState }) => {
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <Trophy className="w-5 h-5 text-yellow-400" />
-                💰 Revenus VIP Collectés
+                💰 Revenus VIP de cette partie
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -237,7 +237,14 @@ const FinalRanking = ({ gameState }) => {
                 <div className="flex justify-center items-center gap-4 text-sm text-gray-400">
                   <span>🎭 Frais de visionnage VIP</span>
                   <span>•</span>
-                  <span>💰 Automatiquement ajouté à votre solde</span>
+                  <span>💰 Collecté automatiquement</span>
+                  <span>•</span>
+                  <span>💵 Ajouté à votre solde</span>
+                </div>
+                <div className="mt-3 p-2 bg-green-900/20 rounded-lg border border-green-600/30">
+                  <p className="text-green-200 text-xs">
+                    ✅ Ces gains ont été automatiquement ajoutés à votre argent
+                  </p>
                 </div>
               </div>
             </CardContent>
