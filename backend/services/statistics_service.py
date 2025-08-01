@@ -116,7 +116,7 @@ class StatisticsService:
     
     @classmethod
     def calculate_event_statistics(cls, user_id: str) -> List[Dict[str, Any]]:
-        """Calcule les statistiques pour chaque épreuve et retourne un tableau trié"""
+        """Calcule les statistiques pour chaque épreuve en utilisant les vraies données de jeu"""
         
         completed_games = cls.completed_games_db.get(user_id, [])
         
@@ -133,27 +133,68 @@ class StatisticsService:
             'average_elimination_rate': 0.0
         })
         
-        total_events_data = {}
-        
-        for game in completed_games:
-            for event_name in game.events_played:
-                if event_name not in event_stats:
-                    event_stats[event_name]['name'] = event_name
-                
-                event_stats[event_name]['played_count'] += 1
-                
-                # Calculer les statistiques basées sur les données disponibles
-                # En utilisant les données du jeu pour estimer les participants et éliminations
-                if hasattr(game, 'total_players') and game.total_players:
-                    avg_participants_per_event = game.total_players // len(game.events_played) if game.events_played else game.total_players
-                    event_stats[event_name]['total_participants'] += avg_participants_per_event
+        # Importer les données des parties pour accéder aux event_results détaillés
+        try:
+            from routes.game_routes import games_db
+            
+            # Parcourir toutes les parties terminées pour obtenir les vraies données
+            for completed_game in completed_games:
+                if completed_game.id in games_db:
+                    full_game = games_db[completed_game.id]
                     
-                    # Estimer les éliminations (approximation basée sur les survivants)
-                    if hasattr(game, 'survivors') and game.survivors:
-                        total_eliminations = game.total_players - game.survivors
-                        avg_eliminations_per_event = total_eliminations // len(game.events_played) if game.events_played else 0
-                        event_stats[event_name]['deaths'] += avg_eliminations_per_event
-                        event_stats[event_name]['total_eliminations'] += avg_eliminations_per_event
+                    # Utiliser les event_results réels si disponibles
+                    if hasattr(full_game, 'event_results') and full_game.event_results:
+                        for event_result in full_game.event_results:
+                            event_name = event_result.event_name
+                            
+                            if event_name not in event_stats:
+                                event_stats[event_name]['name'] = event_name
+                            
+                            event_stats[event_name]['played_count'] += 1
+                            event_stats[event_name]['total_participants'] += event_result.total_participants
+                            event_stats[event_name]['deaths'] += len(event_result.eliminated)
+                            event_stats[event_name]['total_eliminations'] += len(event_result.eliminated)
+                    
+                    # Fallback sur les events_played si pas d'event_results
+                    elif hasattr(completed_game, 'events_played') and completed_game.events_played:
+                        for event_name in completed_game.events_played:
+                            if event_name not in event_stats:
+                                event_stats[event_name]['name'] = event_name
+                            
+                            event_stats[event_name]['played_count'] += 1
+                            
+                            # Estimation basée sur les données disponibles
+                            if hasattr(completed_game, 'total_players') and completed_game.total_players:
+                                avg_participants_per_event = completed_game.total_players // len(completed_game.events_played) if completed_game.events_played else completed_game.total_players
+                                event_stats[event_name]['total_participants'] += avg_participants_per_event
+                                
+                                # Estimer les éliminations
+                                if hasattr(completed_game, 'survivors') and completed_game.survivors:
+                                    total_eliminations = completed_game.total_players - completed_game.survivors
+                                    avg_eliminations_per_event = total_eliminations // len(completed_game.events_played) if completed_game.events_played else 0
+                                    event_stats[event_name]['deaths'] += avg_eliminations_per_event
+                                    event_stats[event_name]['total_eliminations'] += avg_eliminations_per_event
+        
+        except ImportError:
+            # Si on ne peut pas importer games_db, utiliser la méthode d'estimation
+            for game in completed_games:
+                for event_name in game.events_played:
+                    if event_name not in event_stats:
+                        event_stats[event_name]['name'] = event_name
+                    
+                    event_stats[event_name]['played_count'] += 1
+                    
+                    # Estimation basée sur les données disponibles
+                    if hasattr(game, 'total_players') and game.total_players:
+                        avg_participants_per_event = game.total_players // len(game.events_played) if game.events_played else game.total_players
+                        event_stats[event_name]['total_participants'] += avg_participants_per_event
+                        
+                        # Estimer les éliminations
+                        if hasattr(game, 'survivors') and game.survivors:
+                            total_eliminations = game.total_players - game.survivors
+                            avg_eliminations_per_event = total_eliminations // len(game.events_played) if game.events_played else 0
+                            event_stats[event_name]['deaths'] += avg_eliminations_per_event
+                            event_stats[event_name]['total_eliminations'] += avg_eliminations_per_event
         
         # Calculer les taux de survie et organiser en tableau
         event_list = []
