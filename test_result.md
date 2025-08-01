@@ -105,19 +105,19 @@
 ## user_problem_statement: "Tester les nouvelles fonctionnalités VIP que j'ai implémentées : **Tests à effectuer :** 1. **Test des gains VIP dans le classement final :** - Créer une partie avec un salon VIP de niveau supérieur (niveau 3 = 5 VIPs) - Simuler des événements jusqu'à la fin de la partie - Appeler GET /api/games/{game_id}/final-ranking - Vérifier que la réponse contient maintenant les champs "vip_earnings" et "events_completed" 2. **Test du calcul correct des gains VIP :** - Créer une partie - Assigner des VIPs à cette partie via GET /api/vips/game/{game_id}?salon_level=3 - Vérifier que les VIPs ont des viewing_fee > 0 - Calculer les gains attendus : somme des viewing_fee de tous les VIPs - Simuler la partie jusqu'à la fin - Vérifier que game.earnings correspond à la somme des viewing_fee des VIPs 3. **Test de la route de statut des gains VIP :** - Appeler GET /api/games/{game_id}/vip-earnings-status sur une partie terminée - Vérifier que earnings_available correspond aux gains VIP calculés 4. **Test de cohérence des données :** - S'assurer que les gains VIP sont cohérents entre : - final-ranking -> vip_earnings - vip-earnings-status -> earnings_available - La partie elle-même -> game.earnings **Objectif principal :** Confirmer que les revenus VIP (frais de visionnage) sont correctement calculés et exposés dans toutes les APIs, particulièrement dans final-ranking pour l'affichage frontend."
 
 ## backend:
-  - task: "Nouvelles capacités salons VIP niveaux 1-9"
+  - task: "Test des gains VIP dans le classement final"
     implemented: true
-    working: true
-    file: "routes/vip_routes.py"
-    stuck_count: 0
+    working: false
+    file: "routes/game_routes.py"
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
-        - working: true
+        - working: false
           agent: "testing"
-          comment: "✅ NOUVELLES CAPACITÉS VIP PARFAITEMENT VALIDÉES! Tests exhaustifs effectués selon la review request française sur les nouvelles capacités des salons VIP: 1) **Route GET /api/vips/salon/{salon_level}**: ✅ CONFIRMÉ - Tous les niveaux 1-9 retournent exactement le bon nombre de VIPs (Niveau 1: 1 VIP, Niveau 2: 3 VIPs, Niveau 3: 5 VIPs, Niveau 4: 8 VIPs, Niveau 5: 10 VIPs, Niveau 6: 12 VIPs, Niveau 7: 15 VIPs, Niveau 8: 17 VIPs, Niveau 9: 20 VIPs). 2) **Structure VIP validée**: ✅ CONFIRMÉ - Tous les VIPs retournés ont la structure correcte avec id, name, mask, personality, viewing_fee, dialogues. 3) **Viewing fees fonctionnels**: ✅ CONFIRMÉ - Tous les VIPs ont des viewing_fee > 0 correctement calculés selon leur personnalité. Backend tests: 9/9 passed (100% success rate). Les nouvelles capacités des salons VIP sont parfaitement implémentées selon les spécifications exactes de la review request."
+          comment: "❌ PROBLÈME CRITIQUE IDENTIFIÉ: Test des gains VIP dans le classement final partiellement fonctionnel. Tests effectués selon la review request française: 1) **Création partie avec salon VIP niveau 3**: ✅ CONFIRMÉ - Partie créée avec 30 joueurs et 5 VIPs assignés correctement. 2) **VIPs avec viewing_fee > 0**: ✅ CONFIRMÉ - Tous les 5 VIPs ont des viewing_fee valides (total attendu: 4,118,449). 3) **Simulation jusqu'à la fin**: ✅ CONFIRMÉ - Partie terminée après 4 événements avec gagnant. 4) **Route final-ranking**: ✅ CONFIRMÉ - Contient bien les champs 'vip_earnings' et 'events_completed'. 5) **PROBLÈME MAJEUR**: ❌ Calcul des gains VIP incorrect - attendu: 4,118,449, obtenu: 469,159. Les gains VIP ne correspondent pas à la somme des viewing_fee des VIPs assignés. Backend tests: 3/4 passed (75% success rate). Le problème principal est que les gains VIP calculés ne reflètent pas correctement les viewing_fee des VIPs assignés au salon niveau 3."
 
-  - task: "Assignation VIPs aux parties avec salon_level"
+  - task: "Test du calcul correct des gains VIP"
     implemented: true
     working: false
     file: "routes/vip_routes.py"
@@ -127,43 +127,31 @@
     status_history:
         - working: false
           agent: "testing"
-          comment: "❌ PROBLÈME CRITIQUE IDENTIFIÉ: Route GET /api/vips/game/{game_id} ne respecte pas le paramètre salon_level. Tests effectués: 1) **Salon Level 1**: ✅ CONFIRMÉ - Retourne correctement 1 VIP. 2) **Salon Level 6**: ❌ PROBLÈME - Retourne 1 VIP au lieu de 12 VIPs attendus. 3) **Salon Level 2**: ❌ PROBLÈME - Retourne 1 VIP au lieu de 3 VIPs attendus. 4) **Salon Level 9**: ❌ PROBLÈME - Retourne 1 VIP au lieu de 20 VIPs attendus. La route semble ignorer le paramètre salon_level et utilise toujours la capacité par défaut (1 VIP). Backend tests: 1/4 passed (25% success rate). Nécessite correction urgente de la logique d'assignation des VIPs aux parties."
+          comment: "❌ PROBLÈME CRITIQUE IDENTIFIÉ: Calcul des gains VIP incorrect pour les niveaux supérieurs. Tests effectués selon la review request française: 1) **Salon niveau 1 (1 VIP)**: ✅ CONFIRMÉ - Calcul correct des gains (786,120 attendu = 786,120 obtenu). 2) **Salon niveau 3 (5 VIPs)**: ❌ PROBLÈME - Calcul incorrect (5,857,602 attendu ≠ 314,901 obtenu). 3) **Salon niveau 6 (12 VIPs)**: ❌ PROBLÈME - Impossible de tester (erreur HTTP 500 lors de création de partie). Le problème semble être que seul le salon niveau 1 calcule correctement les gains, tandis que les niveaux supérieurs ne prennent pas en compte tous les VIPs assignés. Backend tests: 1/3 passed (33% success rate). Nécessite correction urgente de la logique de calcul des gains VIP pour les salons de niveau supérieur."
 
-  - task: "Système de rafraîchissement VIP"
-    implemented: true
-    working: true
-    file: "routes/vip_routes.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: true
-          agent: "testing"
-          comment: "✅ SYSTÈME DE RAFRAÎCHISSEMENT VIP VALIDÉ! Tests exhaustifs effectués selon la review request française: 1) **Route POST /api/vips/game/{game_id}/refresh**: ✅ CONFIRMÉ - Fonctionne correctement pour tous les niveaux testés. 2) **Respect des capacités**: ✅ CONFIRMÉ - Niveau 1: 1 VIP, Niveau 5: 10 VIPs, Niveau 8: 17 VIPs. 3) **Changement des VIPs**: ✅ CONFIRMÉ - Les VIPs sont effectivement rafraîchis (différents VIPs après refresh). 4) **Structure de réponse**: ✅ CONFIRMÉ - Retourne correctement le champ 'vips' avec les nouveaux VIPs. Backend tests: 3/3 passed (100% success rate). Le système de rafraîchissement respecte parfaitement les nouvelles capacités selon la review request."
-
-  - task: "Calcul des gains VIP selon viewing fees"
+  - task: "Test de la route de statut des gains VIP"
     implemented: true
     working: false
-    file: "routes/vip_routes.py"
+    file: "routes/game_routes.py"
     stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
         - working: false
           agent: "testing"
-          comment: "❌ PROBLÈME PARTIEL IDENTIFIÉ: Route GET /api/vips/earnings/{game_id} fonctionne correctement pour salon niveau 1 mais échoue pour les niveaux supérieurs. Tests effectués: 1) **Salon niveau 1 (1 VIP)**: ✅ CONFIRMÉ - Calcul correct des gains (total_earnings, vip_count, average_fee tous corrects). 2) **Salon niveau 6 (12 VIPs)**: ❌ PROBLÈME - Impossible de tester car l'assignation VIP ne fonctionne que pour 1 VIP au lieu de 12. Le problème est lié à la route /api/vips/game/{game_id} qui n'assigne qu'1 VIP indépendamment du salon_level. Backend tests: 1/2 passed (50% success rate). Le calcul des gains fonctionne mais dépend de la correction de l'assignation VIP."
+          comment: "❌ PROBLÈME CRITIQUE IDENTIFIÉ: Route de statut des gains VIP inaccessible. Tests effectués selon la review request française: 1) **Création de partie**: ❌ PROBLÈME - Erreur HTTP 500 lors de la création de partie pour tester la route. 2) **Route GET /api/games/{game_id}/vip-earnings-status**: ❌ PROBLÈME - Impossible de tester à cause de l'échec de création de partie. Le problème semble lié à des erreurs de fonds insuffisants lors de la création de parties, empêchant de tester la route de statut des gains VIP. Backend tests: 0/1 passed (0% success rate). Nécessite résolution du problème de création de partie avant de pouvoir tester cette fonctionnalité."
 
-  - task: "Intégration système VIP complet"
+  - task: "Test de cohérence des données VIP"
     implemented: true
     working: false
-    file: "routes/vip_routes.py"
+    file: "routes/game_routes.py, routes/vip_routes.py"
     stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
         - working: false
           agent: "testing"
-          comment: "❌ PROBLÈME D'INTÉGRATION IDENTIFIÉ: L'intégration complète du système VIP échoue à cause du problème d'assignation. Tests effectués: 1) **Création de partie**: ✅ CONFIRMÉ - Partie créée avec succès (30 joueurs). 2) **Assignation VIPs salon niveau 3**: ❌ PROBLÈME - Retourne 1 VIP au lieu de 5 VIPs attendus pour le salon niveau 3. 3) **Simulation d'événements**: ✅ CONFIRMÉ - Les événements se simulent correctement. 4) **Calcul gains VIP**: ✅ CONFIRMÉ - Les gains sont calculables. Le problème principal est que la route /api/vips/game/{game_id} ignore le paramètre salon_level. Backend tests: 2/4 passed (50% success rate). L'intégration sera fonctionnelle une fois le problème d'assignation corrigé."
+          comment: "❌ PROBLÈME CRITIQUE IDENTIFIÉ: Test de cohérence des données VIP impossible à effectuer. Tests effectués selon la review request française: 1) **Création de partie**: ❌ PROBLÈME - Erreur HTTP 500 lors de la création de partie (fonds insuffisants). 2) **APIs à tester**: ❌ PROBLÈME - Impossible de tester la cohérence entre final-ranking, vip-earnings-status et game-data à cause de l'échec de création. 3) **Objectif principal**: ❌ NON ATTEINT - Impossible de confirmer que les revenus VIP sont cohérents entre toutes les APIs. Le problème principal est que les erreurs de création de partie empêchent de tester la cohérence des données VIP entre les différentes APIs. Backend tests: 0/1 passed (0% success rate). Nécessite résolution urgente des problèmes de création de partie et de calcul des gains VIP."
 
 ## backend:
   - task: "Argent de base à 1 million"
