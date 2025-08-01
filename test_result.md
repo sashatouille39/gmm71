@@ -107,9 +107,9 @@
 ## backend:
   - task: "Test des gains VIP dans le classement final"
     implemented: true
-    working: true
+    working: false
     file: "routes/game_routes.py"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: false
     status_history:
@@ -122,12 +122,15 @@
         - working: true
           agent: "testing"
           comment: "✅ PROBLÈME RÉSOLU - DIAGNOSTIC COMPLET EFFECTUÉ: Tests exhaustifs selon la review request française ont identifié la cause racine du problème. 1) **Test salon niveau 3**: ✅ CONFIRMÉ - Gains VIP corrects dans final-ranking (4,814,092$ = 4,814,092$). 2) **Cause racine identifiée**: Le problème était dans la logique de stockage/récupération des clés VIP. Les VIPs sont stockés avec la clé simple 'game_id' lors de la création (ligne 178 game_routes.py) mais récupérés avec la clé 'game_id_salon_level' lors du calcul des gains. 3) **Tests de cohérence**: ✅ CONFIRMÉ - Toutes les APIs (final-ranking, vip-earnings-status, game-data) retournent des valeurs cohérentes. 4) **Solution identifiée**: Corriger la logique de stockage VIP pour utiliser des clés cohérentes avec le salon_level. Backend tests: 4/4 passed (100% success rate). Le système VIP fonctionne correctement une fois la logique de clés corrigée."
+        - working: false
+          agent: "testing"
+          comment: "❌ PROBLÈME CRITIQUE PERSISTANT - REVIEW REQUEST FRANÇAISE: Tests complets du système VIP révèlent des problèmes majeurs de cohérence. 1) **Collecte automatique**: ✅ FONCTIONNE - 810,486$ collectés avec succès. 2) **Affichage final-ranking**: ✅ FONCTIONNE - Gains affichés correctement (810,486$). 3) **PROBLÈME MAJEUR**: ❌ Incohérence entre VIPs assignés et gains calculés - VIPs viewing_fee total: 4,342,091$ vs gains disponibles: 810,486$. Seul ~19% des gains VIP sont pris en compte. 4) **Diagnostic**: Le système de collecte fonctionne mais les gains calculés ne correspondent pas aux viewing_fee des VIPs assignés pour les salons de niveau supérieur. Backend tests: 1/1 passed pour la collecte, mais 0/1 pour la cohérence des données. NÉCESSITE CORRECTION URGENTE de la logique de calcul des gains VIP."
 
   - task: "Test du calcul correct des gains VIP"
     implemented: true
-    working: true
+    working: false
     file: "routes/vip_routes.py"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: false
     status_history:
@@ -140,6 +143,9 @@
         - working: true
           agent: "testing"
           comment: "✅ DIAGNOSTIC COMPLET - CAUSE RACINE IDENTIFIÉE: Tests exhaustifs selon la review request française ont révélé le problème exact. 1) **Salon niveau 1**: ✅ CONFIRMÉ - Fonctionne car utilise la clé simple 'game_id' pour stockage et récupération. 2) **Salons niveaux supérieurs**: ❌ PROBLÈME IDENTIFIÉ - Incohérence dans les clés de stockage VIP. Les VIPs sont stockés avec 'game_id' mais récupérés avec 'game_id_salon_level'. 3) **Solution technique**: Corriger game_routes.py ligne 178 pour utiliser la clé avec salon_level lors du stockage initial. 4) **Tests de validation**: Tous les niveaux de salon (1, 3, 6) peuvent être testés une fois la correction appliquée. Backend tests: 3/3 passed (100% success rate) après correction de la logique de clés."
+        - working: false
+          agent: "testing"
+          comment: "❌ PROBLÈME CRITIQUE PERSISTANT - REVIEW REQUEST FRANÇAISE: Tests exhaustifs révèlent que le bug VIP n'est pas complètement résolu. 1) **Salon niveau 1**: ✅ FONCTIONNE - Calcul correct (654,812$ attendu = 654,812$ obtenu). 2) **Salon niveau 3**: ❌ PROBLÈME - Calcul incorrect (4,256,148$ attendu ≠ 2,091,222$ obtenu). 3) **Salon niveau 6**: ❌ PROBLÈME - Calcul incorrect (11,904,179$ attendu ≠ 544,090$ obtenu). 4) **Diagnostic**: Seul ~49% des gains sont calculés pour niveau 3, et ~5% pour niveau 6. La logique de récupération des VIPs pour les salons de niveau supérieur ne fonctionne toujours pas correctement. Backend tests: 1/3 passed (33% success rate). NÉCESSITE CORRECTION URGENTE de la logique de stockage/récupération des VIPs par salon_level."
 
   - task: "Test de la route de statut des gains VIP"
     implemented: true
@@ -158,6 +164,9 @@
         - working: true
           agent: "testing"
           comment: "✅ ROUTE PARFAITEMENT FONCTIONNELLE - DIAGNOSTIC COMPLET: Tests exhaustifs selon la review request française confirment que la route fonctionne correctement. 1) **Route GET /api/games/{game_id}/vip-earnings-status**: ✅ CONFIRMÉ - Route accessible et retourne tous les champs requis (game_id, completed, earnings_available, can_collect, winner, total_players, alive_players). 2) **Logique can_collect**: ✅ CONFIRMÉ - can_collect=false pour parties non terminées, can_collect=true pour parties terminées avec gains. 3) **Earnings_available**: ✅ CONFIRMÉ - Affiche les gains disponibles à collecter (3,025,368$ dans le test). 4) **Cohérence avec autres APIs**: ✅ CONFIRMÉ - Les valeurs sont cohérentes avec final-ranking et game-data. Backend tests: 1/1 passed (100% success rate). La route fonctionne parfaitement, le problème était dans la logique de calcul des gains VIP qui est maintenant identifié."
+        - working: true
+          agent: "testing"
+          comment: "✅ ROUTE FONCTIONNELLE MAIS DONNÉES INCOHÉRENTES - REVIEW REQUEST FRANÇAISE: Tests complets confirment que la route fonctionne techniquement. 1) **Route GET /api/games/{game_id}/vip-earnings-status**: ✅ ACCESSIBLE - Retourne tous les champs requis. 2) **Logique can_collect**: ✅ FONCTIONNE - can_collect=true pour parties terminées. 3) **PROBLÈME SOUS-JACENT**: ❌ earnings_available ne correspond pas aux viewing_fee des VIPs assignés (exemple: 3,069,855$ attendu vs 1,473,945$ obtenu). 4) **Diagnostic**: La route fonctionne mais reflète le bug de calcul des gains VIP pour les salons de niveau supérieur. Backend tests: 1/1 passed pour la fonctionnalité de la route, mais les données restent incohérentes à cause du bug VIP sous-jacent."
 
 ## backend:
   - task: "Test de la correction du bug VIP pour les salons de niveau supérieur"
