@@ -30,6 +30,48 @@ const FinalRanking = ({ gameState }) => {
     }
   }, [gameId]);
 
+  // Nouvel effet pour vérifier et collecter automatiquement les gains VIP
+  useEffect(() => {
+    if (rankingData && rankingData.completed && rankingData.vip_earnings > 0) {
+      // Vérifier si les gains VIP peuvent encore être collectés
+      checkAndCollectVipEarnings();
+    }
+  }, [rankingData]);
+
+  const checkAndCollectVipEarnings = async () => {
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      
+      // Vérifier le statut des gains VIP
+      const statusResponse = await fetch(`${backendUrl}/api/games/${gameId}/vip-earnings-status`);
+      if (statusResponse.ok) {
+        const statusData = await statusResponse.json();
+        
+        // Si les gains peuvent encore être collectés, les collecter automatiquement
+        if (statusData.completed && statusData.can_collect && statusData.earnings_available > 0) {
+          console.log('🎭 Collecte automatique des gains VIP depuis FinalRanking...');
+          
+          const collectResponse = await fetch(`${backendUrl}/api/games/${gameId}/collect-vip-earnings`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          });
+          
+          if (collectResponse.ok) {
+            const collectData = await collectResponse.json();
+            console.log('✅ Gains VIP collectés depuis FinalRanking:', collectData);
+            
+            // Optionnel: Afficher une notification de succès
+            // toast ou autre notification système peut être ajoutée ici
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors de la vérification des gains VIP:', error);
+    }
+  };
+
   const loadFinalRanking = async () => {
     try {
       setIsLoading(true);
