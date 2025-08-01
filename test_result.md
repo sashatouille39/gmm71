@@ -149,6 +149,9 @@
         - working: false
           agent: "testing"
           comment: "❌ PROBLÈME CRITIQUE PERSISTANT - REVIEW REQUEST FRANÇAISE: Tests exhaustifs révèlent que le bug VIP n'est pas complètement résolu. 1) **Salon niveau 1**: ✅ FONCTIONNE - Calcul correct (654,812$ attendu = 654,812$ obtenu). 2) **Salon niveau 3**: ❌ PROBLÈME - Calcul incorrect (4,256,148$ attendu ≠ 2,091,222$ obtenu). 3) **Salon niveau 6**: ❌ PROBLÈME - Calcul incorrect (11,904,179$ attendu ≠ 544,090$ obtenu). 4) **Diagnostic**: Seul ~49% des gains sont calculés pour niveau 3, et ~5% pour niveau 6. La logique de récupération des VIPs pour les salons de niveau supérieur ne fonctionne toujours pas correctement. Backend tests: 1/3 passed (33% success rate). NÉCESSITE CORRECTION URGENTE de la logique de stockage/récupération des VIPs par salon_level."
+        - working: false
+          agent: "testing"
+          comment: "❌ PROBLÈME CRITIQUE CONFIRMÉ - TESTS EXHAUSTIFS SELON REVIEW REQUEST FRANÇAISE: Tests complets effectués selon les spécifications exactes. 1) **Salon niveau 1**: ✅ FONCTIONNE - Calcul correct (1,499,326$ attendu = 1,499,326$ obtenu). 2) **Salon niveau 3**: ❌ PROBLÈME PERSISTANT - Calcul incorrect (5,717,486$ attendu ≠ 1,469,568$ obtenu). Seuls ~26% des gains VIP sont calculés. 3) **Salon niveau 6**: ❌ PROBLÈME PERSISTANT - Calcul incorrect (9,610,260$ attendu ≠ 1,679,674$ obtenu). Seuls ~17% des gains VIP sont calculés. 4) **DIAGNOSTIC FINAL**: Le problème persiste dans la logique de récupération des VIPs pour les salons de niveau supérieur. Les VIPs sont correctement assignés mais seule une fraction est prise en compte dans le calcul des gains. Backend tests: 1/3 passed (33% success rate). NÉCESSITE CORRECTION URGENTE de la logique de calcul des gains VIP pour les salons niveau 3+."
 
   - task: "Test de la route de statut des gains VIP"
     implemented: true
