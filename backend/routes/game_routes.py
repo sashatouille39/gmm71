@@ -168,14 +168,17 @@ async def create_game(request: GameCreateRequest):
         from routes.vip_routes import active_vips_by_game
         from services.vip_service import VipService
         
-        # Récupérer le niveau de salon VIP du joueur (par défaut 1)
-        salon_level = game_state.vip_salon_level
+        # Récupérer le niveau de salon VIP - priorité à la requête, sinon celui du joueur
+        salon_level = request.vip_salon_level if request.vip_salon_level is not None else game_state.vip_salon_level
         capacity_map = {1: 1, 2: 3, 3: 5, 4: 8, 5: 10, 6: 12, 7: 15, 8: 17, 9: 20}
         vip_capacity = capacity_map.get(salon_level, 1)
         
         # Assigner des VIPs avec leurs viewing_fee (200k-3M)
         game_vips = VipService.get_random_vips(vip_capacity)
         active_vips_by_game[f'{game.id}_salon_{salon_level}'] = game_vips
+        
+        # Stocker le salon_level utilisé dans le jeu pour les calculs futurs
+        game.vip_salon_level = salon_level
         
         games_db[game.id] = game
         return game
