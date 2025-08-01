@@ -66,12 +66,13 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
   const collectVipEarningsAutomatically = async (gameId) => {
     try {
       const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      console.log(`🎭 Collecte automatique des gains VIP pour la partie ${gameId}...`);
       
       // Vérifier d'abord le statut des gains VIP
       const statusResponse = await fetch(`${backendUrl}/api/games/${gameId}/vip-earnings-status`);
       if (!statusResponse.ok) {
         console.error('Erreur lors de la vérification du statut VIP');
-        return;
+        return null;
       }
       
       const statusData = await statusResponse.json();
@@ -88,47 +89,27 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
         
         if (collectResponse.ok) {
           const collectData = await collectResponse.json();
-          console.log('Gains VIP collectés automatiquement:', collectData);
-          
-          // Afficher une notification à l'utilisateur - VERSION AMÉLIORÉE
-          const notification = document.createElement('div');
-          notification.innerHTML = `
-            <div class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-green-600 to-yellow-600 text-white px-8 py-6 rounded-xl shadow-2xl z-50 animate-bounce">
-              <div class="text-center">
-                <div class="text-3xl mb-2">🎉💰🎉</div>
-                <div class="text-xl font-bold mb-2">GAINS VIP COLLECTÉS !</div>
-                <div class="text-2xl font-bold text-yellow-200">+$${collectData.earnings_collected.toLocaleString()}</div>
-                <div class="text-sm mt-2 opacity-90">Les VIPs ont payé leurs frais de visionnage</div>
-                <div class="text-xs mt-1 opacity-75">Montant ajouté automatiquement à votre solde</div>
-              </div>
-            </div>
-          `;
-          document.body.appendChild(notification.firstElementChild);
-          
-          // Supprimer la notification après 8 secondes (plus long pour que l'utilisateur la voie)
-          setTimeout(() => {
-            const notif = document.querySelector('.fixed.top-1\\/2.left-1\\/2');
-            if (notif) {
-              notif.style.transition = 'opacity 1s ease-out';
-              notif.style.opacity = '0';
-              setTimeout(() => notif.remove(), 1000);
-            }
-          }, 8000);
+          console.log('✅ Gains VIP collectés automatiquement:', collectData);
           
           // Recharger le gameState depuis le backend pour synchroniser le nouveau solde
           if (onRefreshGameState) {
             await onRefreshGameState();
             console.log('GameState rechargé après collecte des gains VIP');
           }
+          
+          return collectData; // Retourner les données pour l'affichage
         } else {
-          console.error('Erreur lors de la collecte des gains VIP');
+          console.error('❌ Erreur lors de la collecte des gains VIP');
+          return null;
         }
       } else {
-        console.log('Pas de gains VIP à collecter ou jeu non terminé');
+        console.log('📋 Pas de gains VIP à collecter ou jeu non terminé');
+        return null;
       }
       
     } catch (error) {
-      console.error('Erreur lors de la collecte automatique des gains VIP:', error);
+      console.error('❌ Erreur lors de la collecte automatique des gains VIP:', error);
+      return null;
     }
   };
 
