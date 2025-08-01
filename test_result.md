@@ -146,6 +146,9 @@
         - working: false
           agent: "testing"
           comment: "❌ PROBLÈME CRITIQUE IDENTIFIÉ: Route de statut des gains VIP inaccessible. Tests effectués selon la review request française: 1) **Création de partie**: ❌ PROBLÈME - Erreur HTTP 500 lors de la création de partie pour tester la route. 2) **Route GET /api/games/{game_id}/vip-earnings-status**: ❌ PROBLÈME - Impossible de tester à cause de l'échec de création de partie. Le problème semble lié à des erreurs de fonds insuffisants lors de la création de parties, empêchant de tester la route de statut des gains VIP. Backend tests: 0/1 passed (0% success rate). Nécessite résolution du problème de création de partie avant de pouvoir tester cette fonctionnalité."
+        - working: false
+          agent: "testing"
+          comment: "❌ PROBLÈME PERSISTANT CONFIRMÉ: Tests exhaustifs effectués selon la review request française. 1) **Création partie et simulation**: ✅ CONFIRMÉ - Partie créée avec 20 joueurs et terminée avec succès. 2) **Route vip-earnings-status**: ✅ CONFIRMÉ - Route accessible et retourne tous les champs requis. 3) **PROBLÈME MAJEUR PERSISTANT**: ❌ Données toujours incohérentes - earnings_available ne correspond pas aux viewing_fee des VIPs assignés. Exemple: attendu 2,140,939$, obtenu 681,269$. Le problème est confirmé comme étant lié au bug de calcul des gains VIP pour les salons de niveau supérieur. Backend tests: 0/1 passed (0% success rate)."
 
   - task: "Test de cohérence des données VIP"
     implemented: true
