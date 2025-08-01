@@ -28,16 +28,23 @@ async def get_salon_vips(salon_level: int):
 async def get_game_vips(game_id: str, salon_level: int = 1):
     """Récupère ou génère les VIPs pour une partie spécifique"""
     try:
-        # Si des VIPs sont déjà assignés à cette partie, les retourner
-        if game_id in active_vips_by_game:
-            return active_vips_by_game[game_id]
+        # Créer une clé unique basée sur game_id et salon_level
+        vip_key = f"{game_id}_salon_{salon_level}"
         
-        # Sinon, générer de nouveaux VIPs pour cette partie
+        # Si des VIPs sont déjà assignés pour cette combinaison partie/salon, les retourner
+        if vip_key in active_vips_by_game:
+            return active_vips_by_game[vip_key]
+        
+        # Sinon, générer de nouveaux VIPs pour cette partie et ce niveau de salon
         capacity_map = {1: 1, 2: 3, 3: 5, 4: 8, 5: 10, 6: 12, 7: 15, 8: 17, 9: 20}
         capacity = capacity_map.get(salon_level, 1)
         
         vips = VipService.get_random_vips(capacity)
-        active_vips_by_game[game_id] = vips
+        active_vips_by_game[vip_key] = vips
+        
+        # Garder la compatibilité en stockant aussi avec l'ancienne clé pour le salon niveau 1
+        if salon_level == 1:
+            active_vips_by_game[game_id] = vips
         
         return vips
     except Exception as e:
