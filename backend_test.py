@@ -9849,7 +9849,7 @@ class BackendTester:
         print("\n🇫🇷 NOUVEAUX TESTS VIP - REVIEW REQUEST FRANÇAIS")
         print("=" * 80)
         
-        self.test_vip_earnings_final_ranking()
+        self.test_vip_bug_correction_validation()
         self.test_vip_earnings_calculation()
         self.test_vip_earnings_status_route()
         self.test_vip_data_consistency()
