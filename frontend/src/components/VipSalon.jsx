@@ -378,7 +378,7 @@ const VipSalon = ({ gameState, updateGameState }) => {
                       </div>
 
                       {/* Barre de progression vers le niveau suivant */}
-                      {gameState.vipSalonLevel === upgrade.level && upgrade.level < 4 && (
+                      {gameState.vipSalonLevel === upgrade.level && upgrade.level < 9 && (
                         <div className="mt-4 pt-4 border-t border-gray-600">
                           <div className="text-sm text-gray-400 mb-2">
                             Prochain niveau: {salonUpgrades[upgrade.level]?.name}
