@@ -161,6 +161,9 @@
         - working: false
           agent: "testing"
           comment: "❌ PROBLÈME CRITIQUE IDENTIFIÉ: Test de cohérence des données VIP impossible à effectuer. Tests effectués selon la review request française: 1) **Création de partie**: ❌ PROBLÈME - Erreur HTTP 500 lors de la création de partie (fonds insuffisants). 2) **APIs à tester**: ❌ PROBLÈME - Impossible de tester la cohérence entre final-ranking, vip-earnings-status et game-data à cause de l'échec de création. 3) **Objectif principal**: ❌ NON ATTEINT - Impossible de confirmer que les revenus VIP sont cohérents entre toutes les APIs. Le problème principal est que les erreurs de création de partie empêchent de tester la cohérence des données VIP entre les différentes APIs. Backend tests: 0/1 passed (0% success rate). Nécessite résolution urgente des problèmes de création de partie et de calcul des gains VIP."
+        - working: false
+          agent: "testing"
+          comment: "❌ PROBLÈME PERSISTANT CONFIRMÉ: Tests exhaustifs effectués selon la review request française. 1) **Création partie et simulation**: ✅ CONFIRMÉ - Partie créée avec 25 joueurs et terminée avec succès. 2) **Test de cohérence entre APIs**: ❌ PROBLÈME PERSISTANT - Les trois APIs (final-ranking, vip-earnings-status, game-data) retournent des valeurs cohérentes entre elles (1,309,222$) mais ne correspondent toujours pas aux gains attendus (6,134,609$). 3) **Confirmation du problème racine**: Le bug est confirmé dans la logique de calcul des gains VIP qui ne récupère pas correctement tous les VIPs assignés pour les salons de niveau supérieur. Backend tests: 0/1 passed (0% success rate)."
 
 ## backend:
   - task: "Argent de base à 1 million"
