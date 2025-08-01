@@ -465,19 +465,20 @@ const VipSalon = ({ gameState, updateGameState }) => {
                   </div>
                 )}
                 
-                {/* Statistiques du salon */}
-                <div className="mt-8 p-4 bg-gray-800/30 rounded-lg">
-                  <h4 className="text-white font-bold mb-2">Statistiques du salon</h4>
+                {/* Statistiques du salon - VERSION AMÉLIORÉE */}
+                <div className="mt-8 p-6 bg-gradient-to-r from-green-900/30 to-yellow-900/30 border border-green-500/30 rounded-lg">
+                  <h4 className="text-white font-bold mb-4 text-center text-lg">💰 Statistiques du salon VIP</h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-blue-400">{currentVips.length}</div>
                       <div className="text-gray-400">VIPs présents</div>
                     </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-400">
+                    <div className="text-center bg-green-800/30 p-3 rounded-lg border border-green-500/30">
+                      <div className="text-3xl font-bold text-green-400">
                         ${currentVips.reduce((sum, vip) => sum + (vip.viewing_fee || 0), 0).toLocaleString()}
                       </div>
-                      <div className="text-gray-400">Revenus totaux</div>
+                      <div className="text-green-300 font-medium">Revenus totaux</div>
+                      <div className="text-xs text-green-200 mt-1">Frais de visionnage VIP</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-yellow-400">{currentSalon?.capacity}</div>
@@ -487,6 +488,12 @@ const VipSalon = ({ gameState, updateGameState }) => {
                       <div className="text-2xl font-bold text-purple-400">{allVips.length}</div>
                       <div className="text-gray-400">VIPs disponibles</div>
                     </div>
+                  </div>
+                  <div className="mt-4 text-center">
+                    <p className="text-sm text-gray-300">
+                      💡 <span className="text-yellow-400 font-medium">Les revenus totaux</span> représentent la somme que vous recevrez 
+                      à la fin des jeux grâce aux frais de visionnage payés par les VIPs.
+                    </p>
                   </div>
                 </div>
               </CardContent>
