@@ -157,34 +157,74 @@ const VipSalon = ({ gameState, updateGameState }) => {
     { 
       level: 1, 
       name: 'Salon Basique', 
-      capacity: 3, 
+      capacity: 1, 
       cost: 0, 
-      description: 'Salon d\'entrée avec 3 places VIP',
+      description: 'Salon d\'entrée avec 1 place VIP',
       unlocked: true 
     },
     { 
       level: 2, 
       name: 'Salon Confort', 
-      capacity: 5, 
-      cost: 15000000, // 15 millions
-      description: 'Meilleur confort, 5 places VIP',
-      unlocked: gameState.money >= 15000000
+      capacity: 3, 
+      cost: 500000, // 500k
+      description: 'Salon confort avec 3 places VIP',
+      unlocked: gameState.money >= 500000
     },
     { 
       level: 3, 
-      name: 'Salon Luxe', 
-      capacity: 8, 
-      cost: 35000000, // 35 millions
-      description: 'Salon de luxe avec bar, 8 places VIP',
-      unlocked: gameState.money >= 35000000 && gameState.vipSalonLevel >= 2 
+      name: 'Salon Élégant', 
+      capacity: 5, 
+      cost: 1500000, // 1.5M
+      description: 'Salon élégant avec 5 places VIP',
+      unlocked: gameState.money >= 1500000 && gameState.vipSalonLevel >= 2 
     },
     { 
       level: 4, 
+      name: 'Salon Luxe', 
+      capacity: 8, 
+      cost: 3500000, // 3.5M
+      description: 'Salon de luxe avec bar, 8 places VIP',
+      unlocked: gameState.money >= 3500000 && gameState.vipSalonLevel >= 3 
+    },
+    { 
+      level: 5, 
+      name: 'Salon Premium', 
+      capacity: 10, 
+      cost: 7500000, // 7.5M
+      description: 'Salon premium avec service, 10 places VIP',
+      unlocked: gameState.money >= 7500000 && gameState.vipSalonLevel >= 4 
+    },
+    { 
+      level: 6, 
       name: 'Salon Impérial', 
       capacity: 12, 
-      cost: 75000000, // 75 millions
-      description: 'Prestige maximum, 12 places VIP',
-      unlocked: gameState.money >= 75000000 && gameState.vipSalonLevel >= 3 
+      cost: 15000000, // 15M
+      description: 'Salon impérial avec équipements, 12 places VIP',
+      unlocked: gameState.money >= 15000000 && gameState.vipSalonLevel >= 5 
+    },
+    { 
+      level: 7, 
+      name: 'Salon Royal', 
+      capacity: 15, 
+      cost: 30000000, // 30M
+      description: 'Salon royal avec services VIP, 15 places VIP',
+      unlocked: gameState.money >= 30000000 && gameState.vipSalonLevel >= 6 
+    },
+    { 
+      level: 8, 
+      name: 'Salon Suprême', 
+      capacity: 17, 
+      cost: 60000000, // 60M
+      description: 'Salon suprême avec luxe absolu, 17 places VIP',
+      unlocked: gameState.money >= 60000000 && gameState.vipSalonLevel >= 7 
+    },
+    { 
+      level: 9, 
+      name: 'Salon Légendaire', 
+      capacity: 20, 
+      cost: 100000000, // 100M
+      description: 'Prestige maximum légendaire, 20 places VIP',
+      unlocked: gameState.money >= 100000000 && gameState.vipSalonLevel >= 8 
     }
   ];
 
