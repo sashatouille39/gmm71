@@ -433,8 +433,30 @@ async def simulate_event(game_id: str):
         # Calculer les gains - CORRECTION FINALE : UTILISER LES VRAIS MONTANTS VIP
         # Récupérer les VIPs assignés à cette partie pour leurs viewing_fee réels
         from routes.vip_routes import active_vips_by_game
+        from routes.gamestate_routes import game_states_db
         
-        game_vips = active_vips_by_game.get(game_id, [])
+        # Récupérer le niveau de salon de l'utilisateur pour cette partie
+        user_id = "default_user"
+        user_salon_level = 1
+        if user_id in game_states_db:
+            user_salon_level = game_states_db[user_id].vip_salon_level
+        
+        # Essayer d'abord avec la clé spécifique au salon de l'utilisateur
+        vip_key = f"{game_id}_salon_{user_salon_level}"
+        game_vips = active_vips_by_game.get(vip_key, [])
+        
+        # Si pas trouvé, chercher dans tous les niveaux de salon possibles pour cette partie
+        if not game_vips:
+            for level in range(1, 10):
+                test_key = f"{game_id}_salon_{level}"
+                if test_key in active_vips_by_game:
+                    game_vips = active_vips_by_game[test_key]
+                    break
+        
+        # Fallback vers l'ancienne clé pour compatibilité
+        if not game_vips:
+            game_vips = active_vips_by_game.get(game_id, [])
+        
         if game_vips:
             # Sommer les viewing_fee réels des VIPs (entre 200k et 3M chacun)
             game.earnings = sum(vip.viewing_fee for vip in game_vips)
