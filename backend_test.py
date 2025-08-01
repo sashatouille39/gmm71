@@ -1105,16 +1105,22 @@ class BackendTester:
         except Exception as e:
             self.log_result("Celebrity Stats Improvement Rules", False, f"Error: {str(e)}")
 
-    def test_vip_earnings_final_ranking(self):
-        """Test FRENCH REVIEW REQUEST 1: Test des gains VIP dans le classement final"""
+    def test_vip_bug_correction_validation(self):
+        """Test FRENCH REVIEW REQUEST: Validation de la correction du bug VIP pour les salons de niveau supérieur"""
         try:
-            print("\n🇫🇷 TESTING VIP EARNINGS IN FINAL RANKING - FRENCH REVIEW REQUEST")
+            print("\n🇫🇷 TESTING VIP BUG CORRECTION - FRENCH REVIEW REQUEST")
             print("=" * 80)
+            print("CORRECTION TESTÉE: Changement du stockage des VIPs de 'game_id' vers 'game_id_salon_level'")
+            print("OBJECTIF: Confirmer que tous les VIPs sont pris en compte pour les salons de niveau supérieur")
+            print()
             
-            # Test 1: Créer une partie avec salon VIP niveau 3 (5 VIPs)
+            # Test 1: Salon niveau 3 (5 VIPs)
+            print("🔍 TEST 1: SALON NIVEAU 3 (5 VIPs)")
+            print("-" * 50)
+            
             game_request = {
                 "player_count": 30,
-                "game_mode": "standard",
+                "game_mode": "standard", 
                 "selected_events": [1, 2, 3, 4],
                 "manual_players": []
             }
@@ -1125,99 +1131,226 @@ class BackendTester:
                                    timeout=15)
             
             if response.status_code != 200:
-                self.log_result("VIP Earnings Final Ranking", False, f"Could not create game - HTTP {response.status_code}")
+                self.log_result("VIP Bug Correction - Salon Level 3", False, f"Could not create game - HTTP {response.status_code}")
                 return
                 
             game_data = response.json()
             game_id = game_data.get('id')
             
-            if not game_id:
-                self.log_result("VIP Earnings Final Ranking", False, "No game ID returned from creation")
-                return
-            
-            # Test 2: Vérifier que les VIPs ont des viewing_fee > 0 via GET /api/vips/game/{game_id}?salon_level=3
+            # Vérifier que 5 VIPs sont assignés avec viewing_fee > 0
             vips_response = requests.get(f"{API_BASE}/vips/game/{game_id}?salon_level=3", timeout=10)
             
             if vips_response.status_code != 200:
-                self.log_result("VIP Earnings Final Ranking", False, f"Could not get VIPs - HTTP {vips_response.status_code}")
+                self.log_result("VIP Bug Correction - Salon Level 3", False, f"Could not get VIPs - HTTP {vips_response.status_code}")
                 return
                 
             vips_data = vips_response.json()
             
             if not isinstance(vips_data, list) or len(vips_data) != 5:
-                self.log_result("VIP Earnings Final Ranking", False, f"Expected 5 VIPs for salon level 3, got {len(vips_data) if isinstance(vips_data, list) else 'non-list'}")
+                self.log_result("VIP Bug Correction - Salon Level 3", False, f"Expected 5 VIPs for salon level 3, got {len(vips_data) if isinstance(vips_data, list) else 'non-list'}")
                 return
             
-            # Calculer la somme attendue des viewing_fees
-            expected_total_earnings = sum(vip.get('viewing_fee', 0) for vip in vips_data)
-            
-            if expected_total_earnings <= 0:
-                self.log_result("VIP Earnings Final Ranking", False, f"VIPs have no viewing_fee: {vips_data}")
+            # Vérifier que tous les VIPs ont viewing_fee > 0
+            invalid_vips = [vip for vip in vips_data if vip.get('viewing_fee', 0) <= 0]
+            if invalid_vips:
+                self.log_result("VIP Bug Correction - Salon Level 3", False, f"Found VIPs with invalid viewing_fee: {len(invalid_vips)}")
                 return
             
-            print(f"   ✅ VIPs assignés: {len(vips_data)} VIPs avec viewing_fee total attendu: {expected_total_earnings:,}$")
+            expected_total_level3 = sum(vip.get('viewing_fee', 0) for vip in vips_data)
+            print(f"   ✅ 5 VIPs assignés avec viewing_fee total: {expected_total_level3:,}$")
             
-            # Test 3: Simuler la partie jusqu'à la fin
+            # Simuler jusqu'à la fin
             max_simulations = 10
             simulation_count = 0
             
             while simulation_count < max_simulations:
                 simulation_count += 1
-                
                 sim_response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
                 
                 if sim_response.status_code != 200:
-                    self.log_result("VIP Earnings Final Ranking", False, f"Event simulation failed - HTTP {sim_response.status_code}")
+                    self.log_result("VIP Bug Correction - Salon Level 3", False, f"Event simulation failed - HTTP {sim_response.status_code}")
                     return
                 
                 sim_data = sim_response.json()
                 game_state = sim_data.get('game', {})
                 
                 if game_state.get('completed', False):
-                    print(f"   ✅ Partie terminée après {simulation_count} événements avec gagnant")
+                    print(f"   ✅ Partie terminée après {simulation_count} événements")
                     break
             
             if simulation_count >= max_simulations:
-                self.log_result("VIP Earnings Final Ranking", False, f"Game did not complete after {max_simulations} simulations")
+                self.log_result("VIP Bug Correction - Salon Level 3", False, f"Game did not complete after {max_simulations} simulations")
                 return
             
-            # Test 4: Vérifier les gains via GET /api/games/{game_id}/final-ranking
+            # Vérifier les gains dans final-ranking
             ranking_response = requests.get(f"{API_BASE}/games/{game_id}/final-ranking", timeout=10)
             
             if ranking_response.status_code != 200:
-                self.log_result("VIP Earnings Final Ranking", False, f"Could not get final ranking - HTTP {ranking_response.status_code}")
+                self.log_result("VIP Bug Correction - Salon Level 3", False, f"Could not get final ranking - HTTP {ranking_response.status_code}")
                 return
                 
             ranking_data = ranking_response.json()
+            actual_vip_earnings_level3 = ranking_data.get('vip_earnings', 0)
             
-            # Vérifier que la réponse contient les champs "vip_earnings" et "events_completed"
-            required_fields = ['vip_earnings', 'events_completed']
-            missing_fields = [field for field in required_fields if field not in ranking_data]
+            print(f"   📊 Gains VIP dans final-ranking: {actual_vip_earnings_level3:,}$")
+            print(f"   📊 Gains VIP attendus: {expected_total_level3:,}$")
             
-            if missing_fields:
-                self.log_result("VIP Earnings Final Ranking", False, f"Final ranking missing fields: {missing_fields}")
+            level3_success = (actual_vip_earnings_level3 == expected_total_level3)
+            
+            if level3_success:
+                print(f"   ✅ SUCCÈS: Tous les 5 VIPs pris en compte pour salon niveau 3")
+                self.log_result("VIP Bug Correction - Salon Level 3", True, 
+                              f"✅ Gains VIP corrects: {actual_vip_earnings_level3:,}$ = {expected_total_level3:,}$")
+            else:
+                print(f"   ❌ ÉCHEC: Gains VIP incorrects pour salon niveau 3")
+                self.log_result("VIP Bug Correction - Salon Level 3", False, 
+                              f"❌ Gains VIP incorrects - attendu: {expected_total_level3:,}$, obtenu: {actual_vip_earnings_level3:,}$")
+            
+            # Test 2: Salon niveau 6 (12 VIPs)
+            print("\n🔍 TEST 2: SALON NIVEAU 6 (12 VIPs)")
+            print("-" * 50)
+            
+            game_request_level6 = {
+                "player_count": 50,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3, 4],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request_level6, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("VIP Bug Correction - Salon Level 6", False, f"Could not create game - HTTP {response.status_code}")
+                return
+                
+            game_data_level6 = response.json()
+            game_id_level6 = game_data_level6.get('id')
+            
+            # Vérifier que 12 VIPs sont assignés
+            vips_response_level6 = requests.get(f"{API_BASE}/vips/game/{game_id_level6}?salon_level=6", timeout=10)
+            
+            if vips_response_level6.status_code != 200:
+                self.log_result("VIP Bug Correction - Salon Level 6", False, f"Could not get VIPs - HTTP {vips_response_level6.status_code}")
+                return
+                
+            vips_data_level6 = vips_response_level6.json()
+            
+            if not isinstance(vips_data_level6, list) or len(vips_data_level6) != 12:
+                self.log_result("VIP Bug Correction - Salon Level 6", False, f"Expected 12 VIPs for salon level 6, got {len(vips_data_level6) if isinstance(vips_data_level6, list) else 'non-list'}")
                 return
             
-            actual_vip_earnings = ranking_data.get('vip_earnings', 0)
-            events_completed = ranking_data.get('events_completed', 0)
+            expected_total_level6 = sum(vip.get('viewing_fee', 0) for vip in vips_data_level6)
+            print(f"   ✅ 12 VIPs assignés avec viewing_fee total: {expected_total_level6:,}$")
             
-            print(f"   📊 Résultats final-ranking:")
-            print(f"   - VIP earnings obtenus: {actual_vip_earnings:,}$")
-            print(f"   - VIP earnings attendus: {expected_total_earnings:,}$")
-            print(f"   - Événements complétés: {events_completed}")
+            # Simuler jusqu'à la fin
+            simulation_count = 0
+            while simulation_count < max_simulations:
+                simulation_count += 1
+                sim_response = requests.post(f"{API_BASE}/games/{game_id_level6}/simulate-event", timeout=10)
+                
+                if sim_response.status_code != 200:
+                    self.log_result("VIP Bug Correction - Salon Level 6", False, f"Event simulation failed - HTTP {sim_response.status_code}")
+                    return
+                
+                sim_data = sim_response.json()
+                game_state = sim_data.get('game', {})
+                
+                if game_state.get('completed', False):
+                    print(f"   ✅ Partie terminée après {simulation_count} événements")
+                    break
             
-            # Test critique: Vérifier que les gains correspondent
-            earnings_match = (actual_vip_earnings == expected_total_earnings)
+            # Vérifier les gains dans final-ranking
+            ranking_response_level6 = requests.get(f"{API_BASE}/games/{game_id_level6}/final-ranking", timeout=10)
             
-            if earnings_match:
-                self.log_result("VIP Earnings Final Ranking", True, 
-                              f"✅ SUCCÈS: Gains VIP corrects dans final-ranking - {actual_vip_earnings:,}$ = {expected_total_earnings:,}$")
+            if ranking_response_level6.status_code != 200:
+                self.log_result("VIP Bug Correction - Salon Level 6", False, f"Could not get final ranking - HTTP {ranking_response_level6.status_code}")
+                return
+                
+            ranking_data_level6 = ranking_response_level6.json()
+            actual_vip_earnings_level6 = ranking_data_level6.get('vip_earnings', 0)
+            
+            print(f"   📊 Gains VIP dans final-ranking: {actual_vip_earnings_level6:,}$")
+            print(f"   📊 Gains VIP attendus: {expected_total_level6:,}$")
+            
+            level6_success = (actual_vip_earnings_level6 == expected_total_level6)
+            
+            if level6_success:
+                print(f"   ✅ SUCCÈS: Tous les 12 VIPs pris en compte pour salon niveau 6")
+                self.log_result("VIP Bug Correction - Salon Level 6", True, 
+                              f"✅ Gains VIP corrects: {actual_vip_earnings_level6:,}$ = {expected_total_level6:,}$")
             else:
-                self.log_result("VIP Earnings Final Ranking", False, 
-                              f"❌ PROBLÈME: Gains VIP incorrects - attendu: {expected_total_earnings:,}$, obtenu: {actual_vip_earnings:,}$")
+                print(f"   ❌ ÉCHEC: Gains VIP incorrects pour salon niveau 6")
+                self.log_result("VIP Bug Correction - Salon Level 6", False, 
+                              f"❌ Gains VIP incorrects - attendu: {expected_total_level6:,}$, obtenu: {actual_vip_earnings_level6:,}$")
+            
+            # Test 3: Test de cohérence complète
+            print("\n🔍 TEST 3: COHÉRENCE COMPLÈTE DES APIs")
+            print("-" * 50)
+            
+            # Utiliser la partie niveau 3 pour tester la cohérence
+            # Test final-ranking
+            final_ranking_earnings = ranking_data.get('vip_earnings', 0)
+            
+            # Test vip-earnings-status
+            earnings_status_response = requests.get(f"{API_BASE}/games/{game_id}/vip-earnings-status", timeout=10)
+            
+            if earnings_status_response.status_code != 200:
+                self.log_result("VIP Bug Correction - API Consistency", False, f"Could not get vip-earnings-status - HTTP {earnings_status_response.status_code}")
+                return
+                
+            earnings_status_data = earnings_status_response.json()
+            earnings_available = earnings_status_data.get('earnings_available', 0)
+            
+            # Test viewing_fees des VIPs assignés
+            viewing_fees_total = expected_total_level3
+            
+            print(f"   📊 final-ranking.vip_earnings: {final_ranking_earnings:,}$")
+            print(f"   📊 vip-earnings-status.earnings_available: {earnings_available:,}$")
+            print(f"   📊 Somme viewing_fees VIPs assignés: {viewing_fees_total:,}$")
+            
+            # Vérifier la cohérence
+            apis_consistent = (final_ranking_earnings == earnings_available == viewing_fees_total)
+            
+            if apis_consistent:
+                print(f"   ✅ SUCCÈS: Toutes les APIs retournent des valeurs cohérentes")
+                self.log_result("VIP Bug Correction - API Consistency", True, 
+                              f"✅ Cohérence parfaite: {final_ranking_earnings:,}$ = {earnings_available:,}$ = {viewing_fees_total:,}$")
+            else:
+                print(f"   ❌ ÉCHEC: Incohérence entre les APIs")
+                self.log_result("VIP Bug Correction - API Consistency", False, 
+                              f"❌ Incohérence - final-ranking: {final_ranking_earnings:,}$, earnings-status: {earnings_available:,}$, viewing-fees: {viewing_fees_total:,}$")
+            
+            # Résumé final
+            print("\n📋 RÉSUMÉ DE LA VALIDATION")
+            print("=" * 50)
+            
+            all_tests_passed = level3_success and level6_success and apis_consistent
+            
+            if all_tests_passed:
+                print("✅ CORRECTION VALIDÉE: Le bug VIP est résolu")
+                print("✅ Salon niveau 3: 5 VIPs pris en compte correctement")
+                print("✅ Salon niveau 6: 12 VIPs pris en compte correctement") 
+                print("✅ APIs cohérentes: final-ranking, vip-earnings-status, viewing_fees")
+                self.log_result("VIP Bug Correction - Global Validation", True, 
+                              "✅ CORRECTION COMPLÈTEMENT VALIDÉE: Le problème où seul 1 VIP sur 5 était pris en compte est résolu")
+            else:
+                print("❌ CORRECTION INCOMPLÈTE: Des problèmes persistent")
+                failed_tests = []
+                if not level3_success:
+                    failed_tests.append("Salon niveau 3")
+                if not level6_success:
+                    failed_tests.append("Salon niveau 6")
+                if not apis_consistent:
+                    failed_tests.append("Cohérence APIs")
+                
+                self.log_result("VIP Bug Correction - Global Validation", False, 
+                              f"❌ CORRECTION INCOMPLÈTE: Échecs dans {', '.join(failed_tests)}")
                 
         except Exception as e:
-            self.log_result("VIP Earnings Final Ranking", False, f"Error: {str(e)}")
+            self.log_result("VIP Bug Correction - Global Validation", False, f"Error: {str(e)}")
 
     def test_vip_earnings_calculation(self):
         """Test FRENCH REVIEW REQUEST 2: Test du calcul correct des gains VIP"""
