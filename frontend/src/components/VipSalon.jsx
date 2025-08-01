@@ -381,10 +381,10 @@ const VipSalon = ({ gameState, updateGameState }) => {
                       {gameState.vipSalonLevel === upgrade.level && upgrade.level < 9 && (
                         <div className="mt-4 pt-4 border-t border-gray-600">
                           <div className="text-sm text-gray-400 mb-2">
-                            Prochain niveau: {salonUpgrades[upgrade.level]?.name}
+                            Prochain niveau: {salonUpgrades.find(s => s.level === upgrade.level + 1)?.name}
                           </div>
                           <Progress 
-                            value={Math.min(100, (gameState.money / salonUpgrades[upgrade.level]?.cost) * 100)} 
+                            value={Math.min(100, (gameState.money / salonUpgrades.find(s => s.level === upgrade.level + 1)?.cost) * 100)} 
                             className="h-2" 
                           />
                         </div>
