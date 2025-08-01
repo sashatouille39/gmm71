@@ -691,7 +691,8 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
       // Si la partie est terminée, collecter les gains VIP avant de quitter
       if (currentGame.completed) {
         console.log('Collecte des gains VIP avant de quitter...');
-        await collectVipEarningsAutomatically();
+        // FIX: Utiliser currentGame.id pour avoir le bon gameId
+        await collectVipEarningsAutomatically(currentGame.id);
       }
       
       // Si la partie n'est pas terminée, la supprimer pour déclencher le remboursement
