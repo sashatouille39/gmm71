@@ -371,6 +371,33 @@ async def simulate_event(game_id: str):
                     game.earnings = sum(vip.viewing_fee for vip in game_vips)
                 else:
                     game.earnings = 0
+                
+                # 🎯 NOUVELLE FONCTIONNALITÉ : Collection automatique des gains VIP dès la fin de partie
+                if game.earnings > 0:
+                    from routes.gamestate_routes import game_states_db
+                    # Définir l'utilisateur par défaut
+                    user_id = "default_user"
+                    
+                    # Ajouter automatiquement les gains VIP au portefeuille du joueur
+                    if user_id not in game_states_db:
+                        from models.game_models import GameState
+                        game_state = GameState(user_id=user_id)
+                        game_states_db[user_id] = game_state
+                    else:
+                        game_state = game_states_db[user_id]
+                    
+                    # Ajouter les gains au portefeuille du joueur
+                    earnings_to_collect = game.earnings
+                    game_state.money += earnings_to_collect
+                    game_state.game_stats.total_earnings += earnings_to_collect
+                    game_state.updated_at = datetime.utcnow()
+                    game_states_db[user_id] = game_state
+                    
+                    # Marquer que les gains ont été collectés automatiquement
+                    game.vip_earnings_collected = True
+                    
+                    print(f"🎭 Gains VIP collectés automatiquement: {earnings_to_collect}$ pour l'utilisateur {user_id}")
+                    print(f"💰 Nouveau solde: {game_state.money}$")
                     
                 games_db[game_id] = game
                 
