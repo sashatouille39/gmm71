@@ -113,7 +113,19 @@ async def get_game_bets(game_id: str):
 async def calculate_vip_earnings(game_id: str):
     """Calcule les gains des VIPs pour une partie"""
     try:
-        game_vips = active_vips_by_game.get(game_id, [])
+        # Chercher les VIPs assignés à cette partie (peut être avec différents salon_level)
+        game_vips = []
+        
+        # D'abord essayer l'ancienne clé pour compatibilité
+        if game_id in active_vips_by_game:
+            game_vips = active_vips_by_game.get(game_id, [])
+        else:
+            # Chercher parmi toutes les clés qui correspondent à ce game_id
+            for key, vips in active_vips_by_game.items():
+                if key.startswith(f"{game_id}_salon_"):
+                    game_vips = vips
+                    break
+        
         total_earnings = sum(vip.viewing_fee for vip in game_vips)
         
         return {
