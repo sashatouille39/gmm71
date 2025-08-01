@@ -10113,6 +10113,11 @@ class BackendTester:
         self.test_vip_earnings_status_route()
         self.test_vip_data_consistency()
         
+        # TEST COMPLET SYSTÈME VIP - REVIEW REQUEST FRANÇAISE SPÉCIFIQUE
+        print("\n🇫🇷 TEST COMPLET SYSTÈME VIP - REVIEW REQUEST FRANÇAISE SPÉCIFIQUE")
+        print("=" * 80)
+        self.test_vip_earnings_system_comprehensive()
+        
         # Tests complémentaires
         print("\n📋 TESTS COMPLÉMENTAIRES")
         print("=" * 80)
