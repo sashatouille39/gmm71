@@ -284,12 +284,12 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
                   console.log('🎉 Jeu terminé ! Collecte automatique des gains VIP et sauvegarde des statistiques...');
                   
                   // Collecter les gains VIP et stocker le résultat pour l'affichage
-                  const vipEarnings = await collectVipEarningsAutomatically(gameId);
+                  const vipEarnings = await collectVipEarningsAutomatically(currentGame.id);
                   if (vipEarnings) {
                     setCollectedVipEarnings(vipEarnings);
                   }
                   
-                  await saveCompletedGameStats(gameId);
+                  await saveCompletedGameStats(currentGame.id);
                 }
               }
               
