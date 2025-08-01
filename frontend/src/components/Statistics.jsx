@@ -493,16 +493,16 @@ const Statistics = ({ gameState }) => {
                         <div className="space-y-3">
                           <div className="text-sm text-gray-400 mb-4">Évolution des gains par partie</div>
                           {realGames.slice(-10).map((game, index) => (
-                            <div key={game.id} className="flex justify-between items-center">
-                              <span className="text-xs text-gray-400">Partie #{game.id.slice(-4)}</span>
+                            <div key={game.id || index} className="flex justify-between items-center">
+                              <span className="text-xs text-gray-400">Jeu {realGames.length - 9 + index}</span>
                               <div className="flex items-center gap-2">
                                 <div 
-                                  className="bg-red-500 h-2 rounded"
+                                  className="bg-red-500 h-2 rounded max-w-xs"
                                   style={{ 
-                                    width: `${Math.max(10, (game.earnings / 50000) * 100)}px` 
+                                    width: `${Math.min(200, Math.max(10, (game.earnings / Math.max(...realGames.map(g => g.earnings || 1))) * 200))}px` 
                                   }}
                                 ></div>
-                                <span className="text-xs text-green-400">${game.earnings.toLocaleString()}</span>
+                                <span className="text-xs text-green-400">${(game.earnings || 0).toLocaleString()}</span>
                               </div>
                             </div>
                           ))}
