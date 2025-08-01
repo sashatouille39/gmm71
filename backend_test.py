@@ -7993,6 +7993,9 @@ class BackendTester:
         print("\n🇫🇷 TESTS PRIORITAIRES SELON LA REVIEW REQUEST FRANÇAISE")
         print("=" * 80)
         
+        # PRIORITY: Run the specific review request test first
+        self.test_statistics_data_structure_review()
+        
         # TEST PRINCIPAL: Système de statistiques corrigé (REVIEW REQUEST)
         self.test_statistics_system_corrections()
         
