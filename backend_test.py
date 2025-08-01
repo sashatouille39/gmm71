@@ -7776,6 +7776,206 @@ class BackendTester:
         except Exception as e:
             self.log_result("Statistics Save System", False, f"Error: {str(e)}")
 
+    def test_statistics_data_structure_review(self):
+        """Test REVIEW REQUEST: Comprendre la structure exacte des données retournées par les APIs de statistiques"""
+        try:
+            print("\n🎯 TESTING STATISTICS DATA STRUCTURE - REVIEW REQUEST")
+            print("=" * 80)
+            print("Testing specific routes to understand data structure:")
+            print("1. GET /api/statistics/detailed - structure de completed_games")
+            print("2. GET /api/games/{game_id}/final-ranking - structure de rankingData")
+            print("3. Creating complete game to see data storage format")
+            print("=" * 80)
+            
+            # Test 1: GET /api/statistics/detailed
+            print("\n📊 TEST 1: GET /api/statistics/detailed")
+            response = requests.get(f"{API_BASE}/statistics/detailed", timeout=10)
+            
+            if response.status_code == 200:
+                detailed_stats = response.json()
+                
+                print(f"✅ Response received successfully")
+                print(f"📋 Top-level keys: {list(detailed_stats.keys())}")
+                
+                # Focus on completed_games structure
+                completed_games = detailed_stats.get('completed_games', [])
+                print(f"📊 completed_games type: {type(completed_games)}")
+                print(f"📊 completed_games count: {len(completed_games)}")
+                
+                if completed_games:
+                    first_game = completed_games[0]
+                    print(f"📊 First completed game structure:")
+                    for key, value in first_game.items():
+                        print(f"   - {key}: {type(value)} = {value}")
+                    
+                    # Check for specific fields mentioned in review
+                    required_fields = ['totalPlayers', 'survivors', 'earnings']
+                    found_fields = []
+                    missing_fields = []
+                    
+                    for field in required_fields:
+                        if field in first_game:
+                            found_fields.append(field)
+                        else:
+                            missing_fields.append(field)
+                    
+                    print(f"📊 Required fields found: {found_fields}")
+                    print(f"📊 Required fields missing: {missing_fields}")
+                    
+                    # Check game ID format
+                    game_id = first_game.get('id', first_game.get('game_id', 'N/A'))
+                    print(f"📊 Game ID format: '{game_id}' (type: {type(game_id)})")
+                    
+                    # Determine if UUID or sequential
+                    import re
+                    uuid_pattern = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+                    if isinstance(game_id, str) and re.match(uuid_pattern, game_id, re.IGNORECASE):
+                        print(f"📊 Game ID format: UUID")
+                    elif isinstance(game_id, (int, str)) and str(game_id).isdigit():
+                        print(f"📊 Game ID format: Sequential number")
+                    else:
+                        print(f"📊 Game ID format: Unknown/Custom")
+                        
+                else:
+                    print(f"📊 No completed games found in statistics")
+                
+                self.log_result("Statistics Detailed Structure", True, 
+                              f"✅ Structure analyzed - completed_games: {len(completed_games)} items")
+                
+            else:
+                self.log_result("Statistics Detailed Structure", False, 
+                              f"HTTP {response.status_code}", response.text[:200])
+                print(f"❌ Failed to get statistics/detailed: HTTP {response.status_code}")
+            
+            # Test 2: Create a complete game to test final-ranking
+            print(f"\n🎮 TEST 2: Creating complete game for final-ranking test")
+            
+            # Create game
+            game_request = {
+                "player_count": 25,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3, 4],  # 4 events
+                "manual_players": []
+            }
+            
+            create_response = requests.post(f"{API_BASE}/games/create", 
+                                          json=game_request, 
+                                          headers={"Content-Type": "application/json"},
+                                          timeout=15)
+            
+            if create_response.status_code == 200:
+                game_data = create_response.json()
+                test_game_id = game_data.get('id')
+                print(f"✅ Game created with ID: {test_game_id}")
+                print(f"📊 Game ID type: {type(test_game_id)}")
+                
+                # Simulate events until completion
+                print(f"🎯 Simulating events until game completion...")
+                max_events = 10
+                event_count = 0
+                
+                while event_count < max_events:
+                    event_count += 1
+                    
+                    sim_response = requests.post(f"{API_BASE}/games/{test_game_id}/simulate-event", timeout=10)
+                    
+                    if sim_response.status_code == 200:
+                        sim_data = sim_response.json()
+                        game_state = sim_data.get('game', {})
+                        result = sim_data.get('result', {})
+                        
+                        survivors_count = len(result.get('survivors', []))
+                        completed = game_state.get('completed', False)
+                        winner = game_state.get('winner')
+                        
+                        print(f"   Event {event_count}: {survivors_count} survivors, completed: {completed}")
+                        
+                        if completed:
+                            print(f"✅ Game completed after {event_count} events")
+                            print(f"🏆 Winner: {winner}")
+                            break
+                    else:
+                        print(f"❌ Event simulation failed: HTTP {sim_response.status_code}")
+                        break
+                
+                # Test 3: GET /api/games/{game_id}/final-ranking
+                print(f"\n🏆 TEST 3: GET /api/games/{test_game_id}/final-ranking")
+                
+                ranking_response = requests.get(f"{API_BASE}/games/{test_game_id}/final-ranking", timeout=10)
+                
+                if ranking_response.status_code == 200:
+                    ranking_data = ranking_response.json()
+                    
+                    print(f"✅ Final ranking response received")
+                    print(f"📋 Top-level keys: {list(ranking_data.keys())}")
+                    
+                    # Check for game_stats field specifically mentioned in review
+                    if 'game_stats' in ranking_data:
+                        print(f"📊 game_stats field found!")
+                        game_stats = ranking_data['game_stats']
+                        print(f"📊 game_stats structure:")
+                        for key, value in game_stats.items():
+                            print(f"   - {key}: {type(value)} = {value}")
+                    else:
+                        print(f"📊 game_stats field NOT found")
+                        print(f"📊 Available fields: {list(ranking_data.keys())}")
+                    
+                    # Check ranking structure
+                    ranking = ranking_data.get('ranking', [])
+                    print(f"📊 ranking type: {type(ranking)}")
+                    print(f"📊 ranking count: {len(ranking)}")
+                    
+                    if ranking:
+                        first_player = ranking[0]
+                        print(f"📊 First player in ranking:")
+                        for key, value in first_player.items():
+                            print(f"   - {key}: {type(value)} = {value}")
+                    
+                    # Show complete JSON structure for debugging
+                    print(f"\n📄 COMPLETE RANKING DATA STRUCTURE:")
+                    print(json.dumps(ranking_data, indent=2, ensure_ascii=False)[:1000] + "...")
+                    
+                    self.log_result("Final Ranking Structure", True, 
+                                  f"✅ Structure analyzed - ranking: {len(ranking)} players")
+                    
+                elif ranking_response.status_code == 500:
+                    print(f"❌ HTTP 500 - Internal server error in final-ranking")
+                    print(f"📄 Error response: {ranking_response.text[:500]}")
+                    self.log_result("Final Ranking Structure", False, 
+                                  f"HTTP 500 - Server error in final-ranking route")
+                else:
+                    print(f"❌ Failed to get final-ranking: HTTP {ranking_response.status_code}")
+                    print(f"📄 Response: {ranking_response.text[:200]}")
+                    self.log_result("Final Ranking Structure", False, 
+                                  f"HTTP {ranking_response.status_code}")
+                
+            else:
+                print(f"❌ Failed to create test game: HTTP {create_response.status_code}")
+                self.log_result("Create Complete Game", False, 
+                              f"HTTP {create_response.status_code}")
+            
+            # Test 4: Show concrete JSON examples
+            print(f"\n📄 CONCRETE JSON EXAMPLES FOR FRONTEND CORRECTION:")
+            print("=" * 60)
+            
+            # Example from statistics/detailed
+            print("Example from GET /api/statistics/detailed:")
+            if response.status_code == 200:
+                example_data = {
+                    "completed_games_sample": detailed_stats.get('completed_games', [])[:1],
+                    "structure_info": {
+                        "game_id_format": "UUID or sequential",
+                        "available_fields": list(detailed_stats.get('completed_games', [{}])[0].keys()) if detailed_stats.get('completed_games') else []
+                    }
+                }
+                print(json.dumps(example_data, indent=2, ensure_ascii=False))
+            
+            print("\n" + "=" * 60)
+            
+        except Exception as e:
+            self.log_result("Statistics Data Structure Review", False, f"Error: {str(e)}")
+            print(f"❌ Error during statistics structure test: {str(e)}")
+
     def run_all_tests(self):
         """Exécute tous les tests backend selon la review request française"""
         print(f"\n🎯 DÉMARRAGE DES TESTS BACKEND - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
