@@ -7776,6 +7776,218 @@ class BackendTester:
         except Exception as e:
             self.log_result("Statistics Save System", False, f"Error: {str(e)}")
 
+    def test_final_ranking_route_structure(self):
+        """Test REVIEW REQUEST: Tester spécifiquement la route GET /api/games/{game_id}/final-ranking pour vérifier la structure des données"""
+        try:
+            print("\n🎯 TESTING FINAL RANKING ROUTE - STRUCTURE VALIDATION")
+            print("=" * 80)
+            
+            # Étape 1: Créer une partie complète avec des joueurs
+            print("   Étape 1: Création d'une partie avec 25 joueurs...")
+            game_request = {
+                "player_count": 25,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3, 4],  # 4 événements pour assurer une partie complète
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Final Ranking Route Structure", False, 
+                              f"Impossible de créer la partie - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            if not game_id:
+                self.log_result("Final Ranking Route Structure", False, "Aucun ID de partie retourné")
+                return
+            
+            print(f"   ✅ Partie créée avec succès: {game_id}")
+            
+            # Étape 2: Simuler tous les événements jusqu'à avoir un gagnant
+            print("   Étape 2: Simulation des événements jusqu'à avoir un gagnant...")
+            max_events = 10  # Limite de sécurité
+            event_count = 0
+            game_completed = False
+            
+            while event_count < max_events and not game_completed:
+                event_count += 1
+                
+                # Simuler un événement
+                response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if response.status_code != 200:
+                    self.log_result("Final Ranking Route Structure", False, 
+                                  f"Simulation d'événement échouée à l'événement {event_count} - HTTP {response.status_code}")
+                    return
+                
+                data = response.json()
+                game = data.get('game', {})
+                result = data.get('result', {})
+                
+                survivors = result.get('survivors', [])
+                survivors_count = len(survivors)
+                game_completed = game.get('completed', False)
+                
+                print(f"   Événement {event_count}: {survivors_count} survivants, terminé: {game_completed}")
+                
+                if game_completed:
+                    break
+            
+            if not game_completed:
+                self.log_result("Final Ranking Route Structure", False, 
+                              f"La partie ne s'est pas terminée après {max_events} événements")
+                return
+            
+            print(f"   ✅ Partie terminée après {event_count} événements")
+            
+            # Étape 3: Appeler GET /api/games/{game_id}/final-ranking
+            print("   Étape 3: Test de la route final-ranking...")
+            response = requests.get(f"{API_BASE}/games/{game_id}/final-ranking", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Final Ranking Route Structure", False, 
+                              f"Route final-ranking échouée - HTTP {response.status_code}")
+                return
+            
+            ranking_data = response.json()
+            print(f"   ✅ Route final-ranking accessible")
+            
+            # Étape 4: Vérifier que la structure contient bien tous les champs requis
+            print("   Étape 4: Vérification de la structure des données...")
+            
+            # Vérifier la structure de base
+            required_root_fields = ['game_id', 'completed', 'winner', 'total_players', 'ranking']
+            missing_root_fields = [field for field in required_root_fields if field not in ranking_data]
+            
+            if missing_root_fields:
+                self.log_result("Final Ranking Route Structure", False, 
+                              f"Champs manquants au niveau racine: {missing_root_fields}")
+                return
+            
+            # Vérifier le tableau ranking
+            ranking = ranking_data.get('ranking', [])
+            if not isinstance(ranking, list) or len(ranking) == 0:
+                self.log_result("Final Ranking Route Structure", False, 
+                              f"Le champ 'ranking' doit être un tableau non vide")
+                return
+            
+            print(f"   ✅ Structure de base valide avec {len(ranking)} joueurs dans le classement")
+            
+            # Vérifier la structure de chaque joueur dans le classement
+            validation_errors = []
+            structure_checks = {
+                'game_stats_present': 0,
+                'player_stats_present': 0,
+                'total_score_present': 0,
+                'survived_events_present': 0,
+                'kills_present': 0,
+                'betrayals_present': 0,
+                'intelligence_present': 0,
+                'force_present': 0,
+                'agilite_present': 0
+            }
+            
+            for i, player_entry in enumerate(ranking):
+                # Vérifier la présence de game_stats
+                if 'game_stats' in player_entry:
+                    structure_checks['game_stats_present'] += 1
+                    game_stats = player_entry['game_stats']
+                    
+                    # Vérifier les champs dans game_stats
+                    if 'total_score' in game_stats:
+                        structure_checks['total_score_present'] += 1
+                    if 'survived_events' in game_stats:
+                        structure_checks['survived_events_present'] += 1
+                    if 'kills' in game_stats:
+                        structure_checks['kills_present'] += 1
+                    if 'betrayals' in game_stats:
+                        structure_checks['betrayals_present'] += 1
+                else:
+                    validation_errors.append(f"Joueur {i+1}: manque 'game_stats'")
+                
+                # Vérifier la présence de player_stats
+                if 'player_stats' in player_entry:
+                    structure_checks['player_stats_present'] += 1
+                    player_stats = player_entry['player_stats']
+                    
+                    # Vérifier les champs dans player_stats
+                    if 'intelligence' in player_stats:
+                        structure_checks['intelligence_present'] += 1
+                    if 'force' in player_stats:
+                        structure_checks['force_present'] += 1
+                    if 'agilité' in player_stats:
+                        structure_checks['agilite_present'] += 1
+                else:
+                    validation_errors.append(f"Joueur {i+1}: manque 'player_stats'")
+            
+            # Évaluer les résultats
+            total_players = len(ranking)
+            success = True
+            detailed_results = []
+            
+            # Vérifier que tous les champs requis sont présents pour tous les joueurs
+            required_checks = [
+                ('game_stats', structure_checks['game_stats_present']),
+                ('total_score', structure_checks['total_score_present']),
+                ('survived_events', structure_checks['survived_events_present']),
+                ('kills', structure_checks['kills_present']),
+                ('betrayals', structure_checks['betrayals_present']),
+                ('player_stats', structure_checks['player_stats_present']),
+                ('intelligence', structure_checks['intelligence_present']),
+                ('force', structure_checks['force_present']),
+                ('agilité', structure_checks['agilite_present'])
+            ]
+            
+            for field_name, count in required_checks:
+                percentage = (count / total_players) * 100 if total_players > 0 else 0
+                if count == total_players:
+                    detailed_results.append(f"✅ {field_name}: {count}/{total_players} (100%)")
+                else:
+                    detailed_results.append(f"❌ {field_name}: {count}/{total_players} ({percentage:.1f}%)")
+                    success = False
+            
+            if success and len(validation_errors) == 0:
+                self.log_result("Final Ranking Route Structure", True, 
+                              f"✅ STRUCTURE PARFAITEMENT VALIDÉE - Tous les champs requis présents pour {total_players} joueurs")
+                
+                # Afficher les détails de validation
+                print("   📊 DÉTAILS DE LA VALIDATION:")
+                for result in detailed_results:
+                    print(f"   {result}")
+                
+                # Afficher un exemple de données
+                if ranking:
+                    first_player = ranking[0]
+                    print(f"   🔍 EXEMPLE DE DONNÉES (1er joueur):")
+                    print(f"   - Position: {first_player.get('position', 'N/A')}")
+                    print(f"   - Nom: {first_player.get('name', 'N/A')}")
+                    if 'game_stats' in first_player:
+                        gs = first_player['game_stats']
+                        print(f"   - game_stats.total_score: {gs.get('total_score', 'N/A')}")
+                        print(f"   - game_stats.survived_events: {gs.get('survived_events', 'N/A')}")
+                        print(f"   - game_stats.kills: {gs.get('kills', 'N/A')}")
+                        print(f"   - game_stats.betrayals: {gs.get('betrayals', 'N/A')}")
+                    if 'player_stats' in first_player:
+                        ps = first_player['player_stats']
+                        print(f"   - player_stats.intelligence: {ps.get('intelligence', 'N/A')}")
+                        print(f"   - player_stats.force: {ps.get('force', 'N/A')}")
+                        print(f"   - player_stats.agilité: {ps.get('agilité', 'N/A')}")
+                
+            else:
+                error_summary = detailed_results + validation_errors[:5]
+                self.log_result("Final Ranking Route Structure", False, 
+                              f"❌ STRUCTURE INCOMPLÈTE - Champs manquants détectés", error_summary)
+            
+        except Exception as e:
+            self.log_result("Final Ranking Route Structure", False, f"Erreur pendant le test: {str(e)}")
+
     def test_statistics_data_structure_review(self):
         """Test REVIEW REQUEST: Comprendre la structure exacte des données retournées par les APIs de statistiques"""
         try:
