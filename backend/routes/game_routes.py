@@ -223,17 +223,14 @@ async def simulate_event(game_id: str):
         from routes.vip_routes import active_vips_by_game
         from routes.gamestate_routes import game_states_db
         
-        # Récupérer le niveau de salon de l'utilisateur pour cette partie
-        user_id = "default_user"
-        user_salon_level = 1
-        if user_id in game_states_db:
-            user_salon_level = game_states_db[user_id].vip_salon_level
+        # Récupérer le niveau de salon VIP utilisé pour cette partie
+        salon_level = game.vip_salon_level if hasattr(game, 'vip_salon_level') else 1
         
-        # Essayer d'abord avec la clé spécifique au salon de l'utilisateur
-        vip_key = f"{game_id}_salon_{user_salon_level}"
+        # Utiliser la clé de stockage exacte des VIPs pour cette partie
+        vip_key = f"{game_id}_salon_{salon_level}"
         game_vips = active_vips_by_game.get(vip_key, [])
         
-        # Si pas trouvé, chercher dans tous les niveaux de salon possibles pour cette partie
+        # Si pas trouvé avec la clé de salon, chercher dans tous les niveaux possibles
         if not game_vips:
             for level in range(1, 10):
                 test_key = f"{game_id}_salon_{level}"
