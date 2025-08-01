@@ -168,7 +168,9 @@ const FinalRanking = () => {
             <CardContent className="p-4 text-center">
               <Calendar className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
               <div className="text-2xl font-bold text-white">
-                {rankingData.game_stats.earnings || 0}$
+                {rankingData.ranking && rankingData.ranking.length > 0 
+                  ? rankingData.ranking[0].game_stats?.earnings || 0 
+                  : 0}$
               </div>
               <div className="text-sm text-gray-400">Gains</div>
             </CardContent>
