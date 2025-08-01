@@ -128,6 +128,58 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
     }
   };
 
+  // Fonction pour sauvegarder automatiquement les statistiques d'une partie terminée
+  const saveCompletedGameStats = async (gameId) => {
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      
+      console.log(`💾 Sauvegarde des statistiques pour la partie ${gameId}...`);
+      
+      const response = await fetch(`${backendUrl}/api/statistics/save-completed-game`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          game_id: gameId,
+          user_id: "default_user"
+        })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Statistiques sauvegardées avec succès:', result);
+        
+        // Afficher une notification de succès
+        const notification = document.createElement('div');
+        notification.innerHTML = `
+          <div class="fixed top-4 left-4 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-3 animate-fade-in">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2zM3 7a1 1 0 011-1h12a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1V7zM4 3a2 2 0 00-2 2v1a1 1 0 001 1h14a1 1 0 001-1V5a2 2 0 00-2-2H4z" clip-rule="evenodd"></path>
+            </svg>
+            <div>
+              <div class="font-bold">📊 Statistiques sauvegardées !</div>
+              <div class="text-sm">La partie a été ajoutée à votre historique</div>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(notification.firstElementChild);
+        
+        // Supprimer la notification après 4 secondes
+        setTimeout(() => {
+          const notif = document.querySelector('.fixed.top-4.left-4');
+          if (notif) notif.remove();
+        }, 4000);
+      } else {
+        const errorData = await response.text();
+        console.error('❌ Erreur lors de la sauvegarde des statistiques:', errorData);
+      }
+      
+    } catch (error) {
+      console.error('❌ Erreur lors de la sauvegarde automatique des statistiques:', error);
+    }
+  };
+
   const simulateEvent = async () => {
     setIsPlaying(true);
     setAnimationPhase('preparation');
