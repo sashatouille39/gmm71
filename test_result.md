@@ -159,9 +159,10 @@
           agent: "testing"
           comment: "✅ ROUTE PARFAITEMENT FONCTIONNELLE - DIAGNOSTIC COMPLET: Tests exhaustifs selon la review request française confirment que la route fonctionne correctement. 1) **Route GET /api/games/{game_id}/vip-earnings-status**: ✅ CONFIRMÉ - Route accessible et retourne tous les champs requis (game_id, completed, earnings_available, can_collect, winner, total_players, alive_players). 2) **Logique can_collect**: ✅ CONFIRMÉ - can_collect=false pour parties non terminées, can_collect=true pour parties terminées avec gains. 3) **Earnings_available**: ✅ CONFIRMÉ - Affiche les gains disponibles à collecter (3,025,368$ dans le test). 4) **Cohérence avec autres APIs**: ✅ CONFIRMÉ - Les valeurs sont cohérentes avec final-ranking et game-data. Backend tests: 1/1 passed (100% success rate). La route fonctionne parfaitement, le problème était dans la logique de calcul des gains VIP qui est maintenant identifié."
 
-  - task: "Test de cohérence des données VIP"
+## backend:
+  - task: "Test de la correction du bug VIP pour les salons de niveau supérieur"
     implemented: true
-    working: true
+    working: false
     file: "routes/game_routes.py, routes/vip_routes.py"
     stuck_count: 1
     priority: "high"
@@ -169,13 +170,7 @@
     status_history:
         - working: false
           agent: "testing"
-          comment: "❌ PROBLÈME CRITIQUE IDENTIFIÉ: Test de cohérence des données VIP impossible à effectuer. Tests effectués selon la review request française: 1) **Création de partie**: ❌ PROBLÈME - Erreur HTTP 500 lors de la création de partie (fonds insuffisants). 2) **APIs à tester**: ❌ PROBLÈME - Impossible de tester la cohérence entre final-ranking, vip-earnings-status et game-data à cause de l'échec de création. 3) **Objectif principal**: ❌ NON ATTEINT - Impossible de confirmer que les revenus VIP sont cohérents entre toutes les APIs. Le problème principal est que les erreurs de création de partie empêchent de tester la cohérence des données VIP entre les différentes APIs. Backend tests: 0/1 passed (0% success rate). Nécessite résolution urgente des problèmes de création de partie et de calcul des gains VIP."
-        - working: false
-          agent: "testing"
-          comment: "❌ PROBLÈME PERSISTANT CONFIRMÉ: Tests exhaustifs effectués selon la review request française. 1) **Création partie et simulation**: ✅ CONFIRMÉ - Partie créée avec 25 joueurs et terminée avec succès. 2) **Test de cohérence entre APIs**: ❌ PROBLÈME PERSISTANT - Les trois APIs (final-ranking, vip-earnings-status, game-data) retournent des valeurs cohérentes entre elles (1,309,222$) mais ne correspondent toujours pas aux gains attendus (6,134,609$). 3) **Confirmation du problème racine**: Le bug est confirmé dans la logique de calcul des gains VIP qui ne récupère pas correctement tous les VIPs assignés pour les salons de niveau supérieur. Backend tests: 0/1 passed (0% success rate)."
-        - working: true
-          agent: "testing"
-          comment: "✅ COHÉRENCE PARFAITE CONFIRMÉE - DIAGNOSTIC COMPLET: Tests exhaustifs selon la review request française confirment une cohérence parfaite entre toutes les APIs. 1) **Création partie et simulation**: ✅ CONFIRMÉ - Partie créée avec 25 joueurs et terminée avec succès. 2) **Test de cohérence entre APIs**: ✅ PARFAIT - Les trois APIs (final-ranking.vip_earnings, vip-earnings-status.earnings_available, game.earnings) retournent exactement la même valeur (3,739,134$) qui correspond parfaitement aux gains attendus (3,739,134$). 3) **Validation complète**: Toutes les APIs sont cohérentes entre elles ET correspondent aux viewing_fee des VIPs assignés. Backend tests: 1/1 passed (100% success rate). Le système VIP est parfaitement cohérent une fois la logique de clés corrigée."
+          comment: "❌ CORRECTION INCOMPLÈTE IDENTIFIÉE: Tests exhaustifs selon la review request française révèlent que le bug VIP persiste partiellement. 1) **Correction du stockage appliquée**: ✅ CONFIRMÉ - Les VIPs sont maintenant stockés avec la clé 'game_id_salon_level' au lieu de 'game_id' simple. 2) **Salon niveau 3 (5 VIPs)**: ❌ PROBLÈME PERSISTANT - Attendu: 4,698,470$, Obtenu: 206,535$ (seul 1 VIP sur 5 pris en compte). 3) **Salon niveau 6 (12 VIPs)**: ❌ PROBLÈME - Erreur HTTP 500 lors de la création de partie. 4) **Cause racine identifiée**: Le problème est dans la logique de création de partie - les VIPs sont assignés avec le salon_level par défaut (1) du game_state, mais les tests utilisent des salon_level différents via l'API. Les gains sont calculés sur les VIPs du salon niveau 1 (1 VIP) au lieu du salon niveau testé (3 ou 6 VIPs). 5) **Solution requise**: Modifier la logique de création de partie pour accepter un paramètre salon_level ou synchroniser le game_state.vip_salon_level avec les appels API. Backend tests: 1/3 passed (33% success rate). La correction du stockage est bonne mais la logique de niveau de salon nécessite une correction supplémentaire."
 
 ## backend:
   - task: "Argent de base à 1 million"
