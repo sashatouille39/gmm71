@@ -47,7 +47,7 @@ async def get_game_vips(game_id: str, salon_level: int = 1):
 async def refresh_game_vips(game_id: str, salon_level: int = 1):
     """Génère de nouveaux VIPs pour une partie (nouveau jeu)"""
     try:
-        capacity_map = {1: 3, 2: 5, 3: 8, 4: 12}
+        capacity_map = {1: 1, 2: 3, 3: 5, 4: 8, 5: 10, 6: 12, 7: 15, 8: 17, 9: 20}
         capacity = capacity_map.get(salon_level, 3)
         
         # Générer de nouveaux VIPs
