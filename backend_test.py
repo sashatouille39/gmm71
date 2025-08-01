@@ -7566,6 +7566,9 @@ class BackendTester:
         print("\n🇫🇷 TESTS PRIORITAIRES SELON LA REVIEW REQUEST FRANÇAISE")
         print("=" * 80)
         
+        # TEST PRINCIPAL: Système de statistiques corrigé (REVIEW REQUEST)
+        self.test_statistics_system_corrections()
+        
         # 1. Routes de statistiques
         self.test_statistics_routes_french_review()
         
