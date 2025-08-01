@@ -319,9 +319,28 @@ async def simulate_event(game_id: str):
                 game.end_time = datetime.utcnow()
                 game.winner = max(alive_players_before, key=lambda p: p.total_score) if alive_players_before else None
                 
-                # Calculer les gains réels des VIPs
+                # Calculer les gains réels des VIPs avec la logique correcte de récupération
                 from routes.vip_routes import active_vips_by_game
-                game_vips = active_vips_by_game.get(game_id, [])
+                
+                # Récupérer le niveau de salon VIP utilisé pour cette partie
+                salon_level = game.vip_salon_level if hasattr(game, 'vip_salon_level') else 1
+                
+                # Utiliser la clé de stockage exacte des VIPs pour cette partie
+                vip_key = f"{game_id}_salon_{salon_level}"
+                game_vips = active_vips_by_game.get(vip_key, [])
+                
+                # Si pas trouvé avec la clé de salon, chercher dans tous les niveaux possibles
+                if not game_vips:
+                    for level in range(1, 10):  # Tester tous les niveaux possibles
+                        test_key = f"{game_id}_salon_{level}"
+                        if test_key in active_vips_by_game:
+                            game_vips = active_vips_by_game[test_key]
+                            break
+                
+                # Fallback vers l'ancienne clé pour compatibilité
+                if not game_vips:
+                    game_vips = active_vips_by_game.get(game_id, [])
+                
                 if game_vips:
                     game.earnings = sum(vip.viewing_fee for vip in game_vips)
                 else:
