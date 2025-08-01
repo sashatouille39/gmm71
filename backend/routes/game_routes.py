@@ -171,7 +171,7 @@ async def create_game(request: GameCreateRequest):
         # Récupérer le niveau de salon VIP du joueur (par défaut 1)
         salon_level = game_state.vip_salon_level
         capacity_map = {1: 1, 2: 3, 3: 5, 4: 8, 5: 10, 6: 12, 7: 15, 8: 17, 9: 20}
-        vip_capacity = capacity_map.get(salon_level, 3)
+        vip_capacity = capacity_map.get(salon_level, 1)
         
         # Assigner des VIPs avec leurs viewing_fee (200k-3M)
         game_vips = VipService.get_random_vips(vip_capacity)
