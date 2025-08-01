@@ -103,7 +103,7 @@ const Statistics = ({ gameState }) => {
   };
 
   const totalEarnings = realGames.reduce((sum, game) => sum + (game.earnings || 0), 0);
-  const totalPlayers = realGames.reduce((sum, game) => sum + (game.totalPlayers || 0), 0);
+  const totalPlayers = realGames.reduce((sum, game) => sum + (game.total_players || game.totalPlayers || 0), 0);
   const totalSurvivors = realGames.reduce((sum, game) => sum + (game.survivors || 0), 0);
   const survivalRate = totalPlayers > 0 ? (totalSurvivors / totalPlayers * 100).toFixed(1) : 0;
 
