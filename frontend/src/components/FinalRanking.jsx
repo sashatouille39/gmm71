@@ -175,6 +175,33 @@ const FinalRanking = () => {
           </Card>
         </div>
 
+        {/* Gains VIP - Section dédiée */}
+        {rankingData.vip_earnings > 0 && (
+          <Card className="bg-gradient-to-r from-green-900/30 to-yellow-900/30 border-green-500/50 mb-8">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-yellow-400" />
+                💰 Revenus VIP Collectés
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center">
+                <div className="text-4xl font-bold text-green-400 mb-2">
+                  ${rankingData.vip_earnings.toLocaleString()}
+                </div>
+                <p className="text-gray-300 mb-4">
+                  Les VIPs ont payé leurs frais de visionnage pour cette partie spectaculaire !
+                </p>
+                <div className="flex justify-center items-center gap-4 text-sm text-gray-400">
+                  <span>🎭 Frais de visionnage VIP</span>
+                  <span>•</span>
+                  <span>💰 Automatiquement ajouté à votre solde</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Podium des 3 premiers */}
         <Card className="bg-black/50 border-red-500/30 mb-8">
           <CardHeader>
