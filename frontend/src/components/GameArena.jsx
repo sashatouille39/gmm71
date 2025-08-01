@@ -37,6 +37,7 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
   const [elapsedTime, setElapsedTime] = useState(0);
   const [simulationInterval, setSimulationInterval] = useState(null);
   const [isPaused, setIsPaused] = useState(false); // Nouvel état pour la pause
+  const [collectedVipEarnings, setCollectedVipEarnings] = useState(null); // Nouvel état pour les gains VIP collectés
 
   // Options de vitesse disponibles
   const speedOptions = [
