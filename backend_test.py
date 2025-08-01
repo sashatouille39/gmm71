@@ -1105,6 +1105,457 @@ class BackendTester:
         except Exception as e:
             self.log_result("Celebrity Stats Improvement Rules", False, f"Error: {str(e)}")
 
+    def test_vip_earnings_final_ranking(self):
+        """Test FRENCH REVIEW REQUEST 1: Test des gains VIP dans le classement final"""
+        try:
+            print("\n🇫🇷 TESTING VIP EARNINGS IN FINAL RANKING - FRENCH REVIEW REQUEST")
+            print("=" * 80)
+            
+            # Test 1: Créer une partie avec salon VIP niveau 3 (5 VIPs)
+            game_request = {
+                "player_count": 30,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3, 4],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("VIP Earnings Final Ranking", False, f"Could not create game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            if not game_id:
+                self.log_result("VIP Earnings Final Ranking", False, "No game ID returned from creation")
+                return
+            
+            # Test 2: Vérifier que les VIPs ont des viewing_fee > 0 via GET /api/vips/game/{game_id}?salon_level=3
+            vips_response = requests.get(f"{API_BASE}/vips/game/{game_id}?salon_level=3", timeout=10)
+            
+            if vips_response.status_code != 200:
+                self.log_result("VIP Earnings Final Ranking", False, f"Could not get VIPs - HTTP {vips_response.status_code}")
+                return
+                
+            vips_data = vips_response.json()
+            
+            if not isinstance(vips_data, list) or len(vips_data) != 5:
+                self.log_result("VIP Earnings Final Ranking", False, f"Expected 5 VIPs for salon level 3, got {len(vips_data) if isinstance(vips_data, list) else 'non-list'}")
+                return
+            
+            # Calculer la somme attendue des viewing_fees
+            expected_total_earnings = sum(vip.get('viewing_fee', 0) for vip in vips_data)
+            
+            if expected_total_earnings <= 0:
+                self.log_result("VIP Earnings Final Ranking", False, f"VIPs have no viewing_fee: {vips_data}")
+                return
+            
+            print(f"   ✅ VIPs assignés: {len(vips_data)} VIPs avec viewing_fee total attendu: {expected_total_earnings:,}$")
+            
+            # Test 3: Simuler la partie jusqu'à la fin
+            max_simulations = 10
+            simulation_count = 0
+            
+            while simulation_count < max_simulations:
+                simulation_count += 1
+                
+                sim_response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if sim_response.status_code != 200:
+                    self.log_result("VIP Earnings Final Ranking", False, f"Event simulation failed - HTTP {sim_response.status_code}")
+                    return
+                
+                sim_data = sim_response.json()
+                game_state = sim_data.get('game', {})
+                
+                if game_state.get('completed', False):
+                    print(f"   ✅ Partie terminée après {simulation_count} événements avec gagnant")
+                    break
+            
+            if simulation_count >= max_simulations:
+                self.log_result("VIP Earnings Final Ranking", False, f"Game did not complete after {max_simulations} simulations")
+                return
+            
+            # Test 4: Vérifier les gains via GET /api/games/{game_id}/final-ranking
+            ranking_response = requests.get(f"{API_BASE}/games/{game_id}/final-ranking", timeout=10)
+            
+            if ranking_response.status_code != 200:
+                self.log_result("VIP Earnings Final Ranking", False, f"Could not get final ranking - HTTP {ranking_response.status_code}")
+                return
+                
+            ranking_data = ranking_response.json()
+            
+            # Vérifier que la réponse contient les champs "vip_earnings" et "events_completed"
+            required_fields = ['vip_earnings', 'events_completed']
+            missing_fields = [field for field in required_fields if field not in ranking_data]
+            
+            if missing_fields:
+                self.log_result("VIP Earnings Final Ranking", False, f"Final ranking missing fields: {missing_fields}")
+                return
+            
+            actual_vip_earnings = ranking_data.get('vip_earnings', 0)
+            events_completed = ranking_data.get('events_completed', 0)
+            
+            print(f"   📊 Résultats final-ranking:")
+            print(f"   - VIP earnings obtenus: {actual_vip_earnings:,}$")
+            print(f"   - VIP earnings attendus: {expected_total_earnings:,}$")
+            print(f"   - Événements complétés: {events_completed}")
+            
+            # Test critique: Vérifier que les gains correspondent
+            earnings_match = (actual_vip_earnings == expected_total_earnings)
+            
+            if earnings_match:
+                self.log_result("VIP Earnings Final Ranking", True, 
+                              f"✅ SUCCÈS: Gains VIP corrects dans final-ranking - {actual_vip_earnings:,}$ = {expected_total_earnings:,}$")
+            else:
+                self.log_result("VIP Earnings Final Ranking", False, 
+                              f"❌ PROBLÈME: Gains VIP incorrects - attendu: {expected_total_earnings:,}$, obtenu: {actual_vip_earnings:,}$")
+                
+        except Exception as e:
+            self.log_result("VIP Earnings Final Ranking", False, f"Error: {str(e)}")
+
+    def test_vip_earnings_calculation(self):
+        """Test FRENCH REVIEW REQUEST 2: Test du calcul correct des gains VIP"""
+        try:
+            print("\n🇫🇷 TESTING VIP EARNINGS CALCULATION - FRENCH REVIEW REQUEST")
+            print("=" * 80)
+            
+            # Test avec différents niveaux de salon
+            salon_levels = [1, 3, 6]  # 1 VIP, 5 VIPs, 12 VIPs
+            expected_vip_counts = {1: 1, 3: 5, 6: 12}
+            
+            for salon_level in salon_levels:
+                print(f"\n   🎯 Testing salon level {salon_level} ({expected_vip_counts[salon_level]} VIPs)")
+                
+                # Créer une partie
+                game_request = {
+                    "player_count": 25,
+                    "game_mode": "standard", 
+                    "selected_events": [1, 2, 3],
+                    "manual_players": []
+                }
+                
+                response = requests.post(f"{API_BASE}/games/create", 
+                                       json=game_request, 
+                                       headers={"Content-Type": "application/json"},
+                                       timeout=15)
+                
+                if response.status_code != 200:
+                    self.log_result(f"VIP Earnings Calculation - Salon {salon_level}", False, 
+                                  f"Could not create game - HTTP {response.status_code}")
+                    continue
+                    
+                game_data = response.json()
+                game_id = game_data.get('id')
+                
+                # Assigner des VIPs à cette partie via GET /api/vips/game/{game_id}?salon_level=X
+                vips_response = requests.get(f"{API_BASE}/vips/game/{game_id}?salon_level={salon_level}", timeout=10)
+                
+                if vips_response.status_code != 200:
+                    self.log_result(f"VIP Earnings Calculation - Salon {salon_level}", False, 
+                                  f"Could not get VIPs - HTTP {vips_response.status_code}")
+                    continue
+                    
+                vips_data = vips_response.json()
+                expected_count = expected_vip_counts[salon_level]
+                
+                if len(vips_data) != expected_count:
+                    self.log_result(f"VIP Earnings Calculation - Salon {salon_level}", False, 
+                                  f"Expected {expected_count} VIPs, got {len(vips_data)}")
+                    continue
+                
+                # Vérifier que les VIPs ont des viewing_fee > 0
+                total_expected_earnings = 0
+                vips_with_fees = 0
+                
+                for vip in vips_data:
+                    viewing_fee = vip.get('viewing_fee', 0)
+                    if viewing_fee > 0:
+                        vips_with_fees += 1
+                        total_expected_earnings += viewing_fee
+                
+                if vips_with_fees != expected_count:
+                    self.log_result(f"VIP Earnings Calculation - Salon {salon_level}", False, 
+                                  f"Only {vips_with_fees}/{expected_count} VIPs have viewing_fee > 0")
+                    continue
+                
+                print(f"     ✅ {expected_count} VIPs avec viewing_fee total: {total_expected_earnings:,}$")
+                
+                # Simuler la partie jusqu'à la fin
+                max_simulations = 8
+                simulation_count = 0
+                
+                while simulation_count < max_simulations:
+                    simulation_count += 1
+                    
+                    sim_response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                    
+                    if sim_response.status_code != 200:
+                        break
+                    
+                    sim_data = sim_response.json()
+                    game_state = sim_data.get('game', {})
+                    
+                    if game_state.get('completed', False):
+                        break
+                
+                if simulation_count >= max_simulations:
+                    self.log_result(f"VIP Earnings Calculation - Salon {salon_level}", False, 
+                                  f"Game did not complete after {max_simulations} simulations")
+                    continue
+                
+                # Vérifier que game.earnings correspond à la somme des viewing_fee des VIPs
+                final_game_response = requests.get(f"{API_BASE}/games/{game_id}", timeout=5)
+                
+                if final_game_response.status_code != 200:
+                    self.log_result(f"VIP Earnings Calculation - Salon {salon_level}", False, 
+                                  f"Could not get final game state - HTTP {final_game_response.status_code}")
+                    continue
+                
+                final_game_data = final_game_response.json()
+                actual_earnings = final_game_data.get('earnings', 0)
+                
+                print(f"     📊 Gains calculés: {actual_earnings:,}$ (attendu: {total_expected_earnings:,}$)")
+                
+                # Test critique: Vérifier la correspondance
+                earnings_match = (actual_earnings == total_expected_earnings)
+                
+                if earnings_match:
+                    self.log_result(f"VIP Earnings Calculation - Salon {salon_level}", True, 
+                                  f"✅ Calcul correct pour salon {salon_level}: {actual_earnings:,}$")
+                else:
+                    self.log_result(f"VIP Earnings Calculation - Salon {salon_level}", False, 
+                                  f"❌ Calcul incorrect pour salon {salon_level}: attendu {total_expected_earnings:,}$, obtenu {actual_earnings:,}$")
+                
+        except Exception as e:
+            self.log_result("VIP Earnings Calculation", False, f"Error: {str(e)}")
+
+    def test_vip_earnings_status_route(self):
+        """Test FRENCH REVIEW REQUEST 3: Test de la route de statut des gains VIP"""
+        try:
+            print("\n🇫🇷 TESTING VIP EARNINGS STATUS ROUTE - FRENCH REVIEW REQUEST")
+            print("=" * 80)
+            
+            # Créer une partie
+            game_request = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("VIP Earnings Status Route", False, f"Could not create game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            # Assigner des VIPs à cette partie
+            vips_response = requests.get(f"{API_BASE}/vips/game/{game_id}?salon_level=2", timeout=10)
+            
+            if vips_response.status_code != 200:
+                self.log_result("VIP Earnings Status Route", False, f"Could not get VIPs - HTTP {vips_response.status_code}")
+                return
+                
+            vips_data = vips_response.json()
+            expected_earnings = sum(vip.get('viewing_fee', 0) for vip in vips_data)
+            
+            print(f"   ✅ Partie créée avec {len(vips_data)} VIPs, gains attendus: {expected_earnings:,}$")
+            
+            # Simuler la partie jusqu'à la fin
+            max_simulations = 8
+            simulation_count = 0
+            
+            while simulation_count < max_simulations:
+                simulation_count += 1
+                
+                sim_response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if sim_response.status_code != 200:
+                    break
+                
+                sim_data = sim_response.json()
+                game_state = sim_data.get('game', {})
+                
+                if game_state.get('completed', False):
+                    print(f"   ✅ Partie terminée après {simulation_count} événements")
+                    break
+            
+            if simulation_count >= max_simulations:
+                self.log_result("VIP Earnings Status Route", False, f"Game did not complete after {max_simulations} simulations")
+                return
+            
+            # Test de la route GET /api/games/{game_id}/vip-earnings-status
+            status_response = requests.get(f"{API_BASE}/games/{game_id}/vip-earnings-status", timeout=10)
+            
+            if status_response.status_code != 200:
+                self.log_result("VIP Earnings Status Route", False, f"VIP earnings status route failed - HTTP {status_response.status_code}")
+                return
+                
+            status_data = status_response.json()
+            
+            # Vérifier que earnings_available correspond aux gains VIP calculés
+            required_fields = ['game_id', 'completed', 'earnings_available', 'can_collect', 'winner', 'total_players', 'alive_players']
+            missing_fields = [field for field in required_fields if field not in status_data]
+            
+            if missing_fields:
+                self.log_result("VIP Earnings Status Route", False, f"Status response missing fields: {missing_fields}")
+                return
+            
+            earnings_available = status_data.get('earnings_available', 0)
+            can_collect = status_data.get('can_collect', False)
+            completed = status_data.get('completed', False)
+            
+            print(f"   📊 Status route results:")
+            print(f"   - Earnings available: {earnings_available:,}$")
+            print(f"   - Expected earnings: {expected_earnings:,}$")
+            print(f"   - Can collect: {can_collect}")
+            print(f"   - Completed: {completed}")
+            
+            # Test critique: Vérifier que earnings_available correspond aux viewing_fee des VIPs assignés
+            earnings_match = (earnings_available == expected_earnings)
+            
+            if earnings_match and completed and can_collect:
+                self.log_result("VIP Earnings Status Route", True, 
+                              f"✅ Route vip-earnings-status fonctionne correctement: {earnings_available:,}$")
+            else:
+                error_details = []
+                if not earnings_match:
+                    error_details.append(f"earnings mismatch: {earnings_available:,}$ ≠ {expected_earnings:,}$")
+                if not completed:
+                    error_details.append("game not completed")
+                if not can_collect:
+                    error_details.append("cannot collect earnings")
+                    
+                self.log_result("VIP Earnings Status Route", False, 
+                              f"❌ Problèmes détectés: {', '.join(error_details)}")
+                
+        except Exception as e:
+            self.log_result("VIP Earnings Status Route", False, f"Error: {str(e)}")
+
+    def test_vip_data_consistency(self):
+        """Test FRENCH REVIEW REQUEST 4: Test de cohérence des données VIP"""
+        try:
+            print("\n🇫🇷 TESTING VIP DATA CONSISTENCY - FRENCH REVIEW REQUEST")
+            print("=" * 80)
+            
+            # Créer une partie
+            game_request = {
+                "player_count": 25,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3, 4],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("VIP Data Consistency", False, f"Could not create game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            # Assigner des VIPs à cette partie
+            vips_response = requests.get(f"{API_BASE}/vips/game/{game_id}?salon_level=3", timeout=10)
+            
+            if vips_response.status_code != 200:
+                self.log_result("VIP Data Consistency", False, f"Could not get VIPs - HTTP {vips_response.status_code}")
+                return
+                
+            vips_data = vips_response.json()
+            expected_earnings = sum(vip.get('viewing_fee', 0) for vip in vips_data)
+            
+            print(f"   ✅ Partie créée avec {len(vips_data)} VIPs, gains attendus: {expected_earnings:,}$")
+            
+            # Simuler la partie jusqu'à la fin
+            max_simulations = 10
+            simulation_count = 0
+            
+            while simulation_count < max_simulations:
+                simulation_count += 1
+                
+                sim_response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if sim_response.status_code != 200:
+                    break
+                
+                sim_data = sim_response.json()
+                game_state = sim_data.get('game', {})
+                
+                if game_state.get('completed', False):
+                    print(f"   ✅ Partie terminée après {simulation_count} événements")
+                    break
+            
+            if simulation_count >= max_simulations:
+                self.log_result("VIP Data Consistency", False, f"Game did not complete after {max_simulations} simulations")
+                return
+            
+            # Test de cohérence entre les 3 APIs
+            
+            # 1. final-ranking -> vip_earnings
+            ranking_response = requests.get(f"{API_BASE}/games/{game_id}/final-ranking", timeout=10)
+            ranking_vip_earnings = 0
+            
+            if ranking_response.status_code == 200:
+                ranking_data = ranking_response.json()
+                ranking_vip_earnings = ranking_data.get('vip_earnings', 0)
+            
+            # 2. vip-earnings-status -> earnings_available
+            status_response = requests.get(f"{API_BASE}/games/{game_id}/vip-earnings-status", timeout=10)
+            status_earnings_available = 0
+            
+            if status_response.status_code == 200:
+                status_data = status_response.json()
+                status_earnings_available = status_data.get('earnings_available', 0)
+            
+            # 3. La partie elle-même -> game.earnings
+            game_response = requests.get(f"{API_BASE}/games/{game_id}", timeout=10)
+            game_earnings = 0
+            
+            if game_response.status_code == 200:
+                game_data = game_response.json()
+                game_earnings = game_data.get('earnings', 0)
+            
+            print(f"   📊 Cohérence des données:")
+            print(f"   - final-ranking.vip_earnings: {ranking_vip_earnings:,}$")
+            print(f"   - vip-earnings-status.earnings_available: {status_earnings_available:,}$")
+            print(f"   - game.earnings: {game_earnings:,}$")
+            print(f"   - Gains attendus (VIPs viewing_fee): {expected_earnings:,}$")
+            
+            # Test critique: Vérifier que toutes les valeurs sont cohérentes
+            all_values = [ranking_vip_earnings, status_earnings_available, game_earnings]
+            all_consistent = all(value == expected_earnings for value in all_values)
+            apis_consistent = len(set(all_values)) == 1  # Toutes les valeurs sont identiques
+            
+            if all_consistent:
+                self.log_result("VIP Data Consistency", True, 
+                              f"✅ Cohérence parfaite: toutes les APIs retournent {expected_earnings:,}$ comme attendu")
+            elif apis_consistent:
+                consistent_value = all_values[0]
+                self.log_result("VIP Data Consistency", False, 
+                              f"❌ APIs cohérentes entre elles ({consistent_value:,}$) mais ne correspondent pas aux gains attendus ({expected_earnings:,}$)")
+            else:
+                self.log_result("VIP Data Consistency", False, 
+                              f"❌ Incohérence totale entre les APIs: {all_values}")
+                
+        except Exception as e:
+            self.log_result("VIP Data Consistency", False, f"Error: {str(e)}")
+
     def test_statistics_detailed_event_statistics_array(self):
         """Test REVIEW REQUEST: Vérifier que /api/statistics/detailed retourne event_statistics comme un tableau au lieu d'un objet"""
         try:
