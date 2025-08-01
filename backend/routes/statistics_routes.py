@@ -175,9 +175,28 @@ async def save_completed_game(request: SaveCompletedGameRequest):
         if request.user_id in game_states_db:
             game_state = game_states_db[request.user_id]
             game_state.game_stats.total_games_played += 1
-            game_state.game_stats.total_kills += len([p for p in game.players if not p.alive])
+            
+            # Compter les éliminations
+            total_killed = len([p for p in game.players if not p.alive])
+            game_state.game_stats.total_kills += total_killed
+            
+            # Compter les trahisons
+            total_betrayals = sum([p.betrayals for p in game.players])
+            game_state.game_stats.total_betrayals += total_betrayals
+            
+            # Ajouter les gains
             if hasattr(game, 'earnings'):
                 game_state.game_stats.total_earnings += game.earnings
+            
+            # Vérifier si Le Zéro était présent
+            has_zero = any(p.role == "zero" for p in game.players)
+            if has_zero:
+                game_state.game_stats.has_seen_zero = True
+            
+            # Mettre à jour la célébrité favorite si nécessaire
+            # (pourrait être ajouté plus tard selon les besoins)
+            
+            print(f"✅ GameStats mis à jour: {game_state.game_stats.total_games_played} parties, {game_state.game_stats.total_kills} éliminations")
         
         return {
             "message": "Partie sauvegardée avec succès",
