@@ -1105,6 +1105,265 @@ class BackendTester:
         except Exception as e:
             self.log_result("Celebrity Stats Improvement Rules", False, f"Error: {str(e)}")
 
+    def test_vip_automatic_collection_system(self):
+        """Test FRENCH REVIEW REQUEST: Tester spécifiquement pourquoi la collecte automatique des gains VIP ne fonctionne pas"""
+        try:
+            print("\n🇫🇷 TESTING VIP AUTOMATIC COLLECTION SYSTEM - FRENCH REVIEW REQUEST")
+            print("=" * 80)
+            print("OBJECTIF: Comprendre pourquoi l'utilisateur français dit qu'il n'y a 'aucune notif' et que 'l'argent n'est toujours pas collecté'")
+            print("TESTS À EFFECTUER:")
+            print("1. Créer une partie avec des VIPs assignés")
+            print("2. Simuler la partie jusqu'à la fin")
+            print("3. Vérifier si les gains VIP sont bien calculés dans la partie (game.earnings)")
+            print("4. Tester la route GET /api/games/{game_id}/vip-earnings-status pour voir le statut")
+            print("5. Tester la route POST /api/games/{game_id}/collect-vip-earnings pour la collecte manuelle")
+            print("6. Vérifier que l'argent est bien ajouté au gamestate après collecte")
+            print()
+            
+            # Étape 1: Créer une partie avec des VIPs assignés
+            print("🔍 ÉTAPE 1: CRÉATION D'UNE PARTIE AVEC VIPS ASSIGNÉS")
+            print("-" * 60)
+            
+            game_request = {
+                "player_count": 25,
+                "game_mode": "standard", 
+                "selected_events": [1, 2, 3, 4],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("VIP Automatic Collection - Game Creation", False, f"Could not create game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            print(f"   ✅ Partie créée avec ID: {game_id}")
+            
+            # Vérifier les VIPs assignés automatiquement (salon niveau 1 par défaut)
+            vips_response = requests.get(f"{API_BASE}/vips/game/{game_id}?salon_level=1", timeout=10)
+            
+            if vips_response.status_code != 200:
+                self.log_result("VIP Automatic Collection - VIP Assignment", False, f"Could not get VIPs - HTTP {vips_response.status_code}")
+                return
+                
+            vips_data = vips_response.json()
+            
+            if not isinstance(vips_data, list) or len(vips_data) == 0:
+                self.log_result("VIP Automatic Collection - VIP Assignment", False, f"No VIPs assigned to game")
+                return
+            
+            expected_vip_earnings = sum(vip.get('viewing_fee', 0) for vip in vips_data)
+            print(f"   ✅ {len(vips_data)} VIPs assignés avec viewing_fee total: {expected_vip_earnings:,}$")
+            
+            # Étape 2: Simuler la partie jusqu'à la fin
+            print("\n🔍 ÉTAPE 2: SIMULATION DE LA PARTIE JUSQU'À LA FIN")
+            print("-" * 60)
+            
+            max_simulations = 10
+            simulation_count = 0
+            
+            while simulation_count < max_simulations:
+                simulation_count += 1
+                sim_response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if sim_response.status_code != 200:
+                    self.log_result("VIP Automatic Collection - Game Simulation", False, f"Event simulation failed - HTTP {sim_response.status_code}")
+                    return
+                
+                sim_data = sim_response.json()
+                game_state = sim_data.get('game', {})
+                
+                if game_state.get('completed', False):
+                    print(f"   ✅ Partie terminée après {simulation_count} événements")
+                    print(f"   ✅ Gagnant: {game_state.get('winner', {}).get('name', 'Inconnu')}")
+                    break
+            
+            if simulation_count >= max_simulations:
+                self.log_result("VIP Automatic Collection - Game Simulation", False, f"Game did not complete after {max_simulations} simulations")
+                return
+            
+            # Étape 3: Vérifier si les gains VIP sont bien calculés dans la partie (game.earnings)
+            print("\n🔍 ÉTAPE 3: VÉRIFICATION DES GAINS VIP DANS LA PARTIE")
+            print("-" * 60)
+            
+            game_response = requests.get(f"{API_BASE}/games/{game_id}", timeout=10)
+            
+            if game_response.status_code != 200:
+                self.log_result("VIP Automatic Collection - Game Earnings Check", False, f"Could not get game data - HTTP {game_response.status_code}")
+                return
+                
+            game_data = game_response.json()
+            actual_game_earnings = game_data.get('earnings', 0)
+            
+            print(f"   📊 Gains VIP calculés dans game.earnings: {actual_game_earnings:,}$")
+            print(f"   📊 Gains VIP attendus: {expected_vip_earnings:,}$")
+            
+            earnings_calculated_correctly = (actual_game_earnings == expected_vip_earnings)
+            
+            if earnings_calculated_correctly:
+                print(f"   ✅ SUCCÈS: Les gains VIP sont correctement calculés dans la partie")
+                self.log_result("VIP Automatic Collection - Game Earnings Check", True, 
+                              f"✅ Gains VIP corrects dans game.earnings: {actual_game_earnings:,}$")
+            else:
+                print(f"   ❌ PROBLÈME: Les gains VIP ne correspondent pas")
+                self.log_result("VIP Automatic Collection - Game Earnings Check", False, 
+                              f"❌ Gains VIP incorrects - attendu: {expected_vip_earnings:,}$, obtenu: {actual_game_earnings:,}$")
+            
+            # Étape 4: Tester la route GET /api/games/{game_id}/vip-earnings-status
+            print("\n🔍 ÉTAPE 4: TEST DE LA ROUTE VIP-EARNINGS-STATUS")
+            print("-" * 60)
+            
+            status_response = requests.get(f"{API_BASE}/games/{game_id}/vip-earnings-status", timeout=10)
+            
+            if status_response.status_code != 200:
+                self.log_result("VIP Automatic Collection - Status Route", False, f"VIP earnings status route failed - HTTP {status_response.status_code}")
+                return
+                
+            status_data = status_response.json()
+            
+            print(f"   📊 Statut de la partie: {status_data}")
+            
+            required_status_fields = ['game_id', 'completed', 'earnings_available', 'can_collect']
+            missing_fields = [field for field in required_status_fields if field not in status_data]
+            
+            if missing_fields:
+                self.log_result("VIP Automatic Collection - Status Route", False, f"Missing fields in status response: {missing_fields}")
+                return
+            
+            earnings_available = status_data.get('earnings_available', 0)
+            can_collect = status_data.get('can_collect', False)
+            completed = status_data.get('completed', False)
+            
+            print(f"   ✅ Partie terminée: {completed}")
+            print(f"   ✅ Gains disponibles: {earnings_available:,}$")
+            print(f"   ✅ Peut collecter: {can_collect}")
+            
+            if completed and earnings_available > 0 and can_collect:
+                self.log_result("VIP Automatic Collection - Status Route", True, 
+                              f"✅ Route status fonctionnelle: {earnings_available:,}$ disponibles")
+            else:
+                self.log_result("VIP Automatic Collection - Status Route", False, 
+                              f"❌ Problème avec le statut - completed: {completed}, earnings: {earnings_available}, can_collect: {can_collect}")
+            
+            # Étape 5: Obtenir l'argent initial du gamestate
+            print("\n🔍 ÉTAPE 5: VÉRIFICATION DE L'ARGENT INITIAL DU GAMESTATE")
+            print("-" * 60)
+            
+            gamestate_response = requests.get(f"{API_BASE}/gamestate/", timeout=10)
+            
+            if gamestate_response.status_code != 200:
+                self.log_result("VIP Automatic Collection - Initial Gamestate", False, f"Could not get gamestate - HTTP {gamestate_response.status_code}")
+                return
+                
+            initial_gamestate = gamestate_response.json()
+            initial_money = initial_gamestate.get('money', 0)
+            
+            print(f"   ✅ Argent initial dans gamestate: {initial_money:,}$")
+            
+            # Étape 6: Tester la route POST /api/games/{game_id}/collect-vip-earnings
+            print("\n🔍 ÉTAPE 6: TEST DE LA COLLECTE MANUELLE DES GAINS VIP")
+            print("-" * 60)
+            
+            collect_response = requests.post(f"{API_BASE}/games/{game_id}/collect-vip-earnings", timeout=10)
+            
+            if collect_response.status_code != 200:
+                self.log_result("VIP Automatic Collection - Manual Collection", False, f"VIP earnings collection failed - HTTP {collect_response.status_code}")
+                return
+                
+            collect_data = collect_response.json()
+            
+            print(f"   📊 Réponse de collecte: {collect_data}")
+            
+            earnings_collected = collect_data.get('earnings_collected', 0)
+            new_total_money = collect_data.get('new_total_money', 0)
+            
+            print(f"   ✅ Gains collectés: {earnings_collected:,}$")
+            print(f"   ✅ Nouveau total d'argent: {new_total_money:,}$")
+            
+            # Étape 7: Vérifier que l'argent est bien ajouté au gamestate
+            print("\n🔍 ÉTAPE 7: VÉRIFICATION DE L'AJOUT D'ARGENT AU GAMESTATE")
+            print("-" * 60)
+            
+            final_gamestate_response = requests.get(f"{API_BASE}/gamestate/", timeout=10)
+            
+            if final_gamestate_response.status_code != 200:
+                self.log_result("VIP Automatic Collection - Final Gamestate", False, f"Could not get final gamestate - HTTP {final_gamestate_response.status_code}")
+                return
+                
+            final_gamestate = final_gamestate_response.json()
+            final_money = final_gamestate.get('money', 0)
+            
+            print(f"   ✅ Argent final dans gamestate: {final_money:,}$")
+            
+            expected_final_money = initial_money + earnings_collected
+            money_added_correctly = (final_money == new_total_money)
+            
+            if money_added_correctly:
+                print(f"   ✅ SUCCÈS: L'argent a été correctement ajouté au gamestate")
+                self.log_result("VIP Automatic Collection - Final Gamestate", True, 
+                              f"✅ Argent ajouté correctement: {initial_money:,}$ + {earnings_collected:,}$ = {final_money:,}$")
+            else:
+                print(f"   ❌ PROBLÈME: L'argent n'a pas été ajouté correctement")
+                self.log_result("VIP Automatic Collection - Final Gamestate", False, 
+                              f"❌ Argent incorrect - attendu: {expected_final_money:,}$, obtenu: {final_money:,}$")
+            
+            # Étape 8: Vérifier qu'une deuxième collecte n'est pas possible
+            print("\n🔍 ÉTAPE 8: VÉRIFICATION QU'UNE DEUXIÈME COLLECTE N'EST PAS POSSIBLE")
+            print("-" * 60)
+            
+            second_collect_response = requests.post(f"{API_BASE}/games/{game_id}/collect-vip-earnings", timeout=10)
+            
+            if second_collect_response.status_code == 400:
+                print(f"   ✅ SUCCÈS: Deuxième collecte correctement refusée (HTTP 400)")
+                self.log_result("VIP Automatic Collection - Double Collection Prevention", True, 
+                              f"✅ Double collecte correctement empêchée")
+            else:
+                print(f"   ❌ PROBLÈME: Deuxième collecte autorisée (HTTP {second_collect_response.status_code})")
+                self.log_result("VIP Automatic Collection - Double Collection Prevention", False, 
+                              f"❌ Double collecte non empêchée - HTTP {second_collect_response.status_code}")
+            
+            # RÉSUMÉ FINAL
+            print("\n" + "=" * 80)
+            print("🎯 RÉSUMÉ FINAL - DIAGNOSTIC DU PROBLÈME UTILISATEUR FRANÇAIS")
+            print("=" * 80)
+            
+            all_tests_passed = all([
+                earnings_calculated_correctly,
+                completed and earnings_available > 0 and can_collect,
+                earnings_collected > 0,
+                money_added_correctly
+            ])
+            
+            if all_tests_passed:
+                print("✅ CONCLUSION: Le système de collecte automatique des gains VIP fonctionne correctement")
+                print("✅ DIAGNOSTIC: Le problème utilisateur pourrait être lié à:")
+                print("   - Interface utilisateur qui n'affiche pas les notifications")
+                print("   - Utilisateur qui n'utilise pas la route de collecte manuelle")
+                print("   - Problème de synchronisation frontend/backend")
+                self.log_result("VIP Automatic Collection System - Overall", True, 
+                              f"✅ Système VIP fonctionnel - {earnings_collected:,}$ collectés avec succès")
+            else:
+                print("❌ CONCLUSION: Des problèmes ont été identifiés dans le système VIP")
+                print("❌ DIAGNOSTIC: Les problèmes suivants nécessitent une correction:")
+                if not earnings_calculated_correctly:
+                    print("   - Calcul incorrect des gains VIP dans game.earnings")
+                if not (completed and earnings_available > 0 and can_collect):
+                    print("   - Problème avec le statut des gains VIP")
+                if earnings_collected <= 0:
+                    print("   - Échec de la collecte des gains")
+                if not money_added_correctly:
+                    print("   - Argent non ajouté correctement au gamestate")
+                self.log_result("VIP Automatic Collection System - Overall", False, 
+                              f"❌ Problèmes identifiés dans le système VIP")
+                
+        except Exception as e:
+            self.log_result("VIP Automatic Collection System", False, f"Error during test: {str(e)}")
+
     def test_vip_bug_correction_validation(self):
         """Test FRENCH REVIEW REQUEST: Validation de la correction du bug VIP pour les salons de niveau supérieur"""
         try:
