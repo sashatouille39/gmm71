@@ -10058,6 +10058,197 @@ class BackendTester:
         except Exception as e:
             self.log_result("VIP Data Consistency", False, f"Error during test: {str(e)}")
 
+    def test_vip_earnings_system_comprehensive(self):
+        """Test FRENCH REVIEW REQUEST: Test complet du système de gains VIP selon la demande française"""
+        try:
+            print("\n🇫🇷 TESTING COMPREHENSIVE VIP EARNINGS SYSTEM - FRENCH REVIEW REQUEST")
+            print("=" * 80)
+            print("OBJECTIF: Identifier pourquoi la collecte automatique ne fonctionne pas et pourquoi les gains ne s'affichent pas correctement")
+            print("TESTS À EFFECTUER:")
+            print("1. Test collecte automatique des gains VIP")
+            print("2. Test des données dans final-ranking")
+            print("3. Test de cohérence entre les différentes APIs")
+            print()
+            
+            # Test 1: Collecte automatique des gains VIP
+            print("🔍 TEST 1: COLLECTE AUTOMATIQUE DES GAINS VIP")
+            print("-" * 60)
+            
+            # Créer une partie avec des VIPs
+            game_request = {
+                "player_count": 30,
+                "game_mode": "standard", 
+                "selected_events": [1, 2, 3, 4],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("VIP Earnings System - Game Creation", False, f"Could not create game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            print(f"   ✅ Partie créée avec ID: {game_id}")
+            
+            # Vérifier les VIPs assignés avec salon niveau 3 (5 VIPs)
+            vips_response = requests.get(f"{API_BASE}/vips/game/{game_id}?salon_level=3", timeout=10)
+            
+            if vips_response.status_code != 200:
+                self.log_result("VIP Earnings System - VIP Assignment", False, f"Could not get VIPs - HTTP {vips_response.status_code}")
+                return
+                
+            vips_data = vips_response.json()
+            
+            if not isinstance(vips_data, list) or len(vips_data) == 0:
+                self.log_result("VIP Earnings System - VIP Assignment", False, f"No VIPs assigned to game")
+                return
+            
+            expected_vip_earnings = sum(vip.get('viewing_fee', 0) for vip in vips_data)
+            print(f"   ✅ {len(vips_data)} VIPs assignés avec viewing_fee total: {expected_vip_earnings:,}$")
+            
+            # Simuler la partie jusqu'à la fin (1 survivant)
+            print("\n   🎮 Simulation de la partie jusqu'à la fin...")
+            max_simulations = 10
+            simulation_count = 0
+            
+            while simulation_count < max_simulations:
+                simulation_count += 1
+                sim_response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if sim_response.status_code != 200:
+                    self.log_result("VIP Earnings System - Game Simulation", False, f"Event simulation failed - HTTP {sim_response.status_code}")
+                    return
+                
+                sim_data = sim_response.json()
+                game_state = sim_data.get('game', {})
+                
+                if game_state.get('completed', False):
+                    print(f"   ✅ Partie terminée après {simulation_count} événements avec completed=true")
+                    print(f"   ✅ Gagnant: {game_state.get('winner', {}).get('name', 'Inconnu')}")
+                    break
+            
+            if simulation_count >= max_simulations:
+                self.log_result("VIP Earnings System - Game Simulation", False, f"Game did not complete after {max_simulations} simulations")
+                return
+            
+            # Tester GET /api/games/{game_id}/vip-earnings-status
+            print("\n   📊 Test de la route vip-earnings-status...")
+            status_response = requests.get(f"{API_BASE}/games/{game_id}/vip-earnings-status", timeout=10)
+            
+            if status_response.status_code != 200:
+                self.log_result("VIP Earnings System - Status Route", False, f"Could not get VIP earnings status - HTTP {status_response.status_code}")
+                return
+                
+            status_data = status_response.json()
+            earnings_available = status_data.get('earnings_available', 0)
+            can_collect = status_data.get('can_collect', False)
+            
+            print(f"   ✅ Route vip-earnings-status accessible")
+            print(f"   📊 Earnings available: {earnings_available:,}$")
+            print(f"   📊 Can collect: {can_collect}")
+            
+            # Tester POST /api/games/{game_id}/collect-vip-earnings
+            print("\n   💰 Test de la collecte des gains VIP...")
+            collect_response = requests.post(f"{API_BASE}/games/{game_id}/collect-vip-earnings", timeout=10)
+            
+            if collect_response.status_code != 200:
+                self.log_result("VIP Earnings System - Collection", False, f"Could not collect VIP earnings - HTTP {collect_response.status_code}")
+                return
+                
+            collect_data = collect_response.json()
+            earnings_collected = collect_data.get('earnings_collected', 0)
+            new_total_money = collect_data.get('new_total_money', 0)
+            
+            print(f"   ✅ Gains VIP collectés: {earnings_collected:,}$")
+            print(f"   ✅ Nouveau solde: {new_total_money:,}$")
+            
+            # Vérifier que l'argent est ajouté au gamestate
+            gamestate_response = requests.get(f"{API_BASE}/gamestate/", timeout=10)
+            
+            if gamestate_response.status_code != 200:
+                self.log_result("VIP Earnings System - Gamestate Check", False, f"Could not get gamestate - HTTP {gamestate_response.status_code}")
+                return
+                
+            gamestate_data = gamestate_response.json()
+            current_money = gamestate_data.get('money', 0)
+            
+            print(f"   ✅ Argent dans gamestate: {current_money:,}$")
+            
+            # Test 2: Données dans final-ranking
+            print("\n🔍 TEST 2: DONNÉES DANS FINAL-RANKING")
+            print("-" * 60)
+            
+            ranking_response = requests.get(f"{API_BASE}/games/{game_id}/final-ranking", timeout=10)
+            
+            if ranking_response.status_code != 200:
+                self.log_result("VIP Earnings System - Final Ranking", False, f"Could not get final ranking - HTTP {ranking_response.status_code}")
+                return
+                
+            ranking_data = ranking_response.json()
+            vip_earnings_in_ranking = ranking_data.get('vip_earnings', 0)
+            
+            print(f"   ✅ Route final-ranking accessible")
+            print(f"   📊 VIP earnings dans final-ranking: {vip_earnings_in_ranking:,}$")
+            
+            # Test 3: Cohérence des données
+            print("\n🔍 TEST 3: COHÉRENCE DES DONNÉES")
+            print("-" * 60)
+            
+            print(f"   📊 Comparaison des gains VIP:")
+            print(f"   - VIPs assignés (viewing_fee total): {expected_vip_earnings:,}$")
+            print(f"   - vip-earnings-status (earnings_available): {earnings_available:,}$")
+            print(f"   - final-ranking (vip_earnings): {vip_earnings_in_ranking:,}$")
+            print(f"   - Gains collectés: {earnings_collected:,}$")
+            
+            # Vérifier la cohérence
+            consistency_issues = []
+            
+            if expected_vip_earnings != earnings_available:
+                consistency_issues.append(f"VIPs viewing_fee ({expected_vip_earnings:,}$) ≠ earnings_available ({earnings_available:,}$)")
+            
+            if earnings_available != vip_earnings_in_ranking:
+                consistency_issues.append(f"earnings_available ({earnings_available:,}$) ≠ vip_earnings in ranking ({vip_earnings_in_ranking:,}$)")
+            
+            if earnings_collected == 0 and earnings_available > 0:
+                consistency_issues.append(f"Aucun gain collecté malgré {earnings_available:,}$ disponibles")
+            
+            if consistency_issues:
+                print(f"   ❌ PROBLÈMES DE COHÉRENCE DÉTECTÉS:")
+                for issue in consistency_issues:
+                    print(f"     - {issue}")
+                
+                self.log_result("VIP Earnings System - Comprehensive Test", False, 
+                              f"❌ Problèmes de cohérence détectés dans le système VIP", consistency_issues)
+            else:
+                print(f"   ✅ COHÉRENCE PARFAITE: Tous les gains VIP correspondent entre les APIs")
+                
+                self.log_result("VIP Earnings System - Comprehensive Test", True, 
+                              f"✅ Système VIP parfaitement cohérent: {expected_vip_earnings:,}$ dans toutes les APIs")
+            
+            # Diagnostic final
+            print("\n🔍 DIAGNOSTIC FINAL")
+            print("-" * 60)
+            
+            if earnings_collected > 0:
+                print(f"   ✅ La collecte automatique fonctionne: {earnings_collected:,}$ collectés")
+            else:
+                print(f"   ❌ PROBLÈME: Aucun gain collecté automatiquement")
+            
+            if vip_earnings_in_ranking > 0:
+                print(f"   ✅ Les gains s'affichent dans final-ranking: {vip_earnings_in_ranking:,}$")
+            else:
+                print(f"   ❌ PROBLÈME: Les gains ne s'affichent pas dans final-ranking")
+            
+            print(f"\n   🎯 CONCLUSION: {'Système VIP fonctionnel' if not consistency_issues and earnings_collected > 0 else 'Problèmes détectés dans le système VIP'}")
+                
+        except Exception as e:
+            self.log_result("VIP Earnings System - Comprehensive Test", False, f"Error during comprehensive VIP test: {str(e)}")
+
     def run_all_tests(self):
         """Exécute tous les tests backend selon la review request française"""
         print(f"\n🎯 DÉMARRAGE DES TESTS BACKEND - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
