@@ -279,18 +279,25 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
                 
                 setCurrentGame(adaptedGame);
                 
-                // Si le jeu est terminé, collecter automatiquement les gains VIP et sauvegarder les statistiques
+                // Si le jeu est terminé, vérifier si les gains VIP ont été collectés automatiquement
                 if (adaptedGame.completed) {
-                  console.log('🎉 Jeu terminé ! Collecte automatique des gains VIP et sauvegarde des statistiques...');
+                  console.log('🎉 Jeu terminé ! Vérification des gains VIP et sauvegarde des statistiques...');
                   
-                  // Collecter les gains VIP et stocker le résultat pour l'affichage
-                  // FIX: Utiliser adaptedGame.id au lieu de currentGame.id pour avoir le bon gameId
-                  const vipEarnings = await collectVipEarningsAutomatically(adaptedGame.id);
-                  if (vipEarnings) {
-                    setCollectedVipEarnings(vipEarnings);
+                  // Vérifier si les gains VIP ont été collectés automatiquement par le backend
+                  if (adaptedGame.earnings > 0) {
+                    // Définir l'information de collection automatique pour l'affichage
+                    setCollectedVipEarnings({
+                      earnings_collected: adaptedGame.earnings,
+                      message: `Gains VIP collectés automatiquement: ${adaptedGame.earnings}$`
+                    });
                     
-                    // Notification de succès pour l'utilisateur
-                    console.log(`✅ Gains VIP collectés automatiquement: +$${vipEarnings.earnings_collected?.toLocaleString()}`);
+                    console.log(`✅ Gains VIP collectés automatiquement côté backend: +$${adaptedGame.earnings.toLocaleString()}`);
+                    
+                    // Recharger le gameState pour refléter le nouveau solde
+                    if (onRefreshGameState) {
+                      await onRefreshGameState();
+                      console.log('GameState rechargé après collecte automatique des gains VIP');
+                    }
                   }
                   
                   await saveCompletedGameStats(adaptedGame.id);
