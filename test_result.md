@@ -1123,10 +1123,15 @@
 
 ## test_plan:
   current_focus:
-    - "Route de classement final - Erreur HTTP 500"
-    - "Sauvegarde des statistiques - Erreur HTTP 422"
+    - "Test des gains VIP dans le classement final"
+    - "Test du calcul correct des gains VIP"
+    - "Test de la route de statut des gains VIP"
+    - "Test de cohérence des données VIP"
   stuck_tasks:
-    - "Route de classement final - Erreur HTTP 500"
+    - "Test du calcul correct des gains VIP"
+    - "Test des gains VIP dans le classement final"
+    - "Test de la route de statut des gains VIP"
+    - "Test de cohérence des données VIP"
   test_all: false
   test_priority: "high_first"
 
