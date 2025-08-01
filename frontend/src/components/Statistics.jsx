@@ -205,12 +205,12 @@ const Statistics = ({ gameState }) => {
                       <p className="text-sm">Lancez votre première partie pour voir les statistiques</p>
                     </div>
                   ) : (
-                    realStats.games.map((game) => (
+                    realStats.games.map((game, index) => (
                       <div key={game.id} className="bg-gray-800/30 p-4 rounded-lg hover:bg-gray-700/30 transition-colors">
                         <div className="flex justify-between items-start mb-3">
                           <div>
-                            <h3 className="text-white font-medium">Jeu #{game.id}</h3>
-                            <p className="text-gray-400 text-sm">{game.date}</p>
+                            <h3 className="text-white font-medium">Jeu {index + 1}</h3>
+                            <p className="text-gray-400 text-sm">{game.date || 'Date inconnue'}</p>
                           </div>
                           <Badge variant="outline" className="text-green-400 border-green-400">
                             +${(game.earnings || 0).toLocaleString()}
