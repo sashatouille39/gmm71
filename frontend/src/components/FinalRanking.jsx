@@ -15,7 +15,7 @@ import {
   Calendar
 } from 'lucide-react';
 
-const FinalRanking = () => {
+const FinalRanking = ({ gameState }) => {
   const navigate = useNavigate();
   const { gameId } = useParams();
   const [rankingData, setRankingData] = useState(null);
