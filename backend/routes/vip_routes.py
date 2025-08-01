@@ -59,7 +59,14 @@ async def refresh_game_vips(game_id: str, salon_level: int = 1):
         
         # Générer de nouveaux VIPs
         vips = VipService.get_random_vips(capacity)
-        active_vips_by_game[game_id] = vips
+        
+        # Créer une clé unique basée sur game_id et salon_level
+        vip_key = f"{game_id}_salon_{salon_level}"
+        active_vips_by_game[vip_key] = vips
+        
+        # Garder la compatibilité en stockant aussi avec l'ancienne clé pour le salon niveau 1
+        if salon_level == 1:
+            active_vips_by_game[game_id] = vips
         
         return {"message": "VIPs rafraîchis avec succès", "vips": vips}
     except Exception as e:
