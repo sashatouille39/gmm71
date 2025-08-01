@@ -946,7 +946,8 @@ async def get_events_by_difficulty(min_difficulty: int = 1, max_difficulty: int 
     return [event.dict() for event in events]
 
 @router.get("/{game_id}/final-ranking")
-async def get_final_ranking(game_id: str):
+async def get_final_ranking(game_id: str, salon_level: int = 1):
+    """Récupère le classement final d'une partie terminée"""
     """Récupère le classement final d'une partie terminée"""
     if game_id not in games_db:
         raise HTTPException(status_code=404, detail="Partie non trouvée")
