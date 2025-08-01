@@ -175,7 +175,7 @@ async def create_game(request: GameCreateRequest):
         
         # Assigner des VIPs avec leurs viewing_fee (200k-3M)
         game_vips = VipService.get_random_vips(vip_capacity)
-        active_vips_by_game[game.id] = game_vips
+        active_vips_by_game[f'{game.id}_salon_{salon_level}'] = game_vips
         
         games_db[game.id] = game
         return game
