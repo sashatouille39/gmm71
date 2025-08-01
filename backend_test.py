@@ -10309,6 +10309,11 @@ class BackendTester:
         print("=" * 80)
         self.test_vip_earnings_system_comprehensive()
         
+        # TEST PRINCIPAL: Corrections VIP selon la review request française
+        print("\n🇫🇷 TEST PRINCIPAL: CORRECTIONS VIP SELON LA REVIEW REQUEST FRANÇAISE")
+        print("=" * 80)
+        self.test_vip_earnings_corrections_french_review()
+        
         # Tests complémentaires
         print("\n📋 TESTS COMPLÉMENTAIRES")
         print("=" * 80)
