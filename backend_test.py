@@ -9261,6 +9261,15 @@ class BackendTester:
         self.test_vip_earnings_calculation()
         self.test_vip_system_integration()
         
+        # ===== NOUVEAUX TESTS VIP - REVIEW REQUEST FRANÇAIS =====
+        print("\n🇫🇷 NOUVEAUX TESTS VIP - REVIEW REQUEST FRANÇAIS")
+        print("=" * 80)
+        
+        self.test_vip_earnings_in_final_ranking()
+        self.test_vip_earnings_calculation_accuracy()
+        self.test_vip_earnings_status_route()
+        self.test_vip_data_consistency()
+        
         # Tests complémentaires
         print("\n📋 TESTS COMPLÉMENTAIRES")
         print("=" * 80)
