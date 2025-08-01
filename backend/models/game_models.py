@@ -241,6 +241,7 @@ class GameCreateRequest(BaseModel):
     manual_players: List[PlayerCreateRequest] = []
     all_players: List[PlayerCreateRequest] = []  # Nouveau champ pour tous les joueurs
     preserve_event_order: bool = True  # Nouveau champ pour préserver l'ordre choisi
+    vip_salon_level: Optional[int] = None  # Niveau de salon VIP spécifique pour la partie
 
 class GameStateUpdate(BaseModel):
     money: Optional[int] = None
