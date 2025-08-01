@@ -1046,6 +1046,47 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
                           Une victoire supplémentaire ajoutée à cette célébrité !
                         </p>
                       )}
+                      
+                      {/* NOUVEAU : Affichage automatique des revenus VIP */}
+                      {collectedVipEarnings && (
+                        <div className="mt-6 p-4 bg-gradient-to-r from-green-900/30 to-yellow-900/30 border border-green-500/50 rounded-lg">
+                          <div className="text-center">
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                              <span className="text-2xl">🎭</span>
+                              <h3 className="text-white font-bold text-lg">Revenus VIP Collectés !</h3>
+                              <span className="text-2xl">💰</span>
+                            </div>
+                            <div className="text-3xl font-bold text-green-400 mb-2">
+                              +${collectedVipEarnings.earnings_collected.toLocaleString()}
+                            </div>
+                            <p className="text-green-300 text-sm">
+                              Les VIPs ont payé leurs frais de visionnage pour cette partie spectaculaire !
+                            </p>
+                            <div className="text-xs text-green-200 mt-2 opacity-90">
+                              💰 Montant ajouté automatiquement à votre solde
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Afficher les gains même si pas encore collectés */}
+                      {!collectedVipEarnings && currentGame.earnings > 0 && (
+                        <div className="mt-6 p-4 bg-gradient-to-r from-yellow-900/30 to-green-900/30 border border-yellow-500/50 rounded-lg">
+                          <div className="text-center">
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                              <span className="text-2xl">🎭</span>
+                              <h3 className="text-white font-bold text-lg">Revenus VIP Disponibles</h3>
+                              <span className="text-2xl">💰</span>
+                            </div>
+                            <div className="text-3xl font-bold text-yellow-400 mb-2">
+                              ${currentGame.earnings.toLocaleString()}
+                            </div>
+                            <p className="text-yellow-300 text-sm">
+                              Frais de visionnage VIP collectés pour cette partie !
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : alivePlayers.length === 0 ? (
                     <div className="mb-6">
