@@ -8224,6 +8224,16 @@ class BackendTester:
         # 4. Sauvegarde des statistiques
         self.test_statistics_save_system()
         
+        # ===== TESTS VIP SYSTEM - REVIEW REQUEST =====
+        print("\n🎯 TESTS SYSTÈME VIP - NOUVELLES CAPACITÉS SELON REVIEW REQUEST")
+        print("=" * 80)
+        
+        self.test_vip_salon_capacities()
+        self.test_vip_game_assignment()
+        self.test_vip_refresh_system()
+        self.test_vip_earnings_calculation()
+        self.test_vip_system_integration()
+        
         # Tests complémentaires
         print("\n📋 TESTS COMPLÉMENTAIRES")
         print("=" * 80)
