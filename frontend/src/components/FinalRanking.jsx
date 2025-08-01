@@ -268,17 +268,17 @@ const FinalRanking = () => {
                     
                     <div className="text-right">
                       <div className="text-green-400 text-sm font-bold">
-                        {entry.stats.total_score} pts
+                        {entry.game_stats.total_score} pts
                       </div>
                       <div className="text-xs text-gray-400">
                         <span 
-                          className={`${entry.stats.kills > 0 ? 'cursor-pointer hover:text-red-300' : ''}`}
-                          onClick={() => handleKillsClick(entry.player, entry.stats.kills)}
+                          className={`${entry.game_stats.kills > 0 ? 'cursor-pointer hover:text-red-300' : ''}`}
+                          onClick={() => handleKillsClick(entry.player, entry.game_stats.kills)}
                         >
-                          {entry.stats.survived_events} épreuves • {entry.stats.kills} K
+                          {entry.game_stats.survived_events} épreuves • {entry.game_stats.kills} K
                         </span>
                         {' • '}
-                        {entry.stats.betrayals} T
+                        {entry.game_stats.betrayals} T
                       </div>
                     </div>
                   </div>
