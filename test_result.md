@@ -440,6 +440,18 @@
           agent: "testing"
           comment: "❌ PROBLÈME PERSISTANT: Route POST /api/statistics/save-completed-game continue de retourner HTTP 422. Tests effectués: 1) Création de partie échoue avec HTTP 422 - erreur de validation des paramètres. 2) Impossible de tester la sauvegarde automatique des statistiques. 3) Nécessite investigation des paramètres requis pour cette route spécifique. Backend tests: 0/1 passed (0% success rate). Le problème de sauvegarde des statistiques n'est pas résolu."
 
+  - task: "Structure des données APIs de statistiques - Review Request"
+    implemented: true
+    working: true
+    file: "routes/statistics_routes.py, routes/game_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ STRUCTURE DES DONNÉES ANALYSÉE - REVIEW REQUEST ACCOMPLIE! Tests exhaustifs effectués selon la demande spécifique de comprendre la structure exacte des données: 1) **GET /api/statistics/detailed**: ✅ CONFIRMÉ - Structure: ['basic_stats', 'completed_games', 'role_statistics', 'event_statistics']. completed_games est un tableau (actuellement vide car aucune partie sauvegardée). 2) **GET /api/games/{game_id}/final-ranking**: ✅ CONFIRMÉ - Structure: ['game_id', 'completed', 'winner', 'total_players', 'ranking']. Le champ 'game_stats' est présent dans chaque entrée du ranking (pas au niveau racine). 3) **Format ID de jeu**: ✅ CONFIRMÉ - UUID format (ex: 'de11f863-918c-457e-a31d-35754e2f640d'), pas numéro séquentiel. 4) **Champs requis**: ✅ CONFIRMÉ - Dans ranking: chaque joueur a 'game_stats' avec {total_score, survived_events, kills, betrayals} et 'player_stats' avec {intelligence, force, agilité}. 5) **Données concrètes**: ✅ CONFIRMÉ - Exemples JSON fournis pour correction frontend. Backend tests: 2/2 passed (100% success rate). Toutes les informations nécessaires pour corriger le frontend sont disponibles."
+
   - task: "Routes de statistiques - Fonctionnelles"
     implemented: true
     working: true
