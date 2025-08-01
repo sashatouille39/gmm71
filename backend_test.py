@@ -1106,7 +1106,7 @@ class BackendTester:
             self.log_result("Celebrity Stats Improvement Rules", False, f"Error: {str(e)}")
 
     def test_vip_automatic_collection_system(self):
-        """Test FRENCH REVIEW REQUEST: Tester spécifiquement pourquoi la collecte automatique des gains VIP ne fonctionne pas"""
+        """Test FRENCH REVIEW REQUEST: Tester la nouvelle fonctionnalité de collecte automatique des gains VIP"""
         try:
             print("\n🇫🇷 TESTING VIP AUTOMATIC COLLECTION SYSTEM - FRENCH REVIEW REQUEST")
             print("=" * 80)
