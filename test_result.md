@@ -436,6 +436,9 @@
         - working: false
           agent: "testing"
           comment: "❌ PROBLÈME: Route POST /api/statistics/save-completed-game retourne HTTP 422 lors de la tentative de sauvegarde d'une partie terminée. Impossible de tester la sauvegarde des statistiques car la création de partie pour ce test échoue avec une erreur de validation. Nécessite vérification des paramètres requis et de la validation des données."
+        - working: false
+          agent: "testing"
+          comment: "❌ PROBLÈME PERSISTANT: Route POST /api/statistics/save-completed-game continue de retourner HTTP 422. Tests effectués: 1) Création de partie échoue avec HTTP 422 - erreur de validation des paramètres. 2) Impossible de tester la sauvegarde automatique des statistiques. 3) Nécessite investigation des paramètres requis pour cette route spécifique. Backend tests: 0/1 passed (0% success rate). Le problème de sauvegarde des statistiques n'est pas résolu."
 
   - task: "Routes de statistiques - Fonctionnelles"
     implemented: true
