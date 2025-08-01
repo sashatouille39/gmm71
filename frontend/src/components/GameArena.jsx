@@ -90,26 +90,30 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
           const collectData = await collectResponse.json();
           console.log('Gains VIP collectés automatiquement:', collectData);
           
-          // Afficher une notification à l'utilisateur
+          // Afficher une notification à l'utilisateur - VERSION AMÉLIORÉE
           const notification = document.createElement('div');
           notification.innerHTML = `
-            <div class="fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-3 animate-fade-in">
-              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-              </svg>
-              <div>
-                <div class="font-bold">💰 Gains VIP collectés !</div>
-                <div class="text-sm">+$${collectData.earnings_collected.toLocaleString()}</div>
+            <div class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-green-600 to-yellow-600 text-white px-8 py-6 rounded-xl shadow-2xl z-50 animate-bounce">
+              <div class="text-center">
+                <div class="text-3xl mb-2">🎉💰🎉</div>
+                <div class="text-xl font-bold mb-2">GAINS VIP COLLECTÉS !</div>
+                <div class="text-2xl font-bold text-yellow-200">+$${collectData.earnings_collected.toLocaleString()}</div>
+                <div class="text-sm mt-2 opacity-90">Les VIPs ont payé leurs frais de visionnage</div>
+                <div class="text-xs mt-1 opacity-75">Montant ajouté automatiquement à votre solde</div>
               </div>
             </div>
           `;
           document.body.appendChild(notification.firstElementChild);
           
-          // Supprimer la notification après 5 secondes
+          // Supprimer la notification après 8 secondes (plus long pour que l'utilisateur la voie)
           setTimeout(() => {
-            const notif = document.querySelector('.fixed.top-4.right-4');
-            if (notif) notif.remove();
-          }, 5000);
+            const notif = document.querySelector('.fixed.top-1\\/2.left-1\\/2');
+            if (notif) {
+              notif.style.transition = 'opacity 1s ease-out';
+              notif.style.opacity = '0';
+              setTimeout(() => notif.remove(), 1000);
+            }
+          }, 8000);
           
           // Recharger le gameState depuis le backend pour synchroniser le nouveau solde
           if (onRefreshGameState) {
