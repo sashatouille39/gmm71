@@ -984,11 +984,37 @@ async def get_final_ranking(game_id: str):
             }
         })
     
+    # Calculer les gains VIP pour cette partie
+    vip_earnings = 0
+    events_completed = game.current_event_index
+    
+    # Récupérer les gains VIP s'ils existent
+    if hasattr(game, 'earnings') and game.earnings:
+        vip_earnings = game.earnings
+    else:
+        # Fallback: calculer depuis les VIPs assignés
+        from routes.vip_routes import active_vips_by_game
+        game_vips = []
+        
+        # Essayer l'ancienne clé pour compatibilité
+        if game_id in active_vips_by_game:
+            game_vips = active_vips_by_game.get(game_id, [])
+        else:
+            # Chercher parmi toutes les clés qui correspondent à ce game_id
+            for key, vips in active_vips_by_game.items():
+                if key.startswith(f"{game_id}_salon_"):
+                    game_vips = vips
+                    break
+        
+        vip_earnings = sum(vip.viewing_fee for vip in game_vips)
+
     return {
         "game_id": game_id,
         "completed": game.completed,
         "winner": game.winner,
         "total_players": len(game.players),
+        "events_completed": events_completed,
+        "vip_earnings": vip_earnings,
         "ranking": ranking
     }
 
