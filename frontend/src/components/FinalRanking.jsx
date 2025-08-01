@@ -289,7 +289,7 @@ const FinalRanking = () => {
                       <div 
                         className="bg-gradient-to-r from-green-500 to-blue-500 h-1 rounded-full transition-all"
                         style={{ 
-                          width: `${Math.min(100, (entry.stats.total_score / Math.max(...rankingData.ranking.map(r => r.stats.total_score))) * 100)}%` 
+                          width: `${Math.min(100, (entry.game_stats.total_score / Math.max(...rankingData.ranking.map(r => r.game_stats.total_score))) * 100)}%` 
                         }}
                       ></div>
                     </div>
