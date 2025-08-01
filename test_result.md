@@ -131,6 +131,9 @@
         - working: false
           agent: "testing"
           comment: "❌ PROBLÈME CRITIQUE IDENTIFIÉ: Calcul des gains VIP incorrect pour les niveaux supérieurs. Tests effectués selon la review request française: 1) **Salon niveau 1 (1 VIP)**: ✅ CONFIRMÉ - Calcul correct des gains (786,120 attendu = 786,120 obtenu). 2) **Salon niveau 3 (5 VIPs)**: ❌ PROBLÈME - Calcul incorrect (5,857,602 attendu ≠ 314,901 obtenu). 3) **Salon niveau 6 (12 VIPs)**: ❌ PROBLÈME - Impossible de tester (erreur HTTP 500 lors de création de partie). Le problème semble être que seul le salon niveau 1 calcule correctement les gains, tandis que les niveaux supérieurs ne prennent pas en compte tous les VIPs assignés. Backend tests: 1/3 passed (33% success rate). Nécessite correction urgente de la logique de calcul des gains VIP pour les salons de niveau supérieur."
+        - working: false
+          agent: "testing"
+          comment: "❌ PROBLÈME PERSISTANT CONFIRMÉ: Tests exhaustifs effectués selon la review request française. 1) **Salon niveau 1 (1 VIP)**: ✅ CONFIRMÉ - Calcul correct des gains (821,570$ attendu = 821,570$ obtenu). 2) **Salon niveau 3 (5 VIPs)**: ❌ PROBLÈME PERSISTANT - Calcul incorrect (2,553,140$ attendu ≠ 1,202,874$ obtenu). 3) **Salon niveau 6 (12 VIPs)**: ❌ PROBLÈME PERSISTANT - Calcul incorrect (7,842,185$ attendu ≠ 621,287$ obtenu). Le problème est confirmé: seul le salon niveau 1 calcule correctement les gains. Pour les niveaux supérieurs, la logique ne récupère pas tous les VIPs assignés, suggérant un problème dans la gestion des clés de stockage des VIPs par salon_level. Backend tests: 1/3 passed (33% success rate)."
 
   - task: "Test de la route de statut des gains VIP"
     implemented: true
