@@ -719,6 +719,66 @@
           agent: "testing"
           comment: "✅ SIMPLIFICATION COMPLÈTEMENT VALIDÉE - REVIEW REQUEST FRANÇAISE ACCOMPLIE! Tests exhaustifs effectués selon la demande spécifique de simplification des messages de mort: 1) **Format simplifié uniquement**: ✅ CONFIRMÉ - Tous les messages de mort utilisent maintenant le format simplifié 'X (numéro) est mort' exclusivement. 2) **Élimination format complexe**: ✅ CONFIRMÉ - Plus aucun message 'X a été tué par Y' - format complexe complètement supprimé comme demandé. 3) **Test en temps réel**: ✅ CONFIRMÉ - Simulation temps réel testée avec 3 messages de mort reçus, tous au format simplifié (ex: 'Zahra Benali (010) est mort', 'Lars Olsson (008) est mort', 'Jean Goossens (009) est mort'). 4) **Analyse des messages**: ✅ CONFIRMÉ - 3 messages simplifiés, 0 messages complexes (100% de simplification réussie). Backend tests: 1/1 passed (100% success rate). La demande de simplification des messages de mort de la review request française est parfaitement implémentée - plus de messages 'X a été tué par Y', uniquement 'X (numéro) est mort'."
 
+  - task: "Sauvegarde automatique des parties terminées"
+    implemented: true
+    working: true
+    file: "routes/statistics_routes.py, routes/game_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ CORRECTION 1 PARFAITEMENT VALIDÉE - SAUVEGARDE AUTOMATIQUE FONCTIONNELLE! Tests exhaustifs effectués selon la review request: 1) **Partie complète créée et terminée**: ✅ CONFIRMÉ - Partie avec 25 joueurs et 3 événements créée et simulée jusqu'à avoir un gagnant (Johan Persson après 3 événements). 2) **Sauvegarde automatique**: ✅ CONFIRMÉ - L'appel automatique à /api/statistics/save-completed-game fonctionne parfaitement lors de la fin de partie. 3) **Endpoint manuel testé**: ✅ CONFIRMÉ - Route POST /api/statistics/save-completed-game répond 'Partie sauvegardée avec succès'. Backend tests: 1/1 passed (100% success rate). La première correction de la review request est parfaitement implémentée - les parties terminées sont automatiquement sauvegardées dans les statistiques."
+
+  - task: "Amélioration des statistiques d'épreuves"
+    implemented: true
+    working: true
+    file: "services/statistics_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ CORRECTION 2 PARFAITEMENT VALIDÉE - VRAIES DONNÉES AU LIEU D'ESTIMATIONS! Tests exhaustifs effectués selon la review request: 1) **Structure event_statistics**: ✅ CONFIRMÉ - Route /api/statistics/detailed retourne event_statistics comme un tableau avec 3 éléments (au lieu d'un objet). 2) **Vraies données event_results**: ✅ CONFIRMÉ - Les statistiques utilisent maintenant les vraies données des event_results: 1 partie jouée, 25 participants totaux, données précises au lieu d'estimations approximatives. 3) **Champs complets**: ✅ CONFIRMÉ - Chaque statistique d'épreuve contient name, played_count, total_participants, deaths, survival_rate avec des valeurs réelles. Backend tests: 1/1 passed (100% success rate). La deuxième correction de la review request est parfaitement implémentée - les statistiques d'épreuves utilisent maintenant de vraies données au lieu d'estimations."
+
+  - task: "Mise à jour complète des GameStats"
+    implemented: true
+    working: true
+    file: "routes/statistics_routes.py, models/game_models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ CORRECTION 3 PARFAITEMENT VALIDÉE - GAMESTATS COMPLÈTEMENT MIS À JOUR! Tests exhaustifs effectués selon la review request: 1) **total_games_played**: ✅ CONFIRMÉ - Incrémenté à 1 après la partie terminée. 2) **total_kills**: ✅ CONFIRMÉ - Mis à jour à 22 éliminations totales. 3) **total_betrayals**: ✅ CONFIRMÉ - Compteur des trahisons à 0 (aucune trahison dans cette partie). 4) **total_earnings**: ✅ CONFIRMÉ - Gains VIP ajoutés: 4,132,855$. 5) **has_seen_zero**: ✅ CONFIRMÉ - Détection du Zéro activée (True). 6) **Tous les champs GameStats**: ✅ CONFIRMÉ - Tous les champs sont maintenant mis à jour automatiquement lors de la sauvegarde des parties terminées. Backend tests: 1/1 passed (100% success rate). La troisième correction de la review request est parfaitement implémentée - les GameStats incluent maintenant les trahisons, détection du Zéro, et tous les autres champs."
+
+  - task: "Test des statistiques de célébrités"
+    implemented: true
+    working: true
+    file: "routes/celebrities_routes.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ STATISTIQUES DE CÉLÉBRITÉS TOUJOURS FONCTIONNELLES! Tests effectués selon la review request pour confirmer que les corrections n'ont pas cassé les fonctionnalités existantes: 1) **Route GET /api/celebrities/stats/summary**: ✅ CONFIRMÉ - Fonctionne parfaitement avec 1000 célébrités disponibles. 2) **Structure complète**: ✅ CONFIRMÉ - Tous les champs requis présents (total_celebrities, owned_celebrities, by_category, by_stars). 3) **Intégration préservée**: ✅ CONFIRMÉ - Les corrections du système de statistiques n'ont pas affecté les statistiques de célébrités. Backend tests: 1/1 passed (100% success rate). Les statistiques de célébrités continuent de fonctionner parfaitement après les corrections."
+
+  - task: "Validation globale du système de statistiques corrigé"
+    implemented: true
+    working: true
+    file: "routes/statistics_routes.py, routes/game_routes.py, services/statistics_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "🎯 SUCCÈS TOTAL - LES 3 CORRECTIONS DU SYSTÈME DE STATISTIQUES FONCTIONNENT PARFAITEMENT! Validation globale effectuée selon la review request exacte: **CORRECTION 1 - SAUVEGARDE AUTOMATIQUE**: ✅ VALIDÉ - Appel automatique à /api/statistics/save-completed-game lors de la fin de partie fonctionne parfaitement. **CORRECTION 2 - VRAIES DONNÉES D'ÉPREUVES**: ✅ VALIDÉ - Les statistiques utilisent maintenant les vraies données des event_results au lieu d'estimations (1 partie jouée, 25 participants). **CORRECTION 3 - GAMESTATS COMPLET**: ✅ VALIDÉ - Tous les champs GameStats mis à jour: total_games_played=1, total_kills=22, total_betrayals=0, total_earnings=4,132,855$, has_seen_zero=True. **Test complet réalisé**: ✅ VALIDÉ - Partie complète avec 25 joueurs et 3 événements créée, simulée jusqu'au gagnant, et sauvegardée automatiquement. Backend tests: 6/6 passed (100% success rate). Les 3 corrections du système de statistiques appliquées fonctionnent parfaitement selon les spécifications exactes de la review request."
+
   - task: "Routes pause/resume simulation"
     implemented: true
     working: true
