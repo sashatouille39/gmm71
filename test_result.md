@@ -173,6 +173,9 @@
         - working: true
           agent: "testing"
           comment: "✅ ROUTE FONCTIONNELLE MAIS DONNÉES INCOHÉRENTES - REVIEW REQUEST FRANÇAISE: Tests complets confirment que la route fonctionne techniquement. 1) **Route GET /api/games/{game_id}/vip-earnings-status**: ✅ ACCESSIBLE - Retourne tous les champs requis. 2) **Logique can_collect**: ✅ FONCTIONNE - can_collect=true pour parties terminées. 3) **PROBLÈME SOUS-JACENT**: ❌ earnings_available ne correspond pas aux viewing_fee des VIPs assignés (exemple: 3,069,855$ attendu vs 1,473,945$ obtenu). 4) **Diagnostic**: La route fonctionne mais reflète le bug de calcul des gains VIP pour les salons de niveau supérieur. Backend tests: 1/1 passed pour la fonctionnalité de la route, mais les données restent incohérentes à cause du bug VIP sous-jacent."
+        - working: true
+          agent: "testing"
+          comment: "✅ ROUTE FONCTIONNELLE AVEC PROBLÈME SOUS-JACENT - TESTS EXHAUSTIFS SELON REVIEW REQUEST FRANÇAISE: Tests complets confirment le fonctionnement technique de la route. 1) **Route GET /api/games/{game_id}/vip-earnings-status**: ✅ ACCESSIBLE - Retourne tous les champs requis (game_id, completed, earnings_available, can_collect, winner, total_players, alive_players). 2) **Logique can_collect**: ✅ FONCTIONNE - can_collect=true pour parties terminées avec gains. 3) **PROBLÈME SOUS-JACENT CONFIRMÉ**: ❌ earnings_available ne correspond pas aux viewing_fee des VIPs assignés. Exemple concret: VIPs assignés avec viewing_fee total de 4,791,702$ mais earnings_available de seulement 1,268,449$ (~26% des gains attendus). 4) **DIAGNOSTIC**: La route fonctionne parfaitement mais reflète le bug persistant de calcul des gains VIP pour les salons de niveau supérieur. Backend tests: 1/1 passed (100% success rate) pour la fonctionnalité de la route."
 
 ## backend:
   - task: "Test de la correction du bug VIP pour les salons de niveau supérieur"
