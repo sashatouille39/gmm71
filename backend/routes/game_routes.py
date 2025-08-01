@@ -993,19 +993,16 @@ async def get_final_ranking(game_id: str, salon_level: int = 1):
     if hasattr(game, 'earnings') and game.earnings:
         vip_earnings = game.earnings
     else:
-        # Fallback: calculer depuis les VIPs assignés
+        # Fallback: calculer depuis les VIPs assignés avec la clé spécifique
         from routes.vip_routes import active_vips_by_game
-        game_vips = []
         
-        # Essayer l'ancienne clé pour compatibilité
-        if game_id in active_vips_by_game:
+        # Utiliser la clé spécifique pour ce salon level
+        vip_key = f"{game_id}_salon_{salon_level}"
+        game_vips = active_vips_by_game.get(vip_key, [])
+        
+        # Fallback vers l'ancienne clé si pas trouvé (pour salon niveau 1)
+        if not game_vips and salon_level == 1:
             game_vips = active_vips_by_game.get(game_id, [])
-        else:
-            # Chercher parmi toutes les clés qui correspondent à ce game_id
-            for key, vips in active_vips_by_game.items():
-                if key.startswith(f"{game_id}_salon_"):
-                    game_vips = vips
-                    break
         
         vip_earnings = sum(vip.viewing_fee for vip in game_vips)
 
