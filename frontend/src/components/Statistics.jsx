@@ -220,7 +220,7 @@ const Statistics = ({ gameState }) => {
                         <div className="grid grid-cols-4 gap-4 text-sm">
                           <div>
                             <span className="text-gray-400">Joueurs:</span>
-                            <div className="text-white font-medium">{game.totalPlayers || 0}</div>
+                            <div className="text-white font-medium">{game.total_players || game.totalPlayers || 0}</div>
                           </div>
                           <div>
                             <span className="text-gray-400">Survivants:</span>
@@ -240,12 +240,12 @@ const Statistics = ({ gameState }) => {
                           <div 
                             className="bg-red-500 h-2 rounded-full"
                             style={{ 
-                              width: `${game.totalPlayers > 0 ? ((game.totalPlayers - game.survivors) / game.totalPlayers) * 100 : 0}%` 
+                              width: `${(game.total_players || game.totalPlayers) > 0 ? (((game.total_players || game.totalPlayers) - (game.survivors || 0)) / (game.total_players || game.totalPlayers)) * 100 : 0}%` 
                             }}
                           ></div>
                         </div>
                         <div className="text-xs text-gray-400 mt-1">
-                          Taux d'élimination: {game.totalPlayers > 0 ? (((game.totalPlayers - game.survivors) / game.totalPlayers) * 100).toFixed(1) : 0}%
+                          Taux d'élimination: {(game.total_players || game.totalPlayers) > 0 ? ((((game.total_players || game.totalPlayers) - (game.survivors || 0)) / (game.total_players || game.totalPlayers)) * 100).toFixed(1) : 0}%
                         </div>
                       </div>
                     ))
