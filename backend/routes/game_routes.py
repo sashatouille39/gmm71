@@ -946,8 +946,7 @@ async def get_events_by_difficulty(min_difficulty: int = 1, max_difficulty: int 
     return [event.dict() for event in events]
 
 @router.get("/{game_id}/final-ranking")
-async def get_final_ranking(game_id: str, salon_level: int = 1):
-    """Récupère le classement final d'une partie terminée"""
+async def get_final_ranking(game_id: str, user_id: str = "default_user"):
     """Récupère le classement final d'une partie terminée"""
     if game_id not in games_db:
         raise HTTPException(status_code=404, detail="Partie non trouvée")
@@ -989,19 +988,33 @@ async def get_final_ranking(game_id: str, salon_level: int = 1):
     vip_earnings = 0
     events_completed = game.current_event_index
     
-    # Récupérer les gains VIP s'ils existent
+    # Récupérer les gains VIP s'ils existent dans la partie
     if hasattr(game, 'earnings') and game.earnings:
         vip_earnings = game.earnings
     else:
-        # Fallback: calculer depuis les VIPs assignés avec la clé spécifique
+        # CORRECTION CRITIQUE: Rechercher les VIPs assignés à cette partie dans tous les salons possibles
         from routes.vip_routes import active_vips_by_game
+        from routes.gamestate_routes import game_states_db
         
-        # Utiliser la clé spécifique pour ce salon level
-        vip_key = f"{game_id}_salon_{salon_level}"
+        # Récupérer le niveau de salon de l'utilisateur pour cette partie
+        user_salon_level = 1  # Défaut
+        if user_id in game_states_db:
+            user_salon_level = game_states_db[user_id].vip_salon_level
+        
+        # Essayer d'abord avec la clé spécifique au salon de l'utilisateur
+        vip_key = f"{game_id}_salon_{user_salon_level}"
         game_vips = active_vips_by_game.get(vip_key, [])
         
-        # Fallback vers l'ancienne clé si pas trouvé (pour salon niveau 1)
-        if not game_vips and salon_level == 1:
+        # Si pas trouvé, chercher dans tous les niveaux de salon possibles pour cette partie
+        if not game_vips:
+            for level in range(1, 10):  # Tester tous les niveaux possibles
+                test_key = f"{game_id}_salon_{level}"
+                if test_key in active_vips_by_game:
+                    game_vips = active_vips_by_game[test_key]
+                    break
+        
+        # Fallback vers l'ancienne clé pour compatibilité
+        if not game_vips:
             game_vips = active_vips_by_game.get(game_id, [])
         
         vip_earnings = sum(vip.viewing_fee for vip in game_vips)
