@@ -1090,6 +1090,11 @@ async def collect_vip_earnings(game_id: str, user_id: str = "default_user"):
     if game.earnings <= 0:
         raise HTTPException(status_code=400, detail="Aucun gain à collecter pour cette partie")
     
+    # CORRECTION: Vérifier si les gains ont déjà été collectés automatiquement
+    already_collected = getattr(game, 'vip_earnings_collected', False)
+    if already_collected:
+        raise HTTPException(status_code=400, detail="Les gains VIP ont déjà été collectés automatiquement pour cette partie")
+    
     # CORRECTION PROBLÈME 2: Ajouter les gains VIP au gamestate
     from routes.gamestate_routes import game_states_db
     
@@ -1109,6 +1114,7 @@ async def collect_vip_earnings(game_id: str, user_id: str = "default_user"):
     
     # Marquer les gains comme collectés pour éviter la double collecte
     game.earnings = 0
+    game.vip_earnings_collected = True
     games_db[game_id] = game
     
     return {
