@@ -841,7 +841,7 @@ async def get_realtime_updates(game_id: str):
             if alive_players_after:
                 game.winner = max(alive_players_after, key=lambda p: p.total_score)
             
-            # Calculer les gains VIP à partir des VIPs assignés
+            # 🎯 CORRECTION COMPLÈTE : CALCUL ET COLLECTION AUTOMATIQUE DES GAINS VIP
             from routes.vip_routes import active_vips_by_game
             
             # Récupérer le niveau de salon VIP utilisé pour cette partie
@@ -857,21 +857,28 @@ async def get_realtime_updates(game_id: str):
                     test_key = f"{game_id}_salon_{level}"
                     if test_key in active_vips_by_game:
                         game_vips = active_vips_by_game[test_key]
+                        salon_level = level  # Utiliser le niveau trouvé
                         break
             
-            # Fallback vers l'ancienne clé pour compatibilité
+            # Fallback vers l'ancienne clé pour compatibilité (salon niveau 1)
             if not game_vips:
                 game_vips = active_vips_by_game.get(game_id, [])
+                salon_level = 1
             
             if game_vips:
-                game.earnings = sum(vip.viewing_fee for vip in game_vips)
+                # Calculer les gains réels en additionnant tous les viewing_fee des VIPs
+                total_vip_earnings = sum(vip.viewing_fee for vip in game_vips)
+                game.earnings = total_vip_earnings
+                
+                print(f"💰 CALCUL GAINS VIP (Temps réel) - Salon niveau {salon_level}: {len(game_vips)} VIPs")
+                print(f"💰 Total gains VIP: {total_vip_earnings:,}$")
             else:
                 game.earnings = 0
+                print(f"⚠️ ATTENTION: Aucun VIP trouvé pour la partie {game_id} avec salon niveau {salon_level}")
             
-            # 🎯 NOUVELLE FONCTIONNALITÉ : Collection automatique des gains VIP dès la fin de partie
+            # 🎯 COLLECTION AUTOMATIQUE DES GAINS VIP DÈS LA FIN DE PARTIE
             if game.earnings > 0:
                 from routes.gamestate_routes import game_states_db
-                # Définir l'utilisateur par défaut
                 user_id = "default_user"
                 
                 # Ajouter automatiquement les gains VIP au portefeuille du joueur
@@ -882,7 +889,7 @@ async def get_realtime_updates(game_id: str):
                 else:
                     game_state = game_states_db[user_id]
                 
-                # Ajouter les gains au portefeuille du joueur
+                # Collection automatique des gains
                 earnings_to_collect = game.earnings
                 game_state.money += earnings_to_collect
                 game_state.game_stats.total_earnings += earnings_to_collect
@@ -892,8 +899,8 @@ async def get_realtime_updates(game_id: str):
                 # Marquer que les gains ont été collectés automatiquement
                 game.vip_earnings_collected = True
                 
-                print(f"🎭 Gains VIP collectés automatiquement: {earnings_to_collect}$ pour l'utilisateur {user_id}")
-                print(f"💰 Nouveau solde: {game_state.money}$")
+                print(f"🎭 ✅ GAINS VIP COLLECTÉS AUTOMATIQUEMENT (Temps réel): +{earnings_to_collect:,}$ (Salon niveau {salon_level})")
+                print(f"💰 Nouveau solde utilisateur: {game_state.money:,}$")
                 
             # NOUVELLE FONCTIONNALITÉ : Sauvegarder automatiquement les statistiques
             try:
