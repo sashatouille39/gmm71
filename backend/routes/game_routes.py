@@ -1275,13 +1275,14 @@ async def get_final_ranking(game_id: str, user_id: str = "default_user"):
             }
         })
     
-    # Calculer les gains VIP pour cette partie
+    # 🎯 CORRECTION COMPLÈTE : CALCUL PRÉCIS DES GAINS VIP
     vip_earnings = 0
     events_completed = game.current_event_index
     
     # Récupérer les gains VIP s'ils existent dans la partie
     if hasattr(game, 'earnings') and game.earnings:
         vip_earnings = game.earnings
+        print(f"💰 FINAL-RANKING: Gains VIP trouvés dans game.earnings: {vip_earnings:,}$")
     else:
         # CORRECTION CRITIQUE: Rechercher les VIPs assignés à cette partie dans tous les salons possibles
         from routes.vip_routes import active_vips_by_game
@@ -1300,13 +1301,25 @@ async def get_final_ranking(game_id: str, user_id: str = "default_user"):
                 test_key = f"{game_id}_salon_{level}"
                 if test_key in active_vips_by_game:
                     game_vips = active_vips_by_game[test_key]
+                    salon_level = level  # Utiliser le niveau trouvé
                     break
         
-        # Fallback vers l'ancienne clé pour compatibilité
+        # Fallback vers l'ancienne clé pour compatibilité (salon niveau 1)
         if not game_vips:
             game_vips = active_vips_by_game.get(game_id, [])
+            salon_level = 1
         
-        vip_earnings = sum(vip.viewing_fee for vip in game_vips)
+        # Calculer les gains VIP réels
+        if game_vips:
+            vip_earnings = sum(vip.viewing_fee for vip in game_vips)
+            print(f"💰 FINAL-RANKING: Calculé gains VIP - Salon niveau {salon_level}: {len(game_vips)} VIPs = {vip_earnings:,}$")
+            print(f"💰 Détail viewing_fees: {[f'{vip.name}: {vip.viewing_fee:,}$' for vip in game_vips]}")
+        else:
+            vip_earnings = 0
+            print(f"⚠️ FINAL-RANKING: Aucun VIP trouvé pour la partie {game_id}")
+        
+        # Mettre à jour les gains dans la partie pour cohérence
+        game.earnings = vip_earnings
 
     return {
         "game_id": game_id,
