@@ -1102,31 +1102,43 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
                         </p>
                       )}
                       
-                      {/* NOUVEAU : Affichage automatique des revenus VIP */}
+                      {/* 🎯 AFFICHAGE AMÉLIORÉ : Revenus VIP avec détails du salon */}
                       {collectedVipEarnings && (
-                        <div className="mt-6 p-4 bg-gradient-to-r from-green-900/30 to-yellow-900/30 border border-green-500/50 rounded-lg">
+                        <div className="mt-6 p-6 bg-gradient-to-r from-green-900/40 to-yellow-900/40 border-2 border-green-500/60 rounded-xl shadow-lg">
                           <div className="text-center">
-                            <div className="flex items-center justify-center gap-2 mb-2">
-                              <span className="text-2xl">🎭</span>
-                              <h3 className="text-white font-bold text-lg">Revenus VIP Collectés !</h3>
-                              <span className="text-2xl">💰</span>
+                            <div className="flex items-center justify-center gap-3 mb-3">
+                              <span className="text-3xl">🎭</span>
+                              <h3 className="text-white font-bold text-xl">Revenus VIP Collectés !</h3>
+                              <span className="text-3xl">💰</span>
                             </div>
-                            <div className="text-3xl font-bold text-green-400 mb-2">
+                            <div className="text-4xl font-bold text-green-400 mb-3 drop-shadow-lg">
                               +${collectedVipEarnings.earnings_collected.toLocaleString()}
                             </div>
-                            <p className="text-green-300 text-sm">
-                              Les VIPs ont payé leurs frais de visionnage pour cette partie spectaculaire !
-                            </p>
-                            <div className="text-xs text-green-200 mt-2 opacity-90">
-                              💰 Montant ajouté automatiquement à votre solde
+                            <div className="space-y-2">
+                              <p className="text-green-300 text-base font-medium">
+                                {collectedVipEarnings.salon_info || 'Frais de visionnage des VIPs'}
+                              </p>
+                              {collectedVipEarnings.events_completed && (
+                                <p className="text-green-200 text-sm">
+                                  🏆 Partie terminée après {collectedVipEarnings.events_completed} événements
+                                </p>
+                              )}
+                              <div className="bg-green-800/30 rounded-lg p-3 mt-3">
+                                <p className="text-green-100 text-sm font-medium">
+                                  💰 Montant ajouté automatiquement à votre solde
+                                </p>
+                                <p className="text-green-200 text-xs mt-1 opacity-90">
+                                  Plus besoin d'aller dans le classement total !
+                                </p>
+                              </div>
                             </div>
                           </div>
                         </div>
                       )}
                       
-                      {/* Afficher les gains même si pas encore collectés */}
+                      {/* Afficher les gains même si pas encore collectés (cas d'erreur) */}
                       {!collectedVipEarnings && currentGame.earnings > 0 && (
-                        <div className="mt-6 p-4 bg-gradient-to-r from-yellow-900/30 to-green-900/30 border border-yellow-500/50 rounded-lg">
+                        <div className="mt-6 p-4 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border border-yellow-500/50 rounded-lg">
                           <div className="text-center">
                             <div className="flex items-center justify-center gap-2 mb-2">
                               <span className="text-2xl">🎭</span>
@@ -1137,7 +1149,10 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
                               ${currentGame.earnings.toLocaleString()}
                             </div>
                             <p className="text-yellow-300 text-sm">
-                              Frais de visionnage VIP collectés pour cette partie !
+                              Frais de visionnage VIP calculés pour cette partie
+                            </p>
+                            <p className="text-yellow-200 text-xs mt-2 opacity-90">
+                              ⚠️ Collection automatique en cours...
                             </p>
                           </div>
                         </div>
