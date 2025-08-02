@@ -283,20 +283,63 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
                 if (adaptedGame.completed) {
                   console.log('🎉 Jeu terminé ! Vérification des gains VIP et sauvegarde des statistiques...');
                   
-                  // Vérifier si les gains VIP ont été collectés automatiquement par le backend
-                  if (adaptedGame.earnings > 0) {
-                    // Définir l'information de collection automatique pour l'affichage
-                    setCollectedVipEarnings({
-                      earnings_collected: adaptedGame.earnings,
-                      message: `Gains VIP collectés automatiquement: ${adaptedGame.earnings}$`
-                    });
+                  // Récupérer les détails VIP du salon pour affichage précis
+                  try {
+                    const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+                    const finalRankingResponse = await fetch(`${backendUrl}/api/games/${adaptedGame.id}/final-ranking`);
                     
-                    console.log(`✅ Gains VIP collectés automatiquement côté backend: +$${adaptedGame.earnings.toLocaleString()}`);
+                    if (finalRankingResponse.ok) {
+                      const finalRankingData = await finalRankingResponse.json();
+                      const vipEarnings = finalRankingData.vip_earnings || 0;
+                      const eventsCompleted = finalRankingData.events_completed || 0;
+                      
+                      console.log(`💰 Détails finale de la partie:`, {
+                        vip_earnings: vipEarnings,
+                        events_completed: eventsCompleted,
+                        winner: finalRankingData.winner
+                      });
+                      
+                      // Vérifier si les gains VIP ont été collectés automatiquement par le backend
+                      if (vipEarnings > 0) {
+                        // Définir l'information de collection automatique pour l'affichage avec les montants exacts
+                        setCollectedVipEarnings({
+                          earnings_collected: vipEarnings,
+                          message: `Gains VIP collectés automatiquement: ${vipEarnings.toLocaleString()}$`,
+                          salon_info: `Frais de visionnage des VIPs du salon`,
+                          events_completed: eventsCompleted
+                        });
+                        
+                        console.log(`✅ Gains VIP collectés automatiquement côté backend: +$${vipEarnings.toLocaleString()}`);
+                        console.log(`📊 Partie terminée après ${eventsCompleted} événements`);
+                        
+                        // Recharger le gameState pour refléter le nouveau solde
+                        if (onRefreshGameState) {
+                          await onRefreshGameState();
+                          console.log('GameState rechargé après collecte automatique des gains VIP');
+                        }
+                      } else {
+                        console.log('📋 Aucun gain VIP trouvé pour cette partie');
+                      }
+                    }
                     
-                    // Recharger le gameState pour refléter le nouveau solde
-                    if (onRefreshGameState) {
-                      await onRefreshGameState();
-                      console.log('GameState rechargé après collecte automatique des gains VIP');
+                  } catch (error) {
+                    console.error('❌ Erreur lors de la récupération des détails VIP:', error);
+                    
+                    // Fallback sur les gains adaptedGame.earnings si final-ranking échoue
+                    if (adaptedGame.earnings > 0) {
+                      setCollectedVipEarnings({
+                        earnings_collected: adaptedGame.earnings,
+                        message: `Gains VIP collectés automatiquement: ${adaptedGame.earnings.toLocaleString()}$`,
+                        salon_info: `Frais de visionnage des VIPs`
+                      });
+                      
+                      console.log(`✅ Gains VIP (fallback) collectés: +$${adaptedGame.earnings.toLocaleString()}`);
+                      
+                      // Recharger le gameState pour refléter le nouveau solde
+                      if (onRefreshGameState) {
+                        await onRefreshGameState();
+                        console.log('GameState rechargé après collecte automatique des gains VIP');
+                      }
                     }
                   }
                   
