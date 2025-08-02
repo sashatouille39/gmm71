@@ -524,8 +524,7 @@ async def simulate_event(game_id: str):
         if alive_players_after:
             game.winner = max(alive_players_after, key=lambda p: p.total_score)
         
-        # Calculer les gains - CORRECTION FINALE : UTILISER LES VRAIS MONTANTS VIP
-        # Récupérer les VIPs assignés à cette partie pour leurs viewing_fee réels
+        # 🎯 CORRECTION COMPLÈTE : CALCUL ET COLLECTION AUTOMATIQUE DES GAINS VIP
         from routes.vip_routes import active_vips_by_game
         from routes.gamestate_routes import game_states_db
         
@@ -542,18 +541,53 @@ async def simulate_event(game_id: str):
                 test_key = f"{game_id}_salon_{level}"
                 if test_key in active_vips_by_game:
                     game_vips = active_vips_by_game[test_key]
+                    salon_level = level  # Utiliser le niveau trouvé
                     break
         
-        # Fallback vers l'ancienne clé pour compatibilité
+        # Fallback vers l'ancienne clé pour compatibilité (salon niveau 1)
         if not game_vips:
             game_vips = active_vips_by_game.get(game_id, [])
+            salon_level = 1
         
         if game_vips:
-            # Sommer les viewing_fee réels des VIPs (entre 200k et 3M chacun)
-            game.earnings = sum(vip.viewing_fee for vip in game_vips)
+            # Calculer les gains réels en additionnant tous les viewing_fee des VIPs
+            total_vip_earnings = sum(vip.viewing_fee for vip in game_vips)
+            game.earnings = total_vip_earnings
+            
+            print(f"💰 CALCUL GAINS VIP - Salon niveau {salon_level}: {len(game_vips)} VIPs")
+            print(f"💰 Détail viewing_fees: {[vip.viewing_fee for vip in game_vips]}")
+            print(f"💰 Total gains VIP: {total_vip_earnings}$")
         else:
             # Pas de VIPs assignés, aucun gain
             game.earnings = 0
+            print(f"⚠️ ATTENTION: Aucun VIP trouvé pour la partie {game_id} avec salon niveau {salon_level}")
+        
+        # 🎯 COLLECTION AUTOMATIQUE DES GAINS VIP DÈS LA FIN DE PARTIE
+        if game.earnings > 0:
+            user_id = "default_user"
+            
+            # Ajouter automatiquement les gains VIP au portefeuille du joueur
+            if user_id not in game_states_db:
+                from models.game_models import GameState
+                game_state = GameState(user_id=user_id)
+                game_states_db[user_id] = game_state
+            else:
+                game_state = game_states_db[user_id]
+            
+            # Collection automatique des gains
+            earnings_to_collect = game.earnings
+            game_state.money += earnings_to_collect
+            game_state.game_stats.total_earnings += earnings_to_collect
+            game_state.updated_at = datetime.utcnow()
+            game_states_db[user_id] = game_state
+            
+            # Marquer que les gains ont été collectés automatiquement
+            game.vip_earnings_collected = True
+            
+            print(f"🎭 ✅ GAINS VIP COLLECTÉS AUTOMATIQUEMENT: +{earnings_to_collect:,}$ (Salon niveau {salon_level})")
+            print(f"💰 Nouveau solde utilisateur: {game_state.money:,}$")
+        else:
+            print("📋 Aucun gain VIP à collecter pour cette partie")
     else:
         # NOUVEAU: Calculer les gains partiels même si le jeu n'est pas terminé
         # en utilisant les VRAIS montants VIP (200k-3M chacun)
