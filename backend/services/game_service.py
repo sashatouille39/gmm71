@@ -678,10 +678,9 @@ class GameService:
         survivors_selected = player_scores[:target_survivors]
         eliminated_selected = player_scores[target_survivors:]
         
-        # Traiter les survivants
+        # Traiter les survivants - CORRECTION: initialiser event_kills à 0, sera calculé plus tard
         for player, score in survivors_selected:
             time_remaining = random.randint(event.survival_time_min // 4, event.survival_time_max // 2)
-            event_kills = random.randint(0, 2) if event.type == EventType.FORCE else random.randint(0, 1)
             
             # Gérer les trahisons selon les groupes
             betrayed = False
@@ -695,23 +694,23 @@ class GameService:
                 betrayed = False
             
             player.survived_events += 1
-            player.kills += event_kills
+            # NOTE: player.kills sera mis à jour plus tard après attribution des éliminations
             if betrayed:
                 player.betrayals += 1
             
-            event_score = time_remaining + (event_kills * 10) - (5 if betrayed else 0)
-            player.total_score += event_score
+            # Score temporaire (sera mis à jour après calcul des kills réels)
+            temp_score = time_remaining - (5 if betrayed else 0)
             
             survivors.append({
                 "player": player,
                 "number": player.number,
                 "name": player.name,
                 "time_remaining": time_remaining,
-                "event_kills": event_kills,
+                "event_kills": 0,  # Sera mis à jour plus tard
                 "betrayed": betrayed,
-                "score": event_score,
-                "kills": player.kills,
-                "total_score": player.total_score,
+                "score": temp_score,  # Score temporaire
+                "kills": player.kills,  # Kills actuels (sera mis à jour)
+                "total_score": player.total_score,  # Sera mis à jour
                 "survived_events": player.survived_events
             })
         
