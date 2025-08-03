@@ -10848,6 +10848,11 @@ class BackendTester:
         print("=" * 80)
         self.test_vip_earnings_corrections_french_review()
         
+        # TEST PRINCIPAL: Corrections du système de kills selon la review request française
+        print("\n🇫🇷 TEST PRINCIPAL: CORRECTIONS DU SYSTÈME DE KILLS SELON LA REVIEW REQUEST FRANÇAISE")
+        print("=" * 80)
+        self.test_kill_system_corrections()
+        
         # Tests complémentaires
         print("\n📋 TESTS COMPLÉMENTAIRES")
         print("=" * 80)
