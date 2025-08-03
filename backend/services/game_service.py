@@ -732,7 +732,8 @@ class GameService:
         # CORRECTION MAJEURE: Attribution cohérente des kills basée sur les éliminations réelles
         if eliminated and survivors:
             # Calculer le nombre maximum de kills possibles par survivant selon le type d'épreuve
-            max_kills_per_player = 2 if event.type == EventType.FORCE else 1
+            # CORRECTION: Limite plus stricte - maximum 2 kills par événement pour épreuves de force, 1 pour les autres
+            max_kills_per_event = 2 if event.type == EventType.FORCE else 1
             total_eliminated = len(eliminated)
             total_survivors = len(survivors)
             
@@ -740,15 +741,15 @@ class GameService:
             eliminated_copy = eliminated.copy()
             random.shuffle(eliminated_copy)
             
-            # Tracker des kills par survivant
-            kills_tracker = {s["player"].id: 0 for s in survivors}
+            # Tracker des kills par survivant pour CET événement seulement
+            event_kills_tracker = {s["player"].id: 0 for s in survivors}
             
             # Distribuer chaque élimination à un survivant
             for i, eliminated_player_data in enumerate(eliminated_copy):
                 eliminated_player = eliminated_player_data["player"]
                 
-                # Chercher des survivants disponibles (qui n'ont pas atteint leur limite de kills)
-                available_killers = [s for s in survivors if kills_tracker[s["player"].id] < max_kills_per_player]
+                # Chercher des survivants disponibles (qui n'ont pas atteint leur limite pour CET événement)
+                available_killers = [s for s in survivors if event_kills_tracker[s["player"].id] < max_kills_per_event]
                 
                 # Filtrer pour éviter les kills entre membres du même groupe (sauf si épreuve 1v1)
                 if len(alive_players) > 4:  # Pas une épreuve finale
@@ -766,20 +767,26 @@ class GameService:
                     
                     # Attribuer le kill
                     killer.killed_players.append(eliminated_player.id)
-                    kills_tracker[killer.id] += 1
+                    event_kills_tracker[killer.id] += 1
                 else:
-                    # Si aucun tueur disponible, choisir n'importe quel survivant
-                    # (peut arriver dans des cas extrêmes)
+                    # Si aucun tueur disponible avec les limites strictes, 
+                    # choisir parmi tous les survivants mais limiter à 1 kill supplémentaire
                     if survivors:
-                        killer_data = random.choice(survivors)
+                        # Prioriser les survivants avec le moins de kills pour cet événement
+                        sorted_survivors = sorted(survivors, key=lambda s: event_kills_tracker[s["player"].id])
+                        killer_data = sorted_survivors[0]
                         killer = killer_data["player"]
-                        killer.killed_players.append(eliminated_player.id)
-                        kills_tracker[killer.id] += 1
+                        
+                        # Ne pas dépasser 2 kills même dans les cas extrêmes
+                        if event_kills_tracker[killer.id] < 2:
+                            killer.killed_players.append(eliminated_player.id)
+                            event_kills_tracker[killer.id] += 1
+                        # Si tous les survivants ont déjà 2 kills, l'élimination reste sans tueur spécifique
             
             # Mettre à jour les stats des survivants avec les kills réels
             for survivor_data in survivors:
                 player = survivor_data["player"]
-                actual_kills = kills_tracker[player.id]
+                actual_kills = event_kills_tracker[player.id]
                 
                 # Mettre à jour le compteur de kills du joueur
                 player.kills += actual_kills
