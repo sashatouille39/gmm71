@@ -1110,10 +1110,11 @@ class BackendTester:
         try:
             print("\n🇫🇷 TESTING KILL SYSTEM CORRECTIONS - FRENCH REVIEW REQUEST")
             print("=" * 80)
-            print("OBJECTIF: Tester les 3 corrections apportées au système de kills:")
-            print("1. Calcul des kills totaux corrigé (sum des kills individuels au lieu de compter tous les morts)")
-            print("2. Ordre des éliminations en direct (nouvelles morts en haut)")
-            print("3. Logique des kills individuels (cohérence, pas de double kills, limites par type d'épreuve)")
+            print("OBJECTIF: Tester les corrections STRICTES du système de kills:")
+            print("1. Limites de kills plus strictes (max 2 kills par événement pour force, max 1 pour autres)")
+            print("2. Ne pas dépasser 2 kills même dans les cas extrêmes")
+            print("3. Prioriser les survivants avec le moins de kills pour distribuer équitablement")
+            print("4. Cohérence totale des kills (gamestate.total_kills = somme individuelle)")
             print()
             
             # Test 1: Calcul des kills totaux
