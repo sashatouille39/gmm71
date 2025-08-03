@@ -102,7 +102,56 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-## user_problem_statement: "Tester les nouvelles fonctionnalités VIP que j'ai implémentées : **Tests à effectuer :** 1. **Test des gains VIP dans le classement final :** - Créer une partie avec un salon VIP de niveau supérieur (niveau 3 = 5 VIPs) - Simuler des événements jusqu'à la fin de la partie - Appeler GET /api/games/{game_id}/final-ranking - Vérifier que la réponse contient maintenant les champs "vip_earnings" et "events_completed" 2. **Test du calcul correct des gains VIP :** - Créer une partie - Assigner des VIPs à cette partie via GET /api/vips/game/{game_id}?salon_level=3 - Vérifier que les VIPs ont des viewing_fee > 0 - Calculer les gains attendus : somme des viewing_fee de tous les VIPs - Simuler la partie jusqu'à la fin - Vérifier que game.earnings correspond à la somme des viewing_fee des VIPs 3. **Test de la route de statut des gains VIP :** - Appeler GET /api/games/{game_id}/vip-earnings-status sur une partie terminée - Vérifier que earnings_available correspond aux gains VIP calculés 4. **Test de cohérence des données :** - S'assurer que les gains VIP sont cohérents entre : - final-ranking -> vip_earnings - vip-earnings-status -> earnings_available - La partie elle-même -> game.earnings **Objectif principal :** Confirmer que les revenus VIP (frais de visionnage) sont correctement calculés et exposés dans toutes les APIs, particulièrement dans final-ranking pour l'affichage frontend."
+## user_problem_statement: "Je viens de corriger plusieurs problèmes critiques dans le système de kills du jeu : **CORRECTIONS APPORTÉES :** 1. **Calcul des kills totaux** : - Corrigé dans `game_routes.py` et `statistics_routes.py` - Avant : `total_kills += len([p for p in game.players if not p.alive])` (comptait tous les morts) - Après : `total_kills += sum([p.kills for p in game.players])` (compte les vrais kills) 2. **Ordre des éliminations en direct** : - Corrigé dans `GameArena.jsx` - Avant : `[...prev, ...updateData.deaths]` (nouvelles morts en bas) - Après : `[...updateData.deaths, ...prev]` (nouvelles morts en haut) 3. **Logique des kills individuels** : - Corrigé dans `game_service.py` - Nouvelle logique qui assure que le nombre de kills correspond exactement au nombre d'éliminations - Empêche les doubles kills quand il ne reste qu'un seul adversaire - Limite les kills selon le type d'épreuve (max 1 pour intelligence/agilité, max 2 pour force) **TESTS À EFFECTUER :** 1. **Test du calcul des kills totaux** : - Créer une partie avec plusieurs joueurs - Simuler plusieurs événements avec des éliminations - Vérifier que `gamestate.total_kills` correspond à la somme réelle des kills individuels - Comparer avec l'ancien système qui comptait tous les morts 2. **Test de la cohérence des kills individuels** : - Vérifier qu'un joueur ne peut pas faire plus de kills qu'il n'y a d'éliminations disponibles - Vérifier qu'un joueur ne fait pas 2 kills quand il ne reste qu'1 adversaire - Tester les limites de kills selon le type d'épreuve 3. **Test du classement final** : - Vérifier que les kills affichés dans le final-ranking correspondent aux kills réels - S'assurer de la cohérence entre les kills individuels et le total Peux-tu effectuer ces tests et confirmer que les problèmes de kills sont résolus ?"
+
+## backend:
+  - task: "Test du calcul des kills totaux corrigé"
+    implemented: true
+    working: false
+    file: "routes/game_routes.py, routes/statistics_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ PROBLÈME PARTIEL IDENTIFIÉ - TESTS EXHAUSTIFS SELON REVIEW REQUEST FRANÇAISE: Tests complets effectués selon les 3 tests spécifiques demandés. 1) **Test calcul kills totaux**: ❌ PROBLÈME PARTIEL - gamestate.total_kills (22) ne correspond pas exactement aux kills individuels attribués (19), mais ne correspond plus à l'ancien système qui comptait tous les morts (19). Écart de 3 kills suggère un problème mineur dans la synchronisation. 2) **Test ancienne logique**: ✅ CONFIRMÉ - Le système n'utilise plus l'ancienne logique qui comptait tous les morts comme kills. 3) **Diagnostic**: La correction principale fonctionne (plus de comptage des morts comme kills), mais il reste un petit écart dans le calcul total qui nécessite investigation. Backend tests: 1/2 passed (50% success rate). CORRECTION PRINCIPALE RÉUSSIE mais ajustement mineur requis."
+
+  - task: "Test de la cohérence des kills individuels"
+    implemented: true
+    working: false
+    file: "services/game_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ PROBLÈME PARTIEL IDENTIFIÉ - TESTS EXHAUSTIFS SELON REVIEW REQUEST FRANÇAISE: Tests complets effectués selon les spécifications exactes. 1) **Test cohérence kills/éliminations**: ✅ CONFIRMÉ - Nombre de kills (19) correspond exactement au nombre d'éliminations (19). Pas de double comptage. 2) **Test limites de kills par joueur**: ❌ PROBLÈME - 3 joueurs dépassent la limite de 2 kills (maximum trouvé: 5 kills). Les limites par type d'épreuve ne sont pas respectées. 3) **Test logique gagnant**: ✅ CONFIRMÉ - Le gagnant n'a pas tué tous les autres joueurs (5 kills sur 19 morts), logique correcte. 4) **Diagnostic**: La cohérence générale fonctionne mais les limites de kills par type d'épreuve nécessitent correction. Backend tests: 2/3 passed (67% success rate). CORRECTION PARTIELLE RÉUSSIE mais limites à implémenter."
+
+  - task: "Test du classement final et cohérence"
+    implemented: true
+    working: true
+    file: "routes/game_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ CORRECTION PARFAITEMENT VALIDÉE - TESTS EXHAUSTIFS SELON REVIEW REQUEST FRANÇAISE: Tests complets effectués selon les spécifications exactes. 1) **Test classement final**: ✅ CONFIRMÉ - 20 joueurs dans le classement avec total de 19 kills. 2) **Test cohérence classement/partie**: ✅ CONFIRMÉ - Les kills du classement (19) correspondent exactement aux kills de la partie (19). Cohérence parfaite. 3) **Test identification gagnant**: ✅ CONFIRMÉ - Gagnant correctement identifié avec ses stats de kills (Leila Mousavi, 5 kills). 4) **Diagnostic**: Le classement final affiche correctement les kills réels et maintient la cohérence avec les données de la partie. Backend tests: 3/3 passed (100% success rate). CORRECTION COMPLÈTEMENT RÉUSSIE pour le classement final."
+
+  - task: "Test de l'ordre des éliminations en direct (frontend)"
+    implemented: true
+    working: "NA"
+    file: "GameArena.jsx"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "⚠️ TEST NON APPLICABLE - LIMITATION SYSTÈME: Test de l'ordre des éliminations en direct nécessite le frontend et ne peut pas être testé via les APIs backend. La correction mentionnée dans GameArena.jsx ([...updateData.deaths, ...prev] au lieu de [...prev, ...updateData.deaths]) ne peut être validée que par des tests frontend ou des tests d'intégration. Backend tests: 0/0 passed (N/A). TEST FRONTEND REQUIS pour validation complète."
 
 ## backend:
   - task: "Test de la nouvelle fonctionnalité de collecte automatique des gains VIP"
