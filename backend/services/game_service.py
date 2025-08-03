@@ -729,49 +729,70 @@ class GameService:
                 "event_name": event.name
             })
         
-        # Attribuer les éliminés aux survivants qui ont fait des kills
-        # Modifier pour éviter les kills entre membres du même groupe (sauf si épreuve 1v1)
-        survivors_with_kills = [(s, s["event_kills"]) for s in survivors if s["event_kills"] > 0]
-        if survivors_with_kills and eliminated:
-            # Créer une liste de tous les kills à attribuer
-            kill_assignments = []
-            for survivor_data, kill_count in survivors_with_kills:
-                for _ in range(kill_count):
-                    kill_assignments.append(survivor_data["player"])
+        # CORRECTION MAJEURE: Attribution cohérente des kills basée sur les éliminations réelles
+        if eliminated and survivors:
+            # Calculer le nombre maximum de kills possibles par survivant selon le type d'épreuve
+            max_kills_per_player = 2 if event.type == EventType.FORCE else 1
+            total_eliminated = len(eliminated)
+            total_survivors = len(survivors)
             
-            # Attribuer aléatoirement les éliminés aux survivants qui ont fait des kills
+            # Distribuer les éliminations de manière équitable et réaliste
             eliminated_copy = eliminated.copy()
             random.shuffle(eliminated_copy)
             
+            # Tracker des kills par survivant
+            kills_tracker = {s["player"].id: 0 for s in survivors}
+            
+            # Distribuer chaque élimination à un survivant
             for i, eliminated_player_data in enumerate(eliminated_copy):
-                if i < len(kill_assignments):
-                    killer = kill_assignments[i]
-                    eliminated_player = eliminated_player_data["player"]
+                eliminated_player = eliminated_player_data["player"]
+                
+                # Chercher des survivants disponibles (qui n'ont pas atteint leur limite de kills)
+                available_killers = [s for s in survivors if kills_tracker[s["player"].id] < max_kills_per_player]
+                
+                # Filtrer pour éviter les kills entre membres du même groupe (sauf si épreuve 1v1)
+                if len(alive_players) > 4:  # Pas une épreuve finale
+                    available_killers = [
+                        s for s in available_killers 
+                        if not (s["player"].group_id and 
+                               s["player"].group_id == eliminated_player.group_id and 
+                               s["player"].group_id in groups_dict)
+                    ]
+                
+                if available_killers:
+                    # Sélectionner un tueur aléatoire parmi les disponibles
+                    killer_data = random.choice(available_killers)
+                    killer = killer_data["player"]
                     
-                    # Vérifier si c'est un kill entre membres du même groupe
-                    is_same_group = (killer.group_id and 
-                                   killer.group_id == eliminated_player.group_id and 
-                                   killer.group_id in groups_dict)
-                    
-                    if is_same_group:
-                        # Si c'est une épreuve 1v1 (peu de participants), c'est autorisé mais pas une trahison
-                        if len(alive_players) <= 4:  # Épreuve de type 1v1 ou finale
-                            # Kill autorisé mais pas de trahison
-                            killer.killed_players.append(eliminated_player.id)
-                        else:
-                            # Dans une épreuve de groupe, éviter les kills entre alliés
-                            # Réassigner à un autre survivant si possible
-                            other_killers = [ka for ka in kill_assignments if ka.id != killer.id and 
-                                           (not ka.group_id or ka.group_id != eliminated_player.group_id)]
-                            if other_killers:
-                                other_killer = random.choice(other_killers)
-                                other_killer.killed_players.append(eliminated_player.id)
-                            else:
-                                # Si pas d'alternative, l'élimination reste sans tueur spécifique
-                                pass
-                    else:
-                        # Kill normal entre joueurs de groupes différents ou sans groupe
+                    # Attribuer le kill
+                    killer.killed_players.append(eliminated_player.id)
+                    kills_tracker[killer.id] += 1
+                else:
+                    # Si aucun tueur disponible, choisir n'importe quel survivant
+                    # (peut arriver dans des cas extrêmes)
+                    if survivors:
+                        killer_data = random.choice(survivors)
+                        killer = killer_data["player"]
                         killer.killed_players.append(eliminated_player.id)
+                        kills_tracker[killer.id] += 1
+            
+            # Mettre à jour les stats des survivants avec les kills réels
+            for survivor_data in survivors:
+                player = survivor_data["player"]
+                actual_kills = kills_tracker[player.id]
+                
+                # Mettre à jour le compteur de kills du joueur
+                player.kills += actual_kills
+                
+                # Mettre à jour les données du survivant
+                survivor_data["event_kills"] = actual_kills
+                survivor_data["kills"] = player.kills
+                
+                # Recalculer le score avec les kills réels
+                event_score = survivor_data["time_remaining"] + (actual_kills * 10) - (5 if survivor_data["betrayed"] else 0)
+                player.total_score += event_score
+                survivor_data["score"] = event_score
+                survivor_data["total_score"] = player.total_score
         
         # Trier les survivants par score d'événement
         survivors.sort(key=lambda x: x["score"], reverse=True)
