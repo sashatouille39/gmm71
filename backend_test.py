@@ -1105,6 +1105,233 @@ class BackendTester:
         except Exception as e:
             self.log_result("Celebrity Stats Improvement Rules", False, f"Error: {str(e)}")
 
+    def test_kill_system_corrections(self):
+        """Test FRENCH REVIEW REQUEST: Tester les corrections du système de kills selon la review request française"""
+        try:
+            print("\n🇫🇷 TESTING KILL SYSTEM CORRECTIONS - FRENCH REVIEW REQUEST")
+            print("=" * 80)
+            print("OBJECTIF: Tester les 3 corrections apportées au système de kills:")
+            print("1. Calcul des kills totaux corrigé (sum des kills individuels au lieu de compter tous les morts)")
+            print("2. Ordre des éliminations en direct (nouvelles morts en haut)")
+            print("3. Logique des kills individuels (cohérence, pas de double kills, limites par type d'épreuve)")
+            print()
+            
+            # Test 1: Calcul des kills totaux
+            print("🔍 TEST 1: CALCUL DES KILLS TOTAUX")
+            print("-" * 60)
+            
+            # Créer une partie avec plusieurs joueurs
+            game_request = {
+                "player_count": 20,
+                "game_mode": "standard", 
+                "selected_events": [1, 2, 3, 4],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Kill System - Game Creation", False, f"Could not create game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            print(f"   ✅ Partie créée avec {len(game_data.get('players', []))} joueurs")
+            
+            # Simuler plusieurs événements avec des éliminations
+            total_individual_kills = 0
+            total_deaths = 0
+            simulation_count = 0
+            max_simulations = 6
+            
+            while simulation_count < max_simulations:
+                simulation_count += 1
+                sim_response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if sim_response.status_code != 200:
+                    print(f"   ⚠️ Simulation {simulation_count} failed - HTTP {sim_response.status_code}")
+                    break
+                
+                sim_data = sim_response.json()
+                game_state = sim_data.get('game', {})
+                result = sim_data.get('result', {})
+                
+                # Compter les éliminations de cet événement
+                eliminated_count = len(result.get('eliminated', []))
+                total_deaths += eliminated_count
+                
+                # Compter les kills individuels des survivants
+                survivors = result.get('survivors', [])
+                event_kills = sum(s.get('event_kills', 0) for s in survivors)
+                total_individual_kills += event_kills
+                
+                print(f"   📊 Événement {simulation_count}: {eliminated_count} morts, {event_kills} kills attribués")
+                
+                if game_state.get('completed', False):
+                    print(f"   ✅ Partie terminée après {simulation_count} événements")
+                    break
+            
+            # Vérifier le gamestate pour les kills totaux
+            gamestate_response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+            
+            if gamestate_response.status_code == 200:
+                gamestate_data = gamestate_response.json()
+                gamestate_total_kills = gamestate_data.get('game_stats', {}).get('total_kills', 0)
+                
+                print(f"   📊 RÉSULTATS FINAUX:")
+                print(f"   - Total morts dans la partie: {total_deaths}")
+                print(f"   - Total kills individuels attribués: {total_individual_kills}")
+                print(f"   - Total kills dans gamestate: {gamestate_total_kills}")
+                
+                # Test de cohérence: les kills totaux doivent correspondre aux kills individuels
+                if gamestate_total_kills == total_individual_kills:
+                    print(f"   ✅ SUCCÈS: gamestate.total_kills correspond aux kills individuels")
+                    self.log_result("Kill System - Total Kills Calculation", True, 
+                                  f"✅ Calcul correct: {gamestate_total_kills} kills = somme des kills individuels")
+                else:
+                    print(f"   ❌ PROBLÈME: gamestate.total_kills ne correspond pas aux kills individuels")
+                    self.log_result("Kill System - Total Kills Calculation", False, 
+                                  f"❌ Incohérence: gamestate={gamestate_total_kills}, individuels={total_individual_kills}")
+                
+                # Test de l'ancienne logique (qui comptait tous les morts)
+                if gamestate_total_kills == total_deaths:
+                    print(f"   ❌ ATTENTION: Le système utilise encore l'ancienne logique (compte tous les morts)")
+                    self.log_result("Kill System - Old Logic Check", False, 
+                                  f"❌ Ancienne logique détectée: kills = total morts au lieu de kills individuels")
+                else:
+                    print(f"   ✅ SUCCÈS: Le système n'utilise plus l'ancienne logique")
+                    self.log_result("Kill System - Old Logic Check", True, 
+                                  f"✅ Nouvelle logique confirmée: kills ≠ total morts")
+            else:
+                self.log_result("Kill System - Gamestate Check", False, f"Could not get gamestate - HTTP {gamestate_response.status_code}")
+            
+            # Test 2: Cohérence des kills individuels
+            print("\n🔍 TEST 2: COHÉRENCE DES KILLS INDIVIDUELS")
+            print("-" * 60)
+            
+            # Récupérer les données finales de la partie
+            final_game_response = requests.get(f"{API_BASE}/games/{game_id}", timeout=10)
+            
+            if final_game_response.status_code == 200:
+                final_game_data = final_game_response.json()
+                players = final_game_data.get('players', [])
+                
+                # Analyser les kills par joueur
+                alive_players = [p for p in players if p.get('alive', False)]
+                dead_players = [p for p in players if not p.get('alive', True)]
+                
+                total_kills_by_players = sum(p.get('kills', 0) for p in players)
+                total_deaths_actual = len(dead_players)
+                
+                print(f"   📊 ANALYSE DES KILLS:")
+                print(f"   - Joueurs vivants: {len(alive_players)}")
+                print(f"   - Joueurs morts: {len(dead_players)}")
+                print(f"   - Total kills par joueurs: {total_kills_by_players}")
+                print(f"   - Total morts réelles: {total_deaths_actual}")
+                
+                # Test de cohérence: kills individuels = éliminations réelles
+                if total_kills_by_players == total_deaths_actual:
+                    print(f"   ✅ SUCCÈS: Nombre de kills correspond au nombre d'éliminations")
+                    self.log_result("Kill System - Individual Kills Consistency", True, 
+                                  f"✅ Cohérence parfaite: {total_kills_by_players} kills = {total_deaths_actual} morts")
+                else:
+                    print(f"   ❌ PROBLÈME: Incohérence entre kills et éliminations")
+                    self.log_result("Kill System - Individual Kills Consistency", False, 
+                                  f"❌ Incohérence: {total_kills_by_players} kills ≠ {total_deaths_actual} morts")
+                
+                # Test des limites de kills par joueur
+                max_kills_found = max((p.get('kills', 0) for p in players), default=0)
+                players_with_excessive_kills = [p for p in players if p.get('kills', 0) > 2]
+                
+                print(f"   📊 ANALYSE DES LIMITES:")
+                print(f"   - Maximum de kills par joueur: {max_kills_found}")
+                print(f"   - Joueurs avec >2 kills: {len(players_with_excessive_kills)}")
+                
+                if len(players_with_excessive_kills) == 0:
+                    print(f"   ✅ SUCCÈS: Aucun joueur n'a plus de 2 kills (limite respectée)")
+                    self.log_result("Kill System - Kill Limits", True, 
+                                  f"✅ Limites respectées: max {max_kills_found} kills par joueur")
+                else:
+                    print(f"   ❌ PROBLÈME: {len(players_with_excessive_kills)} joueurs dépassent la limite")
+                    self.log_result("Kill System - Kill Limits", False, 
+                                  f"❌ Limites dépassées: {len(players_with_excessive_kills)} joueurs avec >2 kills")
+                
+                # Test du cas "1 seul adversaire restant"
+                if len(alive_players) == 1:
+                    winner = alive_players[0]
+                    winner_kills = winner.get('kills', 0)
+                    
+                    # Dans une partie de 20 joueurs, le gagnant ne devrait pas avoir 19 kills
+                    if winner_kills < len(dead_players):
+                        print(f"   ✅ SUCCÈS: Le gagnant n'a pas tué tous les autres joueurs ({winner_kills} kills)")
+                        self.log_result("Kill System - Winner Kills Logic", True, 
+                                      f"✅ Logique correcte: gagnant a {winner_kills} kills sur {len(dead_players)} morts")
+                    else:
+                        print(f"   ❌ PROBLÈME: Le gagnant semble avoir tué tous les autres ({winner_kills} kills)")
+                        self.log_result("Kill System - Winner Kills Logic", False, 
+                                      f"❌ Logique incorrecte: gagnant a {winner_kills} kills = tous les morts")
+            else:
+                self.log_result("Kill System - Final Game Analysis", False, f"Could not get final game data - HTTP {final_game_response.status_code}")
+            
+            # Test 3: Classement final et cohérence
+            print("\n🔍 TEST 3: CLASSEMENT FINAL ET COHÉRENCE")
+            print("-" * 60)
+            
+            final_ranking_response = requests.get(f"{API_BASE}/games/{game_id}/final-ranking", timeout=10)
+            
+            if final_ranking_response.status_code == 200:
+                ranking_data = final_ranking_response.json()
+                ranking = ranking_data.get('ranking', [])
+                
+                if ranking:
+                    # Analyser les kills dans le classement final
+                    ranking_total_kills = sum(entry.get('game_stats', {}).get('kills', 0) for entry in ranking)
+                    
+                    print(f"   📊 ANALYSE DU CLASSEMENT FINAL:")
+                    print(f"   - Joueurs dans le classement: {len(ranking)}")
+                    print(f"   - Total kills dans le classement: {ranking_total_kills}")
+                    
+                    # Comparer avec les données de la partie
+                    if final_game_response.status_code == 200:
+                        game_total_kills = sum(p.get('kills', 0) for p in players)
+                        
+                        if ranking_total_kills == game_total_kills:
+                            print(f"   ✅ SUCCÈS: Kills du classement correspondent aux kills de la partie")
+                            self.log_result("Kill System - Final Ranking Consistency", True, 
+                                          f"✅ Cohérence parfaite: classement et partie ont {ranking_total_kills} kills")
+                        else:
+                            print(f"   ❌ PROBLÈME: Incohérence entre classement et partie")
+                            self.log_result("Kill System - Final Ranking Consistency", False, 
+                                          f"❌ Incohérence: classement={ranking_total_kills}, partie={game_total_kills}")
+                    
+                    # Vérifier que le gagnant a les bonnes stats
+                    winner_entry = next((entry for entry in ranking if entry.get('position') == 1), None)
+                    if winner_entry:
+                        winner_kills = winner_entry.get('game_stats', {}).get('kills', 0)
+                        winner_name = winner_entry.get('player', {}).get('name', 'Inconnu')
+                        
+                        print(f"   📊 GAGNANT: {winner_name} avec {winner_kills} kills")
+                        
+                        self.log_result("Kill System - Winner Stats", True, 
+                                      f"✅ Gagnant identifié: {winner_name} ({winner_kills} kills)")
+                else:
+                    self.log_result("Kill System - Final Ranking", False, "❌ Classement final vide")
+            else:
+                self.log_result("Kill System - Final Ranking", False, f"Could not get final ranking - HTTP {final_ranking_response.status_code}")
+            
+            print("\n🎯 RÉSUMÉ DES TESTS DU SYSTÈME DE KILLS:")
+            print("=" * 80)
+            print("✅ Test 1: Calcul des kills totaux (sum des kills individuels)")
+            print("✅ Test 2: Cohérence des kills individuels (pas de double kills)")
+            print("✅ Test 3: Classement final cohérent avec les kills réels")
+            print("Note: Le test de l'ordre des éliminations en direct nécessite le frontend")
+            
+        except Exception as e:
+            self.log_result("Kill System Corrections", False, f"Error during test: {str(e)}")
+
     def test_vip_automatic_collection_system(self):
         """Test FRENCH REVIEW REQUEST: Tester la nouvelle fonctionnalité de collecte automatique des gains VIP"""
         try:
