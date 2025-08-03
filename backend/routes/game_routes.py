@@ -299,7 +299,9 @@ async def simulate_event(game_id: str):
             if user_id in game_states_db:
                 game_state = game_states_db[user_id]
                 game_state.game_stats.total_games_played += 1
-                game_state.game_stats.total_kills += len([p for p in game.players if not p.alive])
+                # Compter les kills réels effectués par les survivants
+                total_kills_made = sum([p.kills for p in game.players])
+                game_state.game_stats.total_kills += total_kills_made
                 if hasattr(game, 'earnings'):
                     game_state.game_stats.total_earnings += game.earnings
                 game_state.updated_at = datetime.utcnow()
