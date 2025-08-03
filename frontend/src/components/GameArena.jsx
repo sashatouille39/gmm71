@@ -217,7 +217,8 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
           // Ajouter les nouvelles morts au feed et mettre à jour les compteurs en temps réel
           if (updateData.deaths && updateData.deaths.length > 0) {
             setRealtimeDeaths(prev => {
-              const newDeaths = [...prev, ...updateData.deaths];
+              // Ajouter les nouvelles morts EN HAUT de la liste (plus récentes en premier)
+              const newDeaths = [...updateData.deaths, ...prev];
               
               // Mettre à jour le jeu en temps réel avec les nouvelles éliminations
               setCurrentGame(prevGame => {
