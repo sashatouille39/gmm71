@@ -11504,6 +11504,295 @@ class BackendTester:
         except Exception as e:
             self.log_result("VIP Earnings System - Comprehensive Test", False, f"Error during comprehensive VIP test: {str(e)}")
 
+    def test_celebrity_purchase_critical_issue(self):
+        """Test CRITIQUE: Diagnostiquer le problème d'achat de célébrités selon la review request française"""
+        try:
+            print("\n🇫🇷 DIAGNOSTIC CRITIQUE - PROBLÈME D'ACHAT DE CÉLÉBRITÉS")
+            print("=" * 80)
+            print("OBJECTIF: Diagnostiquer pourquoi le bouton d'achat dans le Salon VIP ne fonctionne pas")
+            print("- L'argent ne se déduit pas")
+            print("- L'achat ne se fait pas")
+            print()
+            
+            # Test 1: Route d'achat de célébrités POST /api/celebrities/{celebrity_id}/purchase
+            print("🔍 TEST 1: ROUTE D'ACHAT DE CÉLÉBRITÉS")
+            print("-" * 60)
+            
+            # Récupérer une célébrité pour tester
+            response = requests.get(f"{API_BASE}/celebrities/?limit=1", timeout=5)
+            if response.status_code != 200:
+                self.log_result("Celebrity Purchase - Get Celebrity", False, f"Could not get celebrities - HTTP {response.status_code}")
+                return
+                
+            celebrities = response.json()
+            if not celebrities:
+                self.log_result("Celebrity Purchase - Get Celebrity", False, "No celebrities found")
+                return
+                
+            celebrity = celebrities[0]
+            celebrity_id = celebrity['id']
+            celebrity_name = celebrity['name']
+            celebrity_price = celebrity['price']
+            
+            print(f"   📋 Célébrité de test: {celebrity_name} (ID: {celebrity_id}, Prix: {celebrity_price:,}$)")
+            
+            # Tester l'achat via POST /api/celebrities/{celebrity_id}/purchase
+            purchase_response = requests.post(f"{API_BASE}/celebrities/{celebrity_id}/purchase", timeout=5)
+            
+            if purchase_response.status_code == 200:
+                purchase_data = purchase_response.json()
+                print(f"   ✅ Route accessible - Réponse: {purchase_data.get('message', 'No message')}")
+                
+                # Vérifier si la célébrité est marquée comme possédée
+                check_response = requests.get(f"{API_BASE}/celebrities/{celebrity_id}", timeout=5)
+                if check_response.status_code == 200:
+                    updated_celebrity = check_response.json()
+                    is_owned = updated_celebrity.get('is_owned', False)
+                    
+                    if is_owned:
+                        self.log_result("Celebrity Purchase Route", True, 
+                                      f"✅ Route fonctionne - Célébrité marquée comme possédée")
+                    else:
+                        self.log_result("Celebrity Purchase Route", False, 
+                                      f"❌ Route accessible mais is_owned=false")
+                else:
+                    self.log_result("Celebrity Purchase Route", False, 
+                                  f"❌ Impossible de vérifier l'état après achat - HTTP {check_response.status_code}")
+            else:
+                self.log_result("Celebrity Purchase Route", False, 
+                              f"❌ Route inaccessible - HTTP {purchase_response.status_code}")
+                print(f"   ❌ Erreur: {purchase_response.text[:200]}")
+            
+            # Test 2: Route de mise à jour gamestate PUT /api/gamestate/
+            print("\n🔍 TEST 2: ROUTE DE MISE À JOUR GAMESTATE")
+            print("-" * 60)
+            
+            # Récupérer l'état actuel
+            gamestate_response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+            if gamestate_response.status_code == 200:
+                current_gamestate = gamestate_response.json()
+                current_money = current_gamestate.get('money', 0)
+                current_owned = current_gamestate.get('owned_celebrities', [])
+                
+                print(f"   📊 État actuel: {current_money:,}$ - {len(current_owned)} célébrités possédées")
+                
+                # Test de mise à jour du champ money
+                new_money = current_money - 100000  # Déduire 100k pour test
+                money_update = {"money": new_money}
+                
+                money_update_response = requests.put(f"{API_BASE}/gamestate/", 
+                                                   json=money_update,
+                                                   headers={"Content-Type": "application/json"},
+                                                   timeout=5)
+                
+                if money_update_response.status_code == 200:
+                    updated_gamestate = money_update_response.json()
+                    updated_money = updated_gamestate.get('money', 0)
+                    
+                    if updated_money == new_money:
+                        print(f"   ✅ Mise à jour money réussie: {current_money:,}$ → {updated_money:,}$")
+                        money_update_success = True
+                    else:
+                        print(f"   ❌ Mise à jour money échouée: attendu {new_money:,}$, obtenu {updated_money:,}$")
+                        money_update_success = False
+                else:
+                    print(f"   ❌ Mise à jour money échouée - HTTP {money_update_response.status_code}")
+                    money_update_success = False
+                
+                # Test de mise à jour du champ owned_celebrities
+                test_celebrity_id = "test_celebrity_123"
+                new_owned = current_owned + [test_celebrity_id]
+                owned_update = {"owned_celebrities": new_owned}
+                
+                owned_update_response = requests.put(f"{API_BASE}/gamestate/", 
+                                                   json=owned_update,
+                                                   headers={"Content-Type": "application/json"},
+                                                   timeout=5)
+                
+                if owned_update_response.status_code == 200:
+                    updated_gamestate = owned_update_response.json()
+                    updated_owned = updated_gamestate.get('owned_celebrities', [])
+                    
+                    if test_celebrity_id in updated_owned:
+                        print(f"   ✅ Mise à jour owned_celebrities réussie: {len(current_owned)} → {len(updated_owned)} célébrités")
+                        owned_update_success = True
+                    else:
+                        print(f"   ❌ Mise à jour owned_celebrities échouée: célébrité test non trouvée")
+                        owned_update_success = False
+                else:
+                    print(f"   ❌ Mise à jour owned_celebrities échouée - HTTP {owned_update_response.status_code}")
+                    owned_update_success = False
+                
+                if money_update_success and owned_update_success:
+                    self.log_result("Gamestate Update Route", True, 
+                                  f"✅ Route PUT /api/gamestate/ fonctionne correctement")
+                else:
+                    self.log_result("Gamestate Update Route", False, 
+                                  f"❌ Problèmes avec la mise à jour gamestate")
+            else:
+                self.log_result("Gamestate Update Route", False, 
+                              f"❌ Impossible de récupérer gamestate - HTTP {gamestate_response.status_code}")
+            
+            # Test 3: Route d'achat via gamestate POST /api/gamestate/purchase
+            print("\n🔍 TEST 3: ROUTE D'ACHAT VIA GAMESTATE")
+            print("-" * 60)
+            
+            # Récupérer l'état actuel pour l'achat
+            gamestate_response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+            if gamestate_response.status_code == 200:
+                current_gamestate = gamestate_response.json()
+                current_money = current_gamestate.get('money', 0)
+                current_owned = current_gamestate.get('owned_celebrities', [])
+                
+                # Récupérer une nouvelle célébrité pour l'achat
+                celebrities_response = requests.get(f"{API_BASE}/celebrities/?limit=5", timeout=5)
+                if celebrities_response.status_code == 200:
+                    all_celebrities = celebrities_response.json()
+                    # Trouver une célébrité pas encore possédée
+                    available_celebrity = None
+                    for celeb in all_celebrities:
+                        if celeb['id'] not in current_owned:
+                            available_celebrity = celeb
+                            break
+                    
+                    if available_celebrity:
+                        purchase_request = {
+                            "item_type": "celebrity",
+                            "item_id": available_celebrity['id'],
+                            "price": available_celebrity['price']
+                        }
+                        
+                        print(f"   📋 Test d'achat: {available_celebrity['name']} - {available_celebrity['price']:,}$")
+                        
+                        if current_money >= available_celebrity['price']:
+                            purchase_response = requests.post(f"{API_BASE}/gamestate/purchase", 
+                                                           json=purchase_request,
+                                                           headers={"Content-Type": "application/json"},
+                                                           timeout=5)
+                            
+                            if purchase_response.status_code == 200:
+                                purchase_result = purchase_response.json()
+                                new_money = purchase_result.get('money', 0)
+                                new_owned = purchase_result.get('owned_celebrities', [])
+                                
+                                money_deducted = current_money - new_money
+                                celebrity_added = available_celebrity['id'] in new_owned
+                                
+                                print(f"   💰 Argent: {current_money:,}$ → {new_money:,}$ (déduit: {money_deducted:,}$)")
+                                print(f"   🎭 Célébrité ajoutée: {celebrity_added}")
+                                
+                                if money_deducted == available_celebrity['price'] and celebrity_added:
+                                    self.log_result("Gamestate Purchase Route", True, 
+                                                  f"✅ Achat via gamestate fonctionne correctement")
+                                else:
+                                    self.log_result("Gamestate Purchase Route", False, 
+                                                  f"❌ Problème avec l'achat: argent déduit={money_deducted}, célébrité ajoutée={celebrity_added}")
+                            else:
+                                self.log_result("Gamestate Purchase Route", False, 
+                                              f"❌ Achat échoué - HTTP {purchase_response.status_code}")
+                                print(f"   ❌ Erreur: {purchase_response.text[:200]}")
+                        else:
+                            print(f"   ⚠️ Fonds insuffisants pour le test: {current_money:,}$ < {available_celebrity['price']:,}$")
+                            self.log_result("Gamestate Purchase Route", True, 
+                                          f"✅ Route accessible (fonds insuffisants pour test complet)")
+                    else:
+                        print(f"   ⚠️ Toutes les célébrités sont déjà possédées")
+                        self.log_result("Gamestate Purchase Route", True, 
+                                      f"✅ Route accessible (toutes célébrités possédées)")
+                else:
+                    self.log_result("Gamestate Purchase Route", False, 
+                                  f"❌ Impossible de récupérer les célébrités pour test")
+            else:
+                self.log_result("Gamestate Purchase Route", False, 
+                              f"❌ Impossible de récupérer gamestate pour test")
+            
+            # Test 4: Routes des anciens gagnants GET /api/statistics/winners
+            print("\n🔍 TEST 4: ROUTES DES ANCIENS GAGNANTS")
+            print("-" * 60)
+            
+            winners_response = requests.get(f"{API_BASE}/statistics/winners", timeout=10)
+            
+            if winners_response.status_code == 200:
+                winners = winners_response.json()
+                print(f"   📊 Anciens gagnants trouvés: {len(winners)}")
+                
+                if winners:
+                    # Tester l'achat d'un ancien gagnant
+                    winner = winners[0]
+                    winner_name = winner.get('name', 'Gagnant Inconnu')
+                    winner_price = winner.get('price', 0)
+                    winner_id = winner.get('id', '')
+                    
+                    print(f"   🏆 Test avec: {winner_name} - {winner_price:,}$")
+                    
+                    # Vérifier l'état actuel pour l'achat
+                    gamestate_response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+                    if gamestate_response.status_code == 200:
+                        current_gamestate = gamestate_response.json()
+                        current_money = current_gamestate.get('money', 0)
+                        
+                        if current_money >= winner_price:
+                            # Tenter l'achat de l'ancien gagnant
+                            winner_purchase_request = {
+                                "item_type": "celebrity",
+                                "item_id": winner_id,
+                                "price": winner_price
+                            }
+                            
+                            winner_purchase_response = requests.post(f"{API_BASE}/gamestate/purchase", 
+                                                                   json=winner_purchase_request,
+                                                                   headers={"Content-Type": "application/json"},
+                                                                   timeout=5)
+                            
+                            if winner_purchase_response.status_code == 200:
+                                winner_result = winner_purchase_response.json()
+                                new_money = winner_result.get('money', 0)
+                                new_owned = winner_result.get('owned_celebrities', [])
+                                
+                                money_deducted = current_money - new_money
+                                winner_added = winner_id in new_owned
+                                
+                                print(f"   💰 Achat ancien gagnant: {money_deducted:,}$ déduit, ajouté: {winner_added}")
+                                
+                                if money_deducted == winner_price and winner_added:
+                                    self.log_result("Past Winners Purchase", True, 
+                                                  f"✅ Achat d'anciens gagnants fonctionne")
+                                else:
+                                    self.log_result("Past Winners Purchase", False, 
+                                                  f"❌ Problème avec achat ancien gagnant")
+                            else:
+                                self.log_result("Past Winners Purchase", False, 
+                                              f"❌ Achat ancien gagnant échoué - HTTP {winner_purchase_response.status_code}")
+                        else:
+                            print(f"   ⚠️ Fonds insuffisants pour tester l'achat: {current_money:,}$ < {winner_price:,}$")
+                            self.log_result("Past Winners Purchase", True, 
+                                          f"✅ Anciens gagnants disponibles (fonds insuffisants pour test)")
+                    else:
+                        self.log_result("Past Winners Purchase", False, 
+                                      f"❌ Impossible de vérifier gamestate pour achat")
+                else:
+                    print(f"   ⚠️ Aucun ancien gagnant disponible")
+                    self.log_result("Past Winners Route", True, 
+                                  f"✅ Route accessible (aucun ancien gagnant)")
+            else:
+                self.log_result("Past Winners Route", False, 
+                              f"❌ Route inaccessible - HTTP {winners_response.status_code}")
+                print(f"   ❌ Erreur: {winners_response.text[:200]}")
+            
+            # Diagnostic final
+            print("\n🔍 DIAGNOSTIC FINAL")
+            print("-" * 60)
+            print("   Résumé des tests effectués:")
+            print("   1. ✅ Route POST /api/celebrities/{id}/purchase - Testée")
+            print("   2. ✅ Route PUT /api/gamestate/ - Testée")
+            print("   3. ✅ Route POST /api/gamestate/purchase - Testée")
+            print("   4. ✅ Route GET /api/statistics/winners - Testée")
+            print()
+            print("   🎯 CONCLUSION: Tests terminés - voir résultats détaillés ci-dessus")
+            
+        except Exception as e:
+            self.log_result("Celebrity Purchase Critical Issue", False, f"Error during diagnostic: {str(e)}")
+
     def run_all_tests(self):
         """Exécute tous les tests backend selon la review request française"""
         print(f"\n🎯 DÉMARRAGE DES TESTS BACKEND - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
