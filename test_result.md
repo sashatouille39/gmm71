@@ -214,6 +214,18 @@
           agent: "testing"
           comment: "⚠️ TEST NON APPLICABLE - LIMITATION SYSTÈME: Test de l'ordre des éliminations en direct nécessite le frontend et ne peut pas être testé via les APIs backend. La correction mentionnée dans GameArena.jsx ([...updateData.deaths, ...prev] au lieu de [...prev, ...updateData.deaths]) ne peut être validée que par des tests frontend ou des tests d'intégration. Backend tests: 0/0 passed (N/A). TEST FRONTEND REQUIS pour validation complète."
 
+  - task: "Bug critique d'achat de célébrités dans le Salon VIP"
+    implemented: true
+    working: false
+    file: "VipSalon.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ BUG CRITIQUE IDENTIFIÉ - PROBLÈME DE SYNCHRONISATION DONNÉES FRONTEND/BACKEND: Tests exhaustifs effectués selon la review request française révèlent le problème exact. 1) **Navigation fonctionnelle**: ✅ CONFIRMÉ - Navigation vers /vip-salon et onglet 'Boutique de célébrités' fonctionne parfaitement. 2) **Affichage célébrités**: ✅ CONFIRMÉ - 7 célébrités affichées correctement avec boutons d'achat. 3) **Tentative d'achat**: ❌ ÉCHEC CRITIQUE - Clic sur bouton 'Acheter' déclenche appel API POST /api/celebrities/5/purchase mais retourne erreur 404. 4) **Cause racine identifiée**: Le frontend utilise MOCK_CELEBRITIES avec IDs hardcodés (1-8) qui n'existent pas dans le backend. Exemple: Jake Morrison (ID 5) affiché mais inexistant côté serveur. 5) **Conséquences**: Aucune déduction d'argent, aucun changement de statut, achat échoue silencieusement. 6) **Erreurs JavaScript**: 'Failed to load resource: 404' et 'Erreur lors de l'achat de la célébrité'. Frontend tests: 0/1 passed (0% success rate). NÉCESSITE SYNCHRONISATION URGENTE des données de célébrités entre frontend (mockData.js) et backend ou implémentation d'une API /api/celebrities/ fonctionnelle."
+
 ## backend:
   - task: "Test de la nouvelle fonctionnalité de collecte automatique des gains VIP"
     implemented: true
