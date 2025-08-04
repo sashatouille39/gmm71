@@ -1333,6 +1333,726 @@ class BackendTester:
         except Exception as e:
             self.log_result("Kill System Corrections", False, f"Error during test: {str(e)}")
 
+    def test_celebrity_purchase_api(self):
+        """Test FRENCH REVIEW REQUEST: Test API d'achat de célébrités"""
+        try:
+            print("\n🇫🇷 TESTING CELEBRITY PURCHASE API - FRENCH REVIEW REQUEST")
+            print("=" * 80)
+            print("OBJECTIF: Tester l'API d'achat de célébrités selon la review request française:")
+            print("1. Vérifier que POST /api/celebrities/{celebrity_id}/purchase fonctionne")
+            print("2. Tester l'achat d'une célébrité normale et d'un ancien gagnant")
+            print("3. Vérifier que l'achat met à jour le gamestate")
+            print()
+            
+            # Test 1: Achat d'une célébrité normale
+            print("🔍 TEST 1: ACHAT D'UNE CÉLÉBRITÉ NORMALE")
+            print("-" * 60)
+            
+            # Récupérer une célébrité normale
+            response = requests.get(f"{API_BASE}/celebrities/?limit=1", timeout=5)
+            if response.status_code != 200:
+                self.log_result("Celebrity Purchase API - Get Celebrity", False, f"Could not get celebrities - HTTP {response.status_code}")
+                return
+                
+            celebrities = response.json()
+            if not celebrities:
+                self.log_result("Celebrity Purchase API - Get Celebrity", False, "No celebrities found")
+                return
+                
+            normal_celebrity = celebrities[0]
+            celebrity_id = normal_celebrity['id']
+            celebrity_name = normal_celebrity['name']
+            celebrity_price = normal_celebrity['price']
+            
+            print(f"   📋 Célébrité sélectionnée: {celebrity_name} (ID: {celebrity_id}, Prix: {celebrity_price}$)")
+            
+            # Vérifier le gamestate avant achat
+            gamestate_before = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+            if gamestate_before.status_code != 200:
+                self.log_result("Celebrity Purchase API - Gamestate Before", False, f"Could not get gamestate - HTTP {gamestate_before.status_code}")
+                return
+                
+            gamestate_data_before = gamestate_before.json()
+            money_before = gamestate_data_before.get('money', 0)
+            owned_before = gamestate_data_before.get('owned_celebrities', [])
+            
+            print(f"   💰 Argent avant achat: {money_before}$")
+            print(f"   🎭 Célébrités possédées avant: {len(owned_before)}")
+            
+            # Effectuer l'achat
+            purchase_response = requests.post(f"{API_BASE}/celebrities/{celebrity_id}/purchase", timeout=5)
+            
+            if purchase_response.status_code == 200:
+                purchase_data = purchase_response.json()
+                print(f"   ✅ Achat réussi: {purchase_data.get('message', 'Achat confirmé')}")
+                
+                # Vérifier que la célébrité est marquée comme possédée
+                celebrity_after = requests.get(f"{API_BASE}/celebrities/{celebrity_id}", timeout=5)
+                if celebrity_after.status_code == 200:
+                    celebrity_data = celebrity_after.json()
+                    is_owned = celebrity_data.get('is_owned', False)
+                    
+                    if is_owned:
+                        print(f"   ✅ Célébrité marquée comme possédée")
+                        self.log_result("Celebrity Purchase API - Normal Celebrity", True, 
+                                      f"✅ Achat célébrité normale réussi: {celebrity_name}")
+                    else:
+                        print(f"   ❌ Célébrité non marquée comme possédée")
+                        self.log_result("Celebrity Purchase API - Normal Celebrity", False, 
+                                      f"❌ Célébrité non marquée comme possédée après achat")
+                else:
+                    self.log_result("Celebrity Purchase API - Normal Celebrity", False, 
+                                  f"Could not verify celebrity ownership - HTTP {celebrity_after.status_code}")
+            else:
+                print(f"   ❌ Échec de l'achat: HTTP {purchase_response.status_code}")
+                self.log_result("Celebrity Purchase API - Normal Celebrity", False, 
+                              f"❌ Échec achat célébrité normale - HTTP {purchase_response.status_code}")
+                return
+            
+            # Test 2: Vérifier la mise à jour du gamestate
+            print("\n🔍 TEST 2: MISE À JOUR DU GAMESTATE")
+            print("-" * 60)
+            
+            # Utiliser l'API de purchase du gamestate pour simuler la déduction d'argent
+            purchase_request = {
+                "item_type": "celebrity",
+                "item_id": celebrity_id,
+                "price": celebrity_price
+            }
+            
+            gamestate_purchase = requests.post(f"{API_BASE}/gamestate/purchase", 
+                                             json=purchase_request,
+                                             headers={"Content-Type": "application/json"},
+                                             timeout=5)
+            
+            if gamestate_purchase.status_code == 200:
+                gamestate_after = gamestate_purchase.json()
+                money_after = gamestate_after.get('money', 0)
+                owned_after = gamestate_after.get('owned_celebrities', [])
+                
+                print(f"   💰 Argent après achat: {money_after}$")
+                print(f"   🎭 Célébrités possédées après: {len(owned_after)}")
+                
+                # Vérifier la déduction d'argent
+                expected_money = money_before - celebrity_price
+                if money_after == expected_money:
+                    print(f"   ✅ Argent correctement déduit ({celebrity_price}$)")
+                    money_deduction_ok = True
+                else:
+                    print(f"   ❌ Déduction incorrecte: attendu {expected_money}$, obtenu {money_after}$")
+                    money_deduction_ok = False
+                
+                # Vérifier l'ajout de la célébrité
+                if celebrity_id in owned_after:
+                    print(f"   ✅ Célébrité ajoutée aux possessions")
+                    celebrity_added_ok = True
+                else:
+                    print(f"   ❌ Célébrité non ajoutée aux possessions")
+                    celebrity_added_ok = False
+                
+                if money_deduction_ok and celebrity_added_ok:
+                    self.log_result("Celebrity Purchase API - Gamestate Update", True, 
+                                  f"✅ Gamestate correctement mis à jour après achat")
+                else:
+                    self.log_result("Celebrity Purchase API - Gamestate Update", False, 
+                                  f"❌ Problème mise à jour gamestate: argent={money_deduction_ok}, célébrité={celebrity_added_ok}")
+            else:
+                print(f"   ❌ Échec mise à jour gamestate: HTTP {gamestate_purchase.status_code}")
+                self.log_result("Celebrity Purchase API - Gamestate Update", False, 
+                              f"❌ Échec mise à jour gamestate - HTTP {gamestate_purchase.status_code}")
+            
+            # Test 3: Achat d'un ancien gagnant
+            print("\n🔍 TEST 3: ACHAT D'UN ANCIEN GAGNANT")
+            print("-" * 60)
+            
+            # Récupérer les anciens gagnants
+            winners_response = requests.get(f"{API_BASE}/statistics/winners", timeout=5)
+            
+            if winners_response.status_code == 200:
+                winners = winners_response.json()
+                
+                if winners:
+                    winner = winners[0]
+                    winner_id = winner['id']
+                    winner_name = winner['name']
+                    winner_price = winner['price']
+                    winner_stars = winner['stars']
+                    
+                    print(f"   🏆 Ancien gagnant sélectionné: {winner_name}")
+                    print(f"   ⭐ Étoiles: {winner_stars}, Prix: {winner_price}$")
+                    print(f"   📊 Stats: Intelligence={winner['stats']['intelligence']}, Force={winner['stats']['force']}, Agilité={winner['stats']['agilité']}")
+                    
+                    # Simuler l'achat de l'ancien gagnant (via gamestate car les winners ne sont pas dans celebrities_db)
+                    winner_purchase_request = {
+                        "item_type": "celebrity",
+                        "item_id": winner_id,
+                        "price": winner_price
+                    }
+                    
+                    winner_purchase = requests.post(f"{API_BASE}/gamestate/purchase", 
+                                                  json=winner_purchase_request,
+                                                  headers={"Content-Type": "application/json"},
+                                                  timeout=5)
+                    
+                    if winner_purchase.status_code == 200:
+                        winner_gamestate = winner_purchase.json()
+                        winner_owned = winner_gamestate.get('owned_celebrities', [])
+                        
+                        if winner_id in winner_owned:
+                            print(f"   ✅ Ancien gagnant acheté avec succès")
+                            self.log_result("Celebrity Purchase API - Former Winner", True, 
+                                          f"✅ Achat ancien gagnant réussi: {winner_name} ({winner_stars} étoiles)")
+                        else:
+                            print(f"   ❌ Ancien gagnant non ajouté aux possessions")
+                            self.log_result("Celebrity Purchase API - Former Winner", False, 
+                                          f"❌ Ancien gagnant non ajouté aux possessions")
+                    else:
+                        print(f"   ❌ Échec achat ancien gagnant: HTTP {winner_purchase.status_code}")
+                        self.log_result("Celebrity Purchase API - Former Winner", False, 
+                                      f"❌ Échec achat ancien gagnant - HTTP {winner_purchase.status_code}")
+                else:
+                    print(f"   ⚠️ Aucun ancien gagnant disponible pour test")
+                    self.log_result("Celebrity Purchase API - Former Winner", True, 
+                                  f"✅ Aucun ancien gagnant disponible (normal si aucune partie terminée)")
+            else:
+                print(f"   ❌ Impossible de récupérer les anciens gagnants: HTTP {winners_response.status_code}")
+                self.log_result("Celebrity Purchase API - Former Winner", False, 
+                              f"❌ Impossible de récupérer anciens gagnants - HTTP {winners_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Celebrity Purchase API", False, f"Error during test: {str(e)}")
+
+    def test_former_winners_api(self):
+        """Test FRENCH REVIEW REQUEST: Test API des anciens gagnants"""
+        try:
+            print("\n🇫🇷 TESTING FORMER WINNERS API - FRENCH REVIEW REQUEST")
+            print("=" * 80)
+            print("OBJECTIF: Tester l'API des anciens gagnants selon la review request française:")
+            print("1. Vérifier que GET /api/statistics/winners retourne les anciens gagnants")
+            print("2. Tester la structure des données des gagnants (id, name, category, stats, price, etc.)")
+            print()
+            
+            # Test 1: Récupération des anciens gagnants
+            print("🔍 TEST 1: RÉCUPÉRATION DES ANCIENS GAGNANTS")
+            print("-" * 60)
+            
+            response = requests.get(f"{API_BASE}/statistics/winners", timeout=5)
+            
+            if response.status_code == 200:
+                winners = response.json()
+                
+                print(f"   📊 Nombre d'anciens gagnants trouvés: {len(winners)}")
+                
+                if winners:
+                    # Test 2: Structure des données
+                    print("\n🔍 TEST 2: STRUCTURE DES DONNÉES DES GAGNANTS")
+                    print("-" * 60)
+                    
+                    winner = winners[0]
+                    required_fields = ['id', 'name', 'category', 'stars', 'price', 'nationality', 'wins', 'stats', 'biography', 'game_data']
+                    missing_fields = [field for field in required_fields if field not in winner]
+                    
+                    if not missing_fields:
+                        print(f"   ✅ Structure complète trouvée pour: {winner['name']}")
+                        
+                        # Vérifier la structure des stats
+                        stats = winner.get('stats', {})
+                        stats_fields = ['intelligence', 'force', 'agilité']
+                        missing_stats = [field for field in stats_fields if field not in stats]
+                        
+                        if not missing_stats:
+                            print(f"   ✅ Stats complètes: Intelligence={stats['intelligence']}, Force={stats['force']}, Agilité={stats['agilité']}")
+                            
+                            # Vérifier que les stats sont améliorées (au moins une stat > 5)
+                            improved_stats = any(stats[stat] > 5 for stat in stats_fields)
+                            if improved_stats:
+                                print(f"   ✅ Stats améliorées confirmées (au moins une stat > 5)")
+                                stats_improved = True
+                            else:
+                                print(f"   ⚠️ Stats non améliorées (toutes <= 5)")
+                                stats_improved = False
+                            
+                            # Vérifier la structure game_data
+                            game_data = winner.get('game_data', {})
+                            game_data_fields = ['game_id', 'date', 'total_players', 'survivors', 'final_score']
+                            missing_game_data = [field for field in game_data_fields if field not in game_data]
+                            
+                            if not missing_game_data:
+                                print(f"   ✅ Game_data complet: Partie {game_data['game_id']}, {game_data['total_players']} joueurs")
+                                game_data_ok = True
+                            else:
+                                print(f"   ❌ Game_data incomplet: champs manquants {missing_game_data}")
+                                game_data_ok = False
+                            
+                            # Vérifier le calcul du prix
+                            expected_base_price = winner['stars'] * 10000000  # 10M par étoile
+                            actual_price = winner['price']
+                            
+                            if actual_price >= expected_base_price:
+                                print(f"   ✅ Prix cohérent: {actual_price}$ (base: {expected_base_price}$ pour {winner['stars']} étoiles)")
+                                price_ok = True
+                            else:
+                                print(f"   ❌ Prix incohérent: {actual_price}$ < {expected_base_price}$ attendu")
+                                price_ok = False
+                            
+                            # Évaluation globale
+                            if stats_improved and game_data_ok and price_ok:
+                                self.log_result("Former Winners API - Data Structure", True, 
+                                              f"✅ Structure parfaite: {winner['name']} ({winner['stars']} étoiles, {actual_price}$)")
+                            else:
+                                issues = []
+                                if not stats_improved: issues.append("stats non améliorées")
+                                if not game_data_ok: issues.append("game_data incomplet")
+                                if not price_ok: issues.append("prix incohérent")
+                                self.log_result("Former Winners API - Data Structure", False, 
+                                              f"❌ Problèmes structure: {', '.join(issues)}")
+                        else:
+                            print(f"   ❌ Stats incomplètes: champs manquants {missing_stats}")
+                            self.log_result("Former Winners API - Data Structure", False, 
+                                          f"❌ Stats incomplètes: {missing_stats}")
+                    else:
+                        print(f"   ❌ Structure incomplète: champs manquants {missing_fields}")
+                        self.log_result("Former Winners API - Data Structure", False, 
+                                      f"❌ Structure incomplète: {missing_fields}")
+                    
+                    # Test 3: Unicité des IDs
+                    print("\n🔍 TEST 3: UNICITÉ DES IDS DES GAGNANTS")
+                    print("-" * 60)
+                    
+                    winner_ids = [w['id'] for w in winners]
+                    unique_ids = set(winner_ids)
+                    
+                    if len(winner_ids) == len(unique_ids):
+                        print(f"   ✅ Tous les IDs sont uniques ({len(unique_ids)} gagnants)")
+                        self.log_result("Former Winners API - Unique IDs", True, 
+                                      f"✅ {len(unique_ids)} IDs uniques confirmés")
+                    else:
+                        duplicates = len(winner_ids) - len(unique_ids)
+                        print(f"   ❌ {duplicates} IDs dupliqués détectés")
+                        self.log_result("Former Winners API - Unique IDs", False, 
+                                      f"❌ {duplicates} IDs dupliqués sur {len(winner_ids)} gagnants")
+                    
+                    # Test 4: Catégorie "Ancien gagnant"
+                    print("\n🔍 TEST 4: CATÉGORIE 'ANCIEN GAGNANT'")
+                    print("-" * 60)
+                    
+                    correct_category_count = sum(1 for w in winners if w.get('category') == 'Ancien gagnant')
+                    
+                    if correct_category_count == len(winners):
+                        print(f"   ✅ Tous les gagnants ont la catégorie 'Ancien gagnant'")
+                        self.log_result("Former Winners API - Category", True, 
+                                      f"✅ Catégorie correcte pour {correct_category_count} gagnants")
+                    else:
+                        wrong_category = len(winners) - correct_category_count
+                        print(f"   ❌ {wrong_category} gagnants avec catégorie incorrecte")
+                        self.log_result("Former Winners API - Category", False, 
+                                      f"❌ {wrong_category} gagnants avec catégorie incorrecte")
+                    
+                    self.log_result("Former Winners API - Overall", True, 
+                                  f"✅ API anciens gagnants fonctionnelle: {len(winners)} gagnants trouvés")
+                else:
+                    print(f"   ⚠️ Aucun ancien gagnant trouvé (normal si aucune partie terminée)")
+                    self.log_result("Former Winners API - Overall", True, 
+                                  f"✅ API fonctionnelle mais aucun gagnant (normal sans parties terminées)")
+            else:
+                print(f"   ❌ Échec récupération anciens gagnants: HTTP {response.status_code}")
+                self.log_result("Former Winners API - Overall", False, 
+                              f"❌ API anciens gagnants inaccessible - HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Former Winners API", False, f"Error during test: {str(e)}")
+
+    def test_gamestate_synchronization(self):
+        """Test FRENCH REVIEW REQUEST: Test de synchronisation gamestate"""
+        try:
+            print("\n🇫🇷 TESTING GAMESTATE SYNCHRONIZATION - FRENCH REVIEW REQUEST")
+            print("=" * 80)
+            print("OBJECTIF: Tester la synchronisation gamestate selon la review request française:")
+            print("1. Vérifier que PUT /api/gamestate/ met à jour owned_celebrities")
+            print("2. Tester que les célébrités achetées sont bien persistées")
+            print()
+            
+            # Test 1: État initial du gamestate
+            print("🔍 TEST 1: ÉTAT INITIAL DU GAMESTATE")
+            print("-" * 60)
+            
+            initial_response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+            
+            if initial_response.status_code != 200:
+                self.log_result("Gamestate Synchronization - Initial State", False, f"Could not get initial gamestate - HTTP {initial_response.status_code}")
+                return
+                
+            initial_gamestate = initial_response.json()
+            initial_owned = initial_gamestate.get('owned_celebrities', [])
+            initial_money = initial_gamestate.get('money', 0)
+            
+            print(f"   💰 Argent initial: {initial_money}$")
+            print(f"   🎭 Célébrités possédées initialement: {len(initial_owned)}")
+            
+            # Test 2: Mise à jour directe via PUT /api/gamestate/
+            print("\n🔍 TEST 2: MISE À JOUR DIRECTE VIA PUT /api/gamestate/")
+            print("-" * 60)
+            
+            # Ajouter des célébrités fictives pour tester
+            test_celebrity_ids = ["test_celebrity_1", "test_celebrity_2", "test_celebrity_3"]
+            updated_owned = initial_owned + test_celebrity_ids
+            
+            update_data = {
+                "owned_celebrities": updated_owned
+            }
+            
+            update_response = requests.put(f"{API_BASE}/gamestate/", 
+                                         json=update_data,
+                                         headers={"Content-Type": "application/json"},
+                                         timeout=5)
+            
+            if update_response.status_code == 200:
+                updated_gamestate = update_response.json()
+                new_owned = updated_gamestate.get('owned_celebrities', [])
+                
+                print(f"   🎭 Célébrités après mise à jour: {len(new_owned)}")
+                
+                # Vérifier que les nouvelles célébrités sont présentes
+                all_test_celebrities_present = all(cid in new_owned for cid in test_celebrity_ids)
+                
+                if all_test_celebrities_present:
+                    print(f"   ✅ Toutes les célébrités de test ajoutées avec succès")
+                    direct_update_ok = True
+                else:
+                    print(f"   ❌ Certaines célébrités de test manquantes")
+                    direct_update_ok = False
+                
+                self.log_result("Gamestate Synchronization - Direct Update", direct_update_ok, 
+                              f"{'✅' if direct_update_ok else '❌'} Mise à jour directe owned_celebrities: {len(new_owned)} célébrités")
+            else:
+                print(f"   ❌ Échec mise à jour directe: HTTP {update_response.status_code}")
+                self.log_result("Gamestate Synchronization - Direct Update", False, 
+                              f"❌ Échec mise à jour directe - HTTP {update_response.status_code}")
+                return
+            
+            # Test 3: Persistance après récupération
+            print("\n🔍 TEST 3: PERSISTANCE APRÈS RÉCUPÉRATION")
+            print("-" * 60)
+            
+            persistence_response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+            
+            if persistence_response.status_code == 200:
+                persistent_gamestate = persistence_response.json()
+                persistent_owned = persistent_gamestate.get('owned_celebrities', [])
+                
+                print(f"   🎭 Célébrités après récupération: {len(persistent_owned)}")
+                
+                # Vérifier que les célébrités sont toujours présentes
+                still_present = all(cid in persistent_owned for cid in test_celebrity_ids)
+                
+                if still_present:
+                    print(f"   ✅ Célébrités persistées avec succès")
+                    persistence_ok = True
+                else:
+                    print(f"   ❌ Perte de célébrités après récupération")
+                    persistence_ok = False
+                
+                self.log_result("Gamestate Synchronization - Persistence", persistence_ok, 
+                              f"{'✅' if persistence_ok else '❌'} Persistance célébrités: {len(persistent_owned)} conservées")
+            else:
+                print(f"   ❌ Échec récupération pour test persistance: HTTP {persistence_response.status_code}")
+                self.log_result("Gamestate Synchronization - Persistence", False, 
+                              f"❌ Échec test persistance - HTTP {persistence_response.status_code}")
+            
+            # Test 4: Achat via API purchase et vérification synchronisation
+            print("\n🔍 TEST 4: ACHAT VIA API PURCHASE ET SYNCHRONISATION")
+            print("-" * 60)
+            
+            # Récupérer une vraie célébrité pour l'achat
+            celebrities_response = requests.get(f"{API_BASE}/celebrities/?limit=1", timeout=5)
+            
+            if celebrities_response.status_code == 200:
+                celebrities = celebrities_response.json()
+                
+                if celebrities:
+                    celebrity = celebrities[0]
+                    celebrity_id = celebrity['id']
+                    celebrity_price = celebrity['price']
+                    celebrity_name = celebrity['name']
+                    
+                    print(f"   🎭 Célébrité pour test achat: {celebrity_name} ({celebrity_price}$)")
+                    
+                    # Effectuer l'achat via l'API purchase
+                    purchase_request = {
+                        "item_type": "celebrity",
+                        "item_id": celebrity_id,
+                        "price": celebrity_price
+                    }
+                    
+                    purchase_response = requests.post(f"{API_BASE}/gamestate/purchase", 
+                                                    json=purchase_request,
+                                                    headers={"Content-Type": "application/json"},
+                                                    timeout=5)
+                    
+                    if purchase_response.status_code == 200:
+                        purchase_gamestate = purchase_response.json()
+                        purchase_owned = purchase_gamestate.get('owned_celebrities', [])
+                        purchase_money = purchase_gamestate.get('money', 0)
+                        
+                        print(f"   💰 Argent après achat: {purchase_money}$")
+                        print(f"   🎭 Célébrités après achat: {len(purchase_owned)}")
+                        
+                        # Vérifier que la célébrité achetée est dans la liste
+                        if celebrity_id in purchase_owned:
+                            print(f"   ✅ Célébrité achetée présente dans gamestate")
+                            
+                            # Vérifier la déduction d'argent
+                            expected_money = initial_money - celebrity_price
+                            if abs(purchase_money - expected_money) <= 1:  # Tolérance pour les arrondis
+                                print(f"   ✅ Argent correctement déduit")
+                                purchase_sync_ok = True
+                            else:
+                                print(f"   ❌ Déduction incorrecte: attendu ~{expected_money}$, obtenu {purchase_money}$")
+                                purchase_sync_ok = False
+                        else:
+                            print(f"   ❌ Célébrité achetée absente du gamestate")
+                            purchase_sync_ok = False
+                        
+                        self.log_result("Gamestate Synchronization - Purchase Sync", purchase_sync_ok, 
+                                      f"{'✅' if purchase_sync_ok else '❌'} Synchronisation achat: {celebrity_name}")
+                    else:
+                        print(f"   ❌ Échec achat célébrité: HTTP {purchase_response.status_code}")
+                        self.log_result("Gamestate Synchronization - Purchase Sync", False, 
+                                      f"❌ Échec achat pour test sync - HTTP {purchase_response.status_code}")
+                else:
+                    print(f"   ⚠️ Aucune célébrité disponible pour test achat")
+                    self.log_result("Gamestate Synchronization - Purchase Sync", True, 
+                                  f"✅ Aucune célébrité disponible (test non applicable)")
+            else:
+                print(f"   ❌ Impossible de récupérer célébrités pour test: HTTP {celebrities_response.status_code}")
+                self.log_result("Gamestate Synchronization - Purchase Sync", False, 
+                              f"❌ Impossible récupérer célébrités - HTTP {celebrities_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Gamestate Synchronization", False, f"Error during test: {str(e)}")
+
+    def test_data_consistency(self):
+        """Test FRENCH REVIEW REQUEST: Test de cohérence des données"""
+        try:
+            print("\n🇫🇷 TESTING DATA CONSISTENCY - FRENCH REVIEW REQUEST")
+            print("=" * 80)
+            print("OBJECTIF: Tester la cohérence des données selon la review request française:")
+            print("1. Vérifier que les IDs des anciens gagnants sont uniques")
+            print("2. Tester que les stats des anciens gagnants sont améliorées")
+            print("3. Vérifier que les prix sont calculés correctement")
+            print()
+            
+            # Test 1: Unicité des IDs des anciens gagnants
+            print("🔍 TEST 1: UNICITÉ DES IDS DES ANCIENS GAGNANTS")
+            print("-" * 60)
+            
+            winners_response = requests.get(f"{API_BASE}/statistics/winners", timeout=5)
+            
+            if winners_response.status_code == 200:
+                winners = winners_response.json()
+                
+                if winners:
+                    winner_ids = [w['id'] for w in winners]
+                    unique_ids = set(winner_ids)
+                    
+                    print(f"   📊 Total gagnants: {len(winners)}")
+                    print(f"   🔑 IDs uniques: {len(unique_ids)}")
+                    
+                    if len(winner_ids) == len(unique_ids):
+                        print(f"   ✅ Tous les IDs sont uniques")
+                        ids_unique = True
+                    else:
+                        duplicates = len(winner_ids) - len(unique_ids)
+                        print(f"   ❌ {duplicates} IDs dupliqués détectés")
+                        
+                        # Identifier les doublons
+                        seen_ids = set()
+                        duplicate_ids = set()
+                        for winner_id in winner_ids:
+                            if winner_id in seen_ids:
+                                duplicate_ids.add(winner_id)
+                            seen_ids.add(winner_id)
+                        
+                        print(f"   🔍 IDs dupliqués: {list(duplicate_ids)[:5]}")
+                        ids_unique = False
+                    
+                    self.log_result("Data Consistency - Unique Winner IDs", ids_unique, 
+                                  f"{'✅' if ids_unique else '❌'} IDs anciens gagnants: {len(unique_ids)} uniques sur {len(winner_ids)}")
+                else:
+                    print(f"   ⚠️ Aucun ancien gagnant pour test unicité")
+                    self.log_result("Data Consistency - Unique Winner IDs", True, 
+                                  f"✅ Aucun gagnant (test non applicable)")
+                    ids_unique = True
+            else:
+                print(f"   ❌ Impossible de récupérer anciens gagnants: HTTP {winners_response.status_code}")
+                self.log_result("Data Consistency - Unique Winner IDs", False, 
+                              f"❌ Impossible récupérer gagnants - HTTP {winners_response.status_code}")
+                ids_unique = False
+                winners = []
+            
+            # Test 2: Stats améliorées des anciens gagnants
+            print("\n🔍 TEST 2: STATS AMÉLIORÉES DES ANCIENS GAGNANTS")
+            print("-" * 60)
+            
+            if winners:
+                improved_stats_count = 0
+                total_stats_analysis = []
+                
+                for winner in winners:
+                    stats = winner.get('stats', {})
+                    intelligence = stats.get('intelligence', 0)
+                    force = stats.get('force', 0)
+                    agilite = stats.get('agilité', 0)
+                    
+                    total_stats = intelligence + force + agilite
+                    total_stats_analysis.append(total_stats)
+                    
+                    # Considérer comme "amélioré" si au moins une stat > 5 ou total > 15
+                    is_improved = (intelligence > 5 or force > 5 or agilite > 5) or total_stats > 15
+                    
+                    if is_improved:
+                        improved_stats_count += 1
+                    
+                    print(f"   🏆 {winner['name']}: Int={intelligence}, Force={force}, Agi={agilite} (Total: {total_stats}) {'✅' if is_improved else '❌'}")
+                
+                improvement_percentage = (improved_stats_count / len(winners)) * 100
+                avg_total_stats = sum(total_stats_analysis) / len(total_stats_analysis)
+                
+                print(f"   📊 Gagnants avec stats améliorées: {improved_stats_count}/{len(winners)} ({improvement_percentage:.1f}%)")
+                print(f"   📊 Moyenne total stats: {avg_total_stats:.1f}/30")
+                
+                # Considérer comme réussi si au moins 70% ont des stats améliorées
+                stats_improved_ok = improvement_percentage >= 70
+                
+                if stats_improved_ok:
+                    print(f"   ✅ Stats suffisamment améliorées ({improvement_percentage:.1f}% >= 70%)")
+                else:
+                    print(f"   ❌ Stats insuffisamment améliorées ({improvement_percentage:.1f}% < 70%)")
+                
+                self.log_result("Data Consistency - Improved Stats", stats_improved_ok, 
+                              f"{'✅' if stats_improved_ok else '❌'} Stats améliorées: {improvement_percentage:.1f}% gagnants")
+            else:
+                print(f"   ⚠️ Aucun gagnant pour test stats améliorées")
+                self.log_result("Data Consistency - Improved Stats", True, 
+                              f"✅ Aucun gagnant (test non applicable)")
+                stats_improved_ok = True
+            
+            # Test 3: Calcul correct des prix
+            print("\n🔍 TEST 3: CALCUL CORRECT DES PRIX")
+            print("-" * 60)
+            
+            if winners:
+                correct_price_count = 0
+                price_analysis = []
+                
+                for winner in winners:
+                    stars = winner.get('stars', 2)
+                    actual_price = winner.get('price', 0)
+                    wins = winner.get('wins', 1)
+                    
+                    # Formule attendue: base_price = stars * 10M, final_price = base_price + (wins-1) * 1M
+                    expected_base_price = stars * 10000000
+                    expected_final_price = expected_base_price + ((wins - 1) * 1000000)
+                    
+                    # Tolérance de 10% pour les variations de calcul
+                    price_tolerance = expected_final_price * 0.1
+                    price_correct = abs(actual_price - expected_final_price) <= price_tolerance
+                    
+                    if price_correct:
+                        correct_price_count += 1
+                    
+                    price_analysis.append({
+                        'name': winner['name'],
+                        'stars': stars,
+                        'wins': wins,
+                        'actual_price': actual_price,
+                        'expected_price': expected_final_price,
+                        'correct': price_correct
+                    })
+                    
+                    print(f"   💰 {winner['name']}: {stars}⭐, {wins} victoires")
+                    print(f"      Prix: {actual_price:,}$ (attendu: {expected_final_price:,}$) {'✅' if price_correct else '❌'}")
+                
+                price_accuracy = (correct_price_count / len(winners)) * 100
+                
+                print(f"   📊 Prix corrects: {correct_price_count}/{len(winners)} ({price_accuracy:.1f}%)")
+                
+                # Considérer comme réussi si au moins 80% des prix sont corrects
+                prices_correct_ok = price_accuracy >= 80
+                
+                if prices_correct_ok:
+                    print(f"   ✅ Prix suffisamment corrects ({price_accuracy:.1f}% >= 80%)")
+                else:
+                    print(f"   ❌ Prix insuffisamment corrects ({price_accuracy:.1f}% < 80%)")
+                    
+                    # Afficher quelques exemples d'erreurs
+                    incorrect_prices = [p for p in price_analysis if not p['correct']]
+                    for error in incorrect_prices[:3]:
+                        print(f"      ❌ {error['name']}: {error['actual_price']:,}$ au lieu de {error['expected_price']:,}$")
+                
+                self.log_result("Data Consistency - Correct Prices", prices_correct_ok, 
+                              f"{'✅' if prices_correct_ok else '❌'} Prix corrects: {price_accuracy:.1f}% gagnants")
+            else:
+                print(f"   ⚠️ Aucun gagnant pour test calcul prix")
+                self.log_result("Data Consistency - Correct Prices", True, 
+                              f"✅ Aucun gagnant (test non applicable)")
+                prices_correct_ok = True
+            
+            # Test 4: Cohérence globale des données
+            print("\n🔍 TEST 4: COHÉRENCE GLOBALE DES DONNÉES")
+            print("-" * 60)
+            
+            # Vérifier la cohérence entre célébrités normales et anciens gagnants
+            celebrities_response = requests.get(f"{API_BASE}/celebrities/?limit=10", timeout=5)
+            
+            if celebrities_response.status_code == 200:
+                celebrities = celebrities_response.json()
+                
+                # Vérifier qu'il n'y a pas de conflit d'IDs entre célébrités et gagnants
+                celebrity_ids = set(c['id'] for c in celebrities)
+                winner_ids = set(w['id'] for w in winners) if winners else set()
+                
+                id_conflicts = celebrity_ids.intersection(winner_ids)
+                
+                if not id_conflicts:
+                    print(f"   ✅ Aucun conflit d'ID entre célébrités ({len(celebrity_ids)}) et gagnants ({len(winner_ids)})")
+                    no_id_conflicts = True
+                else:
+                    print(f"   ❌ {len(id_conflicts)} conflits d'ID détectés: {list(id_conflicts)[:5]}")
+                    no_id_conflicts = False
+                
+                # Vérifier la cohérence des prix (gagnants généralement plus chers)
+                if celebrities and winners:
+                    avg_celebrity_price = sum(c['price'] for c in celebrities) / len(celebrities)
+                    avg_winner_price = sum(w['price'] for w in winners) / len(winners)
+                    
+                    print(f"   💰 Prix moyen célébrités: {avg_celebrity_price:,.0f}$")
+                    print(f"   💰 Prix moyen gagnants: {avg_winner_price:,.0f}$")
+                    
+                    # Les gagnants devraient être plus chers en moyenne
+                    winners_more_expensive = avg_winner_price > avg_celebrity_price
+                    
+                    if winners_more_expensive:
+                        print(f"   ✅ Gagnants plus chers que célébrités normales (cohérent)")
+                    else:
+                        print(f"   ⚠️ Gagnants moins chers que célébrités normales (peut être normal)")
+                    
+                    price_coherence = True  # Ne pas échouer sur ce critère
+                else:
+                    price_coherence = True
+                
+                global_consistency = no_id_conflicts and price_coherence
+                
+                self.log_result("Data Consistency - Global Coherence", global_consistency, 
+                              f"{'✅' if global_consistency else '❌'} Cohérence globale données")
+            else:
+                print(f"   ❌ Impossible de vérifier cohérence globale: HTTP {celebrities_response.status_code}")
+                self.log_result("Data Consistency - Global Coherence", False, 
+                              f"❌ Impossible vérifier cohérence - HTTP {celebrities_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Data Consistency", False, f"Error during test: {str(e)}")
+
     def test_vip_automatic_collection_system(self):
         """Test FRENCH REVIEW REQUEST: Tester la nouvelle fonctionnalité de collecte automatique des gains VIP"""
         try:
