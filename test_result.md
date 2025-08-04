@@ -533,6 +533,54 @@
           agent: "testing"
           comment: "Minor: Détecté 41 nationalités au lieu de 43 attendues (manque 2 nationalités), mais 100% de noms authentiques confirmés. Fonctionnalité principale opérationnelle."
 
+  - task: "Test API d'achat de célébrités"
+    implemented: true
+    working: true
+    file: "routes/celebrities_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTS EXHAUSTIFS SELON REVIEW REQUEST FRANÇAISE RÉUSSIS: Tests complets effectués selon les 3 tests spécifiques demandés. 1) **Test achat célébrité normale**: ✅ CONFIRMÉ - POST /api/celebrities/{celebrity_id}/purchase fonctionne parfaitement, célébrité marquée comme possédée (is_owned=true). 2) **Test mise à jour gamestate**: ✅ CONFIRMÉ - L'achat via POST /api/gamestate/purchase déduit correctement l'argent et ajoute la célébrité aux possessions. 3) **Test achat ancien gagnant**: ✅ CONFIRMÉ - Achat d'anciens gagnants via gamestate fonctionne, célébrités ajoutées aux owned_celebrities. Backend tests: 3/3 passed (100% success rate). L'API d'achat de célébrités fonctionne parfaitement selon les spécifications de la review request française."
+
+  - task: "Test API des anciens gagnants"
+    implemented: true
+    working: true
+    file: "routes/statistics_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTS EXHAUSTIFS SELON REVIEW REQUEST FRANÇAISE RÉUSSIS: Tests complets effectués selon les spécifications exactes. 1) **Test GET /api/statistics/winners**: ✅ CONFIRMÉ - API accessible et retourne les anciens gagnants avec structure complète. 2) **Test structure données**: ✅ CONFIRMÉ - Tous les champs requis présents (id, name, category, stars, price, nationality, wins, stats, biography, game_data). Stats complètes avec intelligence, force, agilité. Game_data complet avec game_id, date, total_players, survivors, final_score. 3) **Test unicité IDs**: ✅ CONFIRMÉ - Tous les IDs des gagnants sont uniques. 4) **Test catégorie**: ✅ CONFIRMÉ - Tous les gagnants ont la catégorie 'Ancien gagnant'. Backend tests: 4/4 passed (100% success rate). L'API des anciens gagnants fonctionne parfaitement selon les spécifications de la review request française."
+
+  - task: "Test de synchronisation gamestate"
+    implemented: true
+    working: true
+    file: "routes/gamestate_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTS EXHAUSTIFS SELON REVIEW REQUEST FRANÇAISE RÉUSSIS: Tests complets effectués selon les spécifications exactes. 1) **Test PUT /api/gamestate/**: ✅ CONFIRMÉ - Mise à jour directe des owned_celebrities fonctionne parfaitement, toutes les célébrités de test ajoutées avec succès. 2) **Test persistance**: ✅ CONFIRMÉ - Célébrités persistées avec succès après récupération, aucune perte de données. 3) **Test synchronisation achat**: ✅ CONFIRMÉ - L'achat via POST /api/gamestate/purchase synchronise correctement les célébrités possédées et déduit l'argent. Backend tests: 3/3 passed (100% success rate). La synchronisation gamestate fonctionne parfaitement selon les spécifications de la review request française."
+
+  - task: "Test de cohérence des données"
+    implemented: true
+    working: true
+    file: "routes/statistics_routes.py, routes/celebrities_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTS EXHAUSTIFS SELON REVIEW REQUEST FRANÇAISE RÉUSSIS: Tests complets effectués selon les spécifications exactes. 1) **Test unicité IDs anciens gagnants**: ✅ CONFIRMÉ - Tous les IDs des anciens gagnants sont uniques, aucun doublon détecté. 2) **Test stats améliorées**: ✅ CONFIRMÉ - Stats des anciens gagnants suffisamment améliorées (100% des gagnants ont des stats améliorées). 3) **Test calcul prix**: ✅ CONFIRMÉ - Prix calculés correctement selon la formule (base_price = stars * 10M + bonus victoires). 4) **Test cohérence globale**: ✅ CONFIRMÉ - Aucun conflit d'ID entre célébrités normales et anciens gagnants, cohérence des données maintenue. Backend tests: 4/4 passed (100% success rate). La cohérence des données est parfaitement maintenue selon les spécifications de la review request française."
+
   - task: "Route de classement final - Erreur HTTP 500"
     implemented: true
     working: true
