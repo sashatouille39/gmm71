@@ -10854,6 +10854,14 @@ class BackendTester:
         print("=" * 80)
         self.test_kill_system_corrections()
         
+        # TEST PRINCIPAL: Système de célébrités selon la review request française
+        print("\n🇫🇷 TEST PRINCIPAL: SYSTÈME DE CÉLÉBRITÉS SELON LA REVIEW REQUEST FRANÇAISE")
+        print("=" * 80)
+        self.test_celebrity_purchase_api()
+        self.test_former_winners_api()
+        self.test_gamestate_synchronization()
+        self.test_data_consistency()
+        
         # Tests complémentaires
         print("\n📋 TESTS COMPLÉMENTAIRES")
         print("=" * 80)
