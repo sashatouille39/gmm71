@@ -11577,6 +11577,7 @@ class BackendTester:
         # TEST PRINCIPAL: Système de célébrités selon la review request française
         print("\n🇫🇷 TEST PRINCIPAL: SYSTÈME DE CÉLÉBRITÉS SELON LA REVIEW REQUEST FRANÇAISE")
         print("=" * 80)
+        self.test_celebrity_purchase_critical_issue()
         self.test_celebrity_purchase_api()
         self.test_former_winners_api()
         self.test_gamestate_synchronization()
