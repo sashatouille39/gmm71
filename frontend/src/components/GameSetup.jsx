@@ -42,6 +42,20 @@ const GameSetup = ({ gameState, onStartGame }) => {
     standard: { name: 'Standard', cost: 100000, description: 'Jeu classique avec épreuves variées' }
   };
 
+  // Charger les anciens gagnants depuis l'API backend
+  const loadPastWinners = async () => {
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      const response = await fetch(`${backendUrl}/api/statistics/winners`);
+      if (response.ok) {
+        const winners = await response.json();
+        setPastWinners(winners);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des gagnants:', error);
+    }
+  };
+
   // Charger les épreuves depuis l'API backend
   const loadEventsFromAPI = async () => {
     setIsLoadingEvents(true);
