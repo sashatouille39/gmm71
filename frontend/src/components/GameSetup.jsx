@@ -557,6 +557,7 @@ const GameSetup = ({ gameState, onStartGame }) => {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {/* Afficher les célébrités normales possédées */}
                     {MOCK_CELEBRITIES
                       .filter(celebrity => gameState.ownedCelebrities.includes(celebrity.id))
                       .map((celebrity) => {
@@ -665,10 +666,117 @@ const GameSetup = ({ gameState, onStartGame }) => {
                                 </Badge>
                               </div>
                             )}
+                          </div>
+                        );
+                      })}
 
-                            <div className="mt-3 text-xs text-gray-400 italic">
-                              {celebrity.biography}
+                    {/* Afficher les anciens gagnants possédés */}
+                    {pastWinners
+                      .filter(winner => gameState.ownedCelebrities.includes(winner.id))
+                      .map((winner) => {
+                        const isSelected = players.some(p => p.celebrityId === winner.id);
+                        
+                        return (
+                          <div
+                            key={winner.id}
+                            className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${
+                              isSelected
+                                ? 'bg-green-900/20 border-green-500'
+                                : 'bg-gradient-to-br from-yellow-900/30 to-red-900/30 border-yellow-400/50 hover:border-yellow-400/70'
+                            }`}
+                            onClick={() => {
+                              if (!isSelected) {
+                                // Convertir l'ancien gagnant en joueur
+                                const winnerAsPlayer = {
+                                  id: Date.now() + Math.random(),
+                                  number: String(players.length + 1).padStart(3, '0'),
+                                  name: winner.name,
+                                  nationality: winner.nationality,
+                                  gender: Math.random() > 0.5 ? 'M' : 'F',
+                                  age: 25 + Math.floor(Math.random() * 20),
+                                  role: 'celebrity',
+                                  stats: winner.stats,
+                                  portrait: {
+                                    faceShape: 'Ovale',
+                                    skinColor: '#F4B980',
+                                    hairstyle: 'Cheveux courts',
+                                    hairColor: '#2C1B18',
+                                    eyeColor: '#654321',
+                                    eyeShape: 'Amande'
+                                  },
+                                  alive: true,
+                                  kills: 0,
+                                  betrayals: 0,
+                                  survivedEvents: 0,
+                                  totalScore: 0,
+                                  celebrityId: winner.id,
+                                  isCelebrity: true,
+                                  category: winner.category,
+                                  stars: winner.stars,
+                                  wins: winner.wins || 1,
+                                  biography: winner.biography
+                                };
+                                
+                                setPlayers(prev => [...prev, winnerAsPlayer]);
+                              }
+                            }}
+                          >
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-12 h-12 bg-gradient-to-br from-yellow-600 to-red-600 rounded-full flex items-center justify-center">
+                                <Crown className="w-6 h-6 text-yellow-200" />
+                              </div>
+                              <div className="flex-1">
+                                <h3 className="text-white font-medium">{winner.name}</h3>
+                                <div className="flex items-center gap-1 mt-1">
+                                  {[...Array(5)].map((_, i) => (
+                                    <Star 
+                                      key={i}
+                                      className={`w-3 h-3 ${
+                                        i < winner.stars ? 'text-yellow-400 fill-current' : 'text-gray-600'
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
                             </div>
+
+                            <div className="space-y-2">
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-400">Catégorie:</span>
+                                <span className="text-yellow-400 font-medium">{winner.category}</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-400">Nationalité:</span>
+                                <span className="text-white">{winner.nationality}</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-400">Victoires:</span>
+                                <span className="text-yellow-400">Au moins {winner.wins}</span>
+                              </div>
+                            </div>
+
+                            <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                              <div className="text-center">
+                                <div className="text-blue-400 font-bold">{winner.stats.intelligence}</div>
+                                <div className="text-gray-400">Int</div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-red-400 font-bold">{winner.stats.force}</div>
+                                <div className="text-gray-400">For</div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-green-400 font-bold">{winner.stats.agilité}</div>
+                                <div className="text-gray-400">Agi</div>
+                              </div>
+                            </div>
+
+                            {isSelected && (
+                              <div className="mt-3 text-center">
+                                <Badge className="bg-green-600 text-white">
+                                  Sélectionné pour le jeu
+                                </Badge>
+                              </div>
+                            )}
                           </div>
                         );
                       })}
