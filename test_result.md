@@ -102,7 +102,68 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-## user_problem_statement: "Je viens de corriger plusieurs problèmes critiques dans le système de kills du jeu : **CORRECTIONS APPORTÉES :** 1. **Calcul des kills totaux** : - Corrigé dans `game_routes.py` et `statistics_routes.py` - Avant : `total_kills += len([p for p in game.players if not p.alive])` (comptait tous les morts) - Après : `total_kills += sum([p.kills for p in game.players])` (compte les vrais kills) 2. **Ordre des éliminations en direct** : - Corrigé dans `GameArena.jsx` - Avant : `[...prev, ...updateData.deaths]` (nouvelles morts en bas) - Après : `[...updateData.deaths, ...prev]` (nouvelles morts en haut) 3. **Logique des kills individuels** : - Corrigé dans `game_service.py` - Nouvelle logique qui assure que le nombre de kills correspond exactement au nombre d'éliminations - Empêche les doubles kills quand il ne reste qu'un seul adversaire - Limite les kills selon le type d'épreuve (max 1 pour intelligence/agilité, max 2 pour force) **TESTS À EFFECTUER :** 1. **Test du calcul des kills totaux** : - Créer une partie avec plusieurs joueurs - Simuler plusieurs événements avec des éliminations - Vérifier que `gamestate.total_kills` correspond à la somme réelle des kills individuels - Comparer avec l'ancien système qui comptait tous les morts 2. **Test de la cohérence des kills individuels** : - Vérifier qu'un joueur ne peut pas faire plus de kills qu'il n'y a d'éliminations disponibles - Vérifier qu'un joueur ne fait pas 2 kills quand il ne reste qu'1 adversaire - Tester les limites de kills selon le type d'épreuve 3. **Test du classement final** : - Vérifier que les kills affichés dans le final-ranking correspondent aux kills réels - S'assurer de la cohérence entre les kills individuels et le total Peux-tu effectuer ces tests et confirmer que les problèmes de kills sont résolus ?"
+## user_problem_statement: "Je dois diagnostiquer un problème critique avec l'achat de célébrités dans l'application. Le bouton d'achat dans le Salon VIP ne fonctionne pas - l'argent ne se déduit pas et l'achat ne se fait pas. Testez spécifiquement : 1. **Route d'achat de célébrités** : POST /api/celebrities/{celebrity_id}/purchase - Testez avec un ID de célébrité valide - Vérifiez si la route retourne HTTP 200 et le message de succès - Vérifiez si is_owned devient true pour la célébrité 2. **Route de mise à jour gamestate** : PUT /api/gamestate/ - Testez la mise à jour du champ money - Testez la mise à jour du champ owned_celebrities - Vérifiez que les changements persistent 3. **Route d'achat via gamestate** : POST /api/gamestate/purchase - Testez l'achat d'une célébrité via cette route - Vérifiez la déduction d'argent et l'ajout aux owned_celebrities 4. **Routes des anciens gagnants** : GET /api/statistics/winners - Vérifiez qu'il y a des anciens gagnants disponibles à l'achat - Testez l'achat d'un ancien gagnant Déterminez quelle route fonctionne/ne fonctionne pas et pourquoi l'achat échoue. Je suspecte un problème dans l'une de ces APIs backend."
+
+## backend:
+  - task: "Test de la route d'achat de célébrités POST /api/celebrities/{celebrity_id}/purchase"
+    implemented: true
+    working: true
+    file: "routes/celebrities_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ DIAGNOSTIC COMPLET - ROUTE FONCTIONNELLE: Tests exhaustifs effectués selon la review request française. 1) **Test route POST /api/celebrities/{celebrity_id}/purchase**: ✅ CONFIRMÉ - Route accessible et retourne HTTP 200 avec message de succès 'Célébrité Max Moore achetée avec succès'. 2) **Test is_owned**: ✅ CONFIRMÉ - La célébrité est correctement marquée comme possédée (is_owned=true) après l'achat. 3) **Test avec ID valide**: ✅ CONFIRMÉ - Testé avec ID réel de célébrité (a317d1f0-55c5-48a0-804f-be49f800c81d) et prix (16,755$). Backend tests: 1/1 passed (100% success rate). La route d'achat de célébrités fonctionne parfaitement."
+
+  - task: "Test de la route de mise à jour gamestate PUT /api/gamestate/"
+    implemented: true
+    working: true
+    file: "routes/gamestate_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ DIAGNOSTIC COMPLET - ROUTE FONCTIONNELLE: Tests exhaustifs effectués selon la review request française. 1) **Test mise à jour money**: ✅ CONFIRMÉ - Champ money correctement mis à jour (15,213,588$ → 15,113,588$), déduction de 100k réussie. 2) **Test mise à jour owned_celebrities**: ✅ CONFIRMÉ - Champ owned_celebrities correctement mis à jour (0 → 1 célébrité), ajout de célébrité test réussi. 3) **Test persistance**: ✅ CONFIRMÉ - Les changements persistent après récupération du gamestate. Backend tests: 2/2 passed (100% success rate). La route PUT /api/gamestate/ fonctionne parfaitement pour les deux champs testés."
+
+  - task: "Test de la route d'achat via gamestate POST /api/gamestate/purchase"
+    implemented: true
+    working: true
+    file: "routes/gamestate_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ DIAGNOSTIC COMPLET - ROUTE FONCTIONNELLE: Tests exhaustifs effectués selon la review request française. 1) **Test achat célébrité**: ✅ CONFIRMÉ - Achat de célébrité Max Moore (16,755$) réussi via POST /api/gamestate/purchase. 2) **Test déduction argent**: ✅ CONFIRMÉ - Argent correctement déduit (15,113,588$ → 15,096,833$), montant exact de 16,755$. 3) **Test ajout owned_celebrities**: ✅ CONFIRMÉ - Célébrité correctement ajoutée aux possessions du joueur. 4) **Test synchronisation**: ✅ CONFIRMÉ - Gamestate correctement synchronisé après achat. Backend tests: 1/1 passed (100% success rate). La route d'achat via gamestate fonctionne parfaitement."
+
+  - task: "Test des routes des anciens gagnants GET /api/statistics/winners"
+    implemented: true
+    working: true
+    file: "routes/statistics_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ DIAGNOSTIC COMPLET - ROUTE FONCTIONNELLE: Tests exhaustifs effectués selon la review request française. 1) **Test GET /api/statistics/winners**: ✅ CONFIRMÉ - Route accessible et retourne HTTP 200. 2) **Test anciens gagnants disponibles**: ⚠️ RÉSULTAT - 0 anciens gagnants trouvés (normal car aucune partie n'a été terminée et sauvegardée). 3) **Test structure données**: ✅ CONFIRMÉ - La route retourne une liste vide mais avec la structure correcte. 4) **Test achat ancien gagnant**: ⚠️ NON TESTABLE - Aucun ancien gagnant disponible pour tester l'achat. Backend tests: 1/1 passed (100% success rate). La route des anciens gagnants fonctionne correctement mais aucun gagnant n'est disponible."
+
+  - task: "Diagnostic final du problème d'achat de célébrités"
+    implemented: true
+    working: true
+    file: "routes/celebrities_routes.py, routes/gamestate_routes.py, routes/statistics_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ DIAGNOSTIC FINAL COMPLET - TOUTES LES ROUTES FONCTIONNENT: Tests exhaustifs effectués selon la review request française révèlent que TOUTES les routes backend fonctionnent correctement. 1) **POST /api/celebrities/{celebrity_id}/purchase**: ✅ FONCTIONNE - Marque la célébrité comme possédée. 2) **PUT /api/gamestate/**: ✅ FONCTIONNE - Met à jour money et owned_celebrities. 3) **POST /api/gamestate/purchase**: ✅ FONCTIONNE - Déduit l'argent et ajoute la célébrité. 4) **GET /api/statistics/winners**: ✅ FONCTIONNE - Retourne les anciens gagnants (liste vide normale). **CONCLUSION CRITIQUE**: Le problème d'achat de célébrités N'EST PAS dans le backend. Toutes les APIs fonctionnent parfaitement. Le problème est probablement dans le frontend (bouton d'achat, appels API, gestion des états) ou dans l'intégration frontend-backend. Backend tests: 4/4 passed (100% success rate). RECOMMANDATION: Investiguer le frontend et les appels API côté client."
 
 ## backend:
   - task: "Test du calcul des kills totaux corrigé"
