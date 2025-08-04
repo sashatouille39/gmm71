@@ -92,6 +92,7 @@ const VipSalon = ({ gameState, updateGameState }) => {
   const [allVips, setAllVips] = useState([]);
   const [pastWinners, setPastWinners] = useState([]);
   const [loadingWinners, setLoadingWinners] = useState(false);
+  const [purchasingCelebrity, setPurchasingCelebrity] = useState(null);
 
   // Charger les VIPs et les gagnants lors du montage du composant
   useEffect(() => {
@@ -119,12 +120,14 @@ const VipSalon = ({ gameState, updateGameState }) => {
   const loadSalonVips = async () => {
     try {
       setLoadingVips(true);
-      const vips = await vipService.getSalonVips(gameState.vipSalonLevel);
-      setCurrentVips(vips);
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      const response = await fetch(`${backendUrl}/api/vips/salon/${gameState.vipSalonLevel}`);
+      if (response.ok) {
+        const vips = await response.json();
+        setCurrentVips(vips);
+      }
     } catch (error) {
       console.error('Erreur lors du chargement des VIPs:', error);
-      // En cas d'erreur, utiliser des VIPs par défaut
-      setCurrentVips([]);
     } finally {
       setLoadingVips(false);
     }
@@ -132,91 +135,84 @@ const VipSalon = ({ gameState, updateGameState }) => {
 
   const loadAllVips = async () => {
     try {
-      const vips = await vipService.getAllVips();
-      setAllVips(vips);
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      const response = await fetch(`${backendUrl}/api/vips/all`);
+      if (response.ok) {
+        const vips = await response.json();
+        setAllVips(vips);
+      }
     } catch (error) {
       console.error('Erreur lors du chargement de tous les VIPs:', error);
     }
   };
 
-  const refreshVips = async () => {
-    try {
-      setLoadingVips(true);
-      // Générer un ID de partie temporaire pour rafraîchir les VIPs
-      const tempGameId = `salon_${Date.now()}`;
-      const result = await vipService.refreshGameVips(tempGameId, gameState.vipSalonLevel);
-      setCurrentVips(result.vips);
-    } catch (error) {
-      console.error('Erreur lors du rafraîchissement des VIPs:', error);
-    } finally {
-      setLoadingVips(false);
-    }
-  };
+  const ownedCelebrities = gameState.ownedCelebrities || [];
 
+  // Niveaux de salon disponibles avec les détails
   const salonUpgrades = [
     { 
       level: 1, 
-      name: 'Salon Basique', 
-      capacity: 1, 
+      name: 'Salon Standard', 
+      capacity: 3, 
       cost: 0, 
-      description: 'Salon d\'entrée avec 1 place VIP',
+      description: 'Salon de base, 3 places VIP',
       unlocked: true 
     },
     { 
       level: 2, 
-      name: 'Salon Confort', 
-      capacity: 3, 
+      name: 'Salon Premium', 
+      capacity: 5, 
       cost: 500000, // 500k
-      description: 'Salon confort avec 3 places VIP',
-      unlocked: gameState.money >= 500000
+      description: 'Plus de places VIP, 5 places',
+      unlocked: gameState.money >= 500000 && gameState.vipSalonLevel >= 1 
     },
     { 
       level: 3, 
-      name: 'Salon Élégant', 
-      capacity: 5, 
-      cost: 1500000, // 1.5M
-      description: 'Salon élégant avec 5 places VIP',
-      unlocked: gameState.money >= 1500000 && gameState.vipSalonLevel >= 2 
+      name: 'Salon Royal', 
+      capacity: 8, 
+      cost: 2000000, // 2M
+      description: 'Salon royal, 8 places VIP',
+      unlocked: gameState.money >= 2000000 && gameState.vipSalonLevel >= 2 
     },
     { 
       level: 4, 
-      name: 'Salon Luxe', 
-      capacity: 8, 
-      cost: 3500000, // 3.5M
-      description: 'Salon de luxe avec bar, 8 places VIP',
-      unlocked: gameState.money >= 3500000 && gameState.vipSalonLevel >= 3 
+      name: 'Salon Impérial', 
+      capacity: 10, 
+      cost: 5000000, // 5M
+      description: 'Prestige impérial, 10 places VIP',
+      unlocked: gameState.money >= 5000000 && gameState.vipSalonLevel >= 3 
     },
     { 
       level: 5, 
-      name: 'Salon Premium', 
-      capacity: 10, 
-      cost: 7500000, // 7.5M
-      description: 'Salon premium avec service, 10 places VIP',
-      unlocked: gameState.money >= 7500000 && gameState.vipSalonLevel >= 4 
+      name: 'Salon Divin', 
+      capacity: 12, 
+      cost: 10000000, // 10M
+      description: 'Salon divin ultime, 12 places VIP',
+      unlocked: gameState.money >= 10000000 && gameState.vipSalonLevel >= 4 
     },
     { 
       level: 6, 
-      name: 'Salon Impérial', 
-      capacity: 12, 
-      cost: 15000000, // 15M
-      description: 'Salon impérial avec équipements, 12 places VIP',
-      unlocked: gameState.money >= 15000000 && gameState.vipSalonLevel >= 5 
+      name: 'Salon Mythique', 
+      capacity: 15, 
+      cost: 20000000, // 20M
+      description: 'Prestige mythique, 15 places VIP',
+      unlocked: gameState.money >= 20000000 && gameState.vipSalonLevel >= 5 
     },
     { 
       level: 7, 
-      name: 'Salon Royal', 
-      capacity: 15, 
-      cost: 30000000, // 30M
-      description: 'Salon royal avec services VIP, 15 places VIP',
-      unlocked: gameState.money >= 30000000 && gameState.vipSalonLevel >= 6 
+      name: 'Salon Cosmique', 
+      capacity: 17, 
+      cost: 40000000, // 40M
+      description: 'Influence cosmique, 17 places VIP',
+      unlocked: gameState.money >= 40000000 && gameState.vipSalonLevel >= 6 
     },
     { 
       level: 8, 
-      name: 'Salon Suprême', 
-      capacity: 17, 
-      cost: 60000000, // 60M
-      description: 'Salon suprême avec luxe absolu, 17 places VIP',
-      unlocked: gameState.money >= 60000000 && gameState.vipSalonLevel >= 7 
+      name: 'Salon Transcendant', 
+      capacity: 18, 
+      cost: 75000000, // 75M
+      description: 'Pouvoir transcendant, 18 places VIP',
+      unlocked: gameState.money >= 75000000 && gameState.vipSalonLevel >= 7 
     },
     { 
       level: 9, 
@@ -228,18 +224,62 @@ const VipSalon = ({ gameState, updateGameState }) => {
     }
   ];
 
-  const purchaseCelebrity = (celebrity) => {
-    if (gameState.money >= celebrity.price) {
-      updateGameState({
-        money: gameState.money - celebrity.price,
-        ownedCelebrities: [...(gameState.ownedCelebrities || []), celebrity.id]
-      });
+  const purchaseCelebrity = async (celebrity) => {
+    if (gameState.money >= celebrity.price && !purchasingCelebrity) {
+      try {
+        setPurchasingCelebrity(celebrity.id);
+        const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+        
+        // Appeler l'API backend pour effectuer l'achat
+        const response = await fetch(`${backendUrl}/api/celebrities/${celebrity.id}/purchase`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+
+        if (response.ok) {
+          // Mettre à jour le gamestate local ET backend
+          const newOwnedCelebrities = [...(gameState.ownedCelebrities || []), celebrity.id];
+          const newMoney = gameState.money - celebrity.price;
+          
+          // Mettre à jour le frontend
+          updateGameState({
+            money: newMoney,
+            ownedCelebrities: newOwnedCelebrities
+          });
+
+          // Synchroniser avec le backend
+          const updateResponse = await fetch(`${backendUrl}/api/gamestate/`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              money: newMoney,
+              owned_celebrities: newOwnedCelebrities
+            })
+          });
+
+          if (!updateResponse.ok) {
+            console.error('Erreur lors de la synchronisation du gamestate');
+          }
+
+          console.log(`Célébrité ${celebrity.name} achetée avec succès !`);
+        } else {
+          console.error('Erreur lors de l\'achat de la célébrité');
+        }
+      } catch (error) {
+        console.error('Erreur de connexion lors de l\'achat:', error);
+      } finally {
+        setPurchasingCelebrity(null);
+      }
     }
   };
 
   const upgradeSalon = (level) => {
     const upgrade = salonUpgrades.find(s => s.level === level);
-    if (upgrade && gameState.money >= upgrade.cost && upgrade.unlocked) {
+    if (upgrade && gameState.money >= upgrade.cost) {
       updateGameState({
         money: gameState.money - upgrade.cost,
         vipSalonLevel: level
@@ -248,253 +288,209 @@ const VipSalon = ({ gameState, updateGameState }) => {
   };
 
   const currentSalon = salonUpgrades.find(s => s.level === gameState.vipSalonLevel);
-  const ownedCelebrities = MOCK_CELEBRITIES.filter(c => 
-    gameState.ownedCelebrities?.includes(c.id)
-  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-red-900 to-black p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-black p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
+            <Button
               onClick={() => navigate('/')}
+              variant="ghost"
               className="text-gray-400 hover:text-white"
             >
               <ArrowLeft className="w-5 h-5 mr-2" />
-              Retour
+              Retour au menu
             </Button>
             <div>
-              <h1 className="text-4xl font-black text-white">Salon VIP</h1>
-              <p className="text-gray-400">Gérez vos VIP et célébrités</p>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-yellow-400 to-red-500 bg-clip-text text-transparent">
+                Salon VIP
+              </h1>
+              <p className="text-gray-400">Gérez vos VIP et achetez des célébrités</p>
             </div>
           </div>
-          
           <div className="text-right">
-            <div className="text-2xl font-bold text-green-400">${gameState.money.toLocaleString()}</div>
-            <div className="text-sm text-gray-400">Budget disponible</div>
+            <div className="text-2xl font-bold text-green-400">
+              ${gameState.money.toLocaleString()}
+            </div>
+            <div className="text-gray-400 text-sm">
+              Salon niveau {gameState.vipSalonLevel}
+            </div>
           </div>
         </div>
 
-        {/* Statut du salon actuel */}
-        <Card className="bg-black/50 border-yellow-500/30 mb-8">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Crown className="w-12 h-12 text-yellow-400" />
-                <div>
-                  <h2 className="text-2xl font-bold text-white">{currentSalon?.name}</h2>
-                  <p className="text-gray-400">{currentSalon?.description}</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-3xl font-black text-yellow-400">{currentSalon?.capacity}</div>
-                <div className="text-sm text-gray-400">Places VIP</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-          <TabsList className="bg-black/50 border border-red-500/30">
-            <TabsTrigger value="salon" className="data-[state=active]:bg-red-600">
+        {/* Tabs */}
+        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3 bg-gray-800/50">
+            <TabsTrigger value="salon" className="text-white data-[state=active]:bg-purple-600">
               <Crown className="w-4 h-4 mr-2" />
-              Salon
+              Salon VIP
             </TabsTrigger>
-            <TabsTrigger value="vips" className="data-[state=active]:bg-red-600">
-              <Users className="w-4 h-4 mr-2" />
-              VIP
-            </TabsTrigger>
-            <TabsTrigger value="celebrities" className="data-[state=active]:bg-red-600">
+            <TabsTrigger value="celebrities" className="text-white data-[state=active]:bg-red-600">
               <Star className="w-4 h-4 mr-2" />
-              Célébrités
+              Boutique célébrités
             </TabsTrigger>
-            <TabsTrigger value="museum" className="data-[state=active]:bg-red-600">
+            <TabsTrigger value="museum" className="text-white data-[state=active]:bg-gray-600">
               <Skull className="w-4 h-4 mr-2" />
               Musée des morts
             </TabsTrigger>
           </TabsList>
 
-          {/* Gestion du salon */}
+          {/* Salon VIP */}
           <TabsContent value="salon" className="space-y-6">
-            <Card className="bg-black/50 border-red-500/30">
+            {/* Status actuel */}
+            <Card className="bg-black/50 border-purple-500/30">
               <CardHeader>
-                <CardTitle className="text-white">Améliorations du salon</CardTitle>
+                <CardTitle className="text-white flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Crown className="w-5 h-5" />
+                    {currentSalon?.name}
+                  </div>
+                  <Badge variant="outline" className="text-purple-400 border-purple-400">
+                    Niveau {gameState.vipSalonLevel}
+                  </Badge>
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {salonUpgrades.map((upgrade) => (
-                    <div
-                      key={upgrade.level}
-                      className={`p-6 rounded-lg border transition-all ${
-                        gameState.vipSalonLevel === upgrade.level
-                          ? 'bg-yellow-900/20 border-yellow-500/50'
-                          : upgrade.unlocked
-                          ? 'bg-gray-800/50 border-gray-600/30 hover:bg-gray-700/50'
-                          : 'bg-gray-900/50 border-gray-700/30 opacity-60'
-                      }`}
-                    >
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h3 className="text-white font-bold text-lg">{upgrade.name}</h3>
-                          <p className="text-gray-400 text-sm">{upgrade.description}</p>
-                        </div>
-                        {gameState.vipSalonLevel === upgrade.level && (
-                          <Badge variant="outline" className="text-yellow-400 border-yellow-400">
-                            Actuel
-                          </Badge>
-                        )}
-                      </div>
-
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-300">Capacité VIP:</span>
-                          <span className="text-white font-medium">{upgrade.capacity} places</span>
-                        </div>
-                        
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-300">Coût:</span>
-                          <span className={`font-bold ${upgrade.cost === 0 ? 'text-green-400' : 'text-yellow-400'}`}>
-                            {upgrade.cost === 0 ? 'Gratuit' : `$${upgrade.cost.toLocaleString()}`}
-                          </span>
-                        </div>
-
-                        {gameState.vipSalonLevel < upgrade.level && (
-                          <Button
-                            onClick={() => upgradeSalon(upgrade.level)}
-                            disabled={!upgrade.unlocked || gameState.money < upgrade.cost}
-                            className={`w-full ${
-                              upgrade.unlocked && gameState.money >= upgrade.cost
-                                ? 'bg-yellow-600 hover:bg-yellow-700'
-                                : 'bg-gray-600 cursor-not-allowed'
-                            }`}
-                          >
-                            <TrendingUp className="w-4 h-4 mr-2" />
-                            {!upgrade.unlocked ? 'Prérequis manquants' : 'Améliorer'}
-                          </Button>
-                        )}
-                      </div>
-
-                      {/* Barre de progression vers le niveau suivant */}
-                      {gameState.vipSalonLevel === upgrade.level && upgrade.level < 9 && (
-                        <div className="mt-4 pt-4 border-t border-gray-600">
-                          <div className="text-sm text-gray-400 mb-2">
-                            Prochain niveau: {salonUpgrades.find(s => s.level === upgrade.level + 1)?.name}
-                          </div>
-                          <Progress 
-                            value={Math.min(100, (gameState.money / salonUpgrades.find(s => s.level === upgrade.level + 1)?.cost) * 100)} 
-                            className="h-2" 
-                          />
-                        </div>
-                      )}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-purple-400">{currentVips.length}</div>
+                    <div className="text-gray-400">VIPs présents</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-blue-400">{currentSalon?.capacity || 0}</div>
+                    <div className="text-gray-400">Capacité maximale</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-green-400">
+                      ${currentVips.reduce((sum, vip) => sum + vip.viewing_fee, 0).toLocaleString()}
                     </div>
-                  ))}
+                    <div className="text-gray-400">Revenus potentiels</div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
 
-          {/* Gestion des VIP */}
-          <TabsContent value="vips" className="space-y-6">
-            <Card className="bg-black/50 border-red-500/30">
+            {/* VIPs actuels */}
+            <Card className="bg-black/50 border-purple-500/30">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <Users className="w-5 h-5" />
-                  VIP Permanents
-                  <Button 
-                    onClick={refreshVips} 
-                    disabled={loadingVips}
-                    variant="outline" 
-                    size="sm"
-                    className="ml-auto"
-                  >
-                    <RefreshCw className={`w-4 h-4 mr-2 ${loadingVips ? 'animate-spin' : ''}`} />
-                    Changer les VIPs
-                  </Button>
+                  VIPs du salon actuel
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {loadingVips ? (
-                  <div className="flex justify-center items-center py-12">
-                    <RefreshCw className="w-8 h-8 animate-spin text-red-500" />
-                    <span className="ml-2 text-gray-400">Chargement des VIPs...</span>
+                  <div className="text-center py-8 text-gray-400">
+                    <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p>Chargement des VIPs...</p>
+                  </div>
+                ) : currentVips.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400">
+                    <Crown className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p>Aucun VIP dans le salon</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {currentVips.map((vip, index) => (
-                      <Card key={vip.id || index} className="bg-gray-800/50 border-gray-600/30">
-                        <CardContent className="p-6 text-center">
-                          <div className="w-20 h-20 bg-gradient-to-br from-red-600 to-red-800 rounded-full mx-auto mb-4 flex items-center justify-center">
-                            <span className="text-2xl">{getAnimalEmoji(vip.mask)}</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {currentVips.map((vip) => (
+                      <div
+                        key={vip.id}
+                        className={`p-4 rounded-lg border transition-all bg-gray-800/50 border-gray-600 ${getPersonalityColor(vip.personality)}`}
+                      >
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="text-2xl">{getAnimalEmoji(vip.mask)}</div>
+                          <div className="flex-1">
+                            <h3 className="text-white font-medium">{vip.name}</h3>
+                            <p className="text-gray-400 text-sm capitalize">{vip.personality}</p>
                           </div>
-                          <h3 className="text-white font-bold mb-2">{vip.name}</h3>
-                          <Badge 
-                            variant="outline" 
-                            className={`mb-4 ${getPersonalityColor(vip.personality)}`}
-                          >
-                            {vip.personality}
-                          </Badge>
-                          
-                          {/* Dialogue récent */}
-                          <div className="bg-gray-700/50 p-3 rounded-lg mb-4">
-                            <MessageCircle className="w-4 h-4 text-gray-400 mx-auto mb-2" />
-                            <p className="text-xs text-gray-300 italic">
-                              "{vip.dialogues[Math.floor(Math.random() * vip.dialogues.length)]}"
-                            </p>
-                          </div>
+                        </div>
 
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">Frais de visionnage:</span>
-                              <span className="text-green-400">${vip.viewing_fee?.toLocaleString() || 'N/A'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">Masque:</span>
-                              <span className="text-white">{vip.mask}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">Gains totaux:</span>
-                              <span className="text-yellow-400">${vip.total_winnings?.toLocaleString() || '0'}</span>
-                            </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-400">Frais de visionnage:</span>
+                            <span className="text-green-400">${vip.viewing_fee.toLocaleString()}</span>
                           </div>
-                        </CardContent>
-                      </Card>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-400">Paris totaux:</span>
+                            <span className="text-yellow-400">${vip.bets.toLocaleString()}</span>
+                          </div>
+                        </div>
+
+                        {vip.favorite_player && (
+                          <div className="mt-2 text-xs text-purple-400">
+                            Favorise: {vip.favorite_player}
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
                 )}
-                
-                {/* Statistiques du salon - VERSION AMÉLIORÉE */}
-                <div className="mt-8 p-6 bg-gradient-to-r from-green-900/30 to-yellow-900/30 border border-green-500/30 rounded-lg">
-                  <h4 className="text-white font-bold mb-4 text-center text-lg">💰 Statistiques du salon VIP</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-400">{currentVips.length}</div>
-                      <div className="text-gray-400">VIPs présents</div>
-                    </div>
-                    <div className="text-center bg-green-800/30 p-3 rounded-lg border border-green-500/30">
-                      <div className="text-3xl font-bold text-green-400">
-                        ${currentVips.reduce((sum, vip) => sum + (vip.viewing_fee || 0), 0).toLocaleString()}
+              </CardContent>
+            </Card>
+
+            {/* Améliorations du salon */}
+            <Card className="bg-black/50 border-purple-500/30">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5" />
+                  Améliorations du salon
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {salonUpgrades.map((upgrade) => (
+                    <div
+                      key={upgrade.level}
+                      className={`p-4 rounded-lg border transition-all ${
+                        upgrade.level === gameState.vipSalonLevel
+                          ? 'bg-purple-600/20 border-purple-500'
+                          : upgrade.unlocked
+                          ? 'bg-gray-800/50 border-gray-600 hover:bg-gray-700/50'
+                          : 'bg-gray-900/50 border-gray-700 opacity-50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className={`font-medium ${
+                          upgrade.level === gameState.vipSalonLevel ? 'text-purple-400' : 'text-white'
+                        }`}>
+                          {upgrade.name}
+                        </h3>
+                        {upgrade.level === gameState.vipSalonLevel && (
+                          <Badge className="bg-purple-600 text-white text-xs">ACTUEL</Badge>
+                        )}
                       </div>
-                      <div className="text-green-300 font-medium">Revenus totaux</div>
-                      <div className="text-xs text-green-200 mt-1">Frais de visionnage VIP</div>
+
+                      <p className="text-gray-400 text-sm mb-3">{upgrade.description}</p>
+
+                      <div className="space-y-2 mb-4">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-400">Capacité:</span>
+                          <span className="text-white">{upgrade.capacity} VIPs</span>
+                        </div>
+                        {upgrade.cost > 0 && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-400">Coût:</span>
+                            <span className="text-yellow-400">${upgrade.cost.toLocaleString()}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {upgrade.level > gameState.vipSalonLevel && (
+                        <Button
+                          onClick={() => upgradeSalon(upgrade.level)}
+                          disabled={!upgrade.unlocked || gameState.money < upgrade.cost}
+                          className={`w-full text-xs ${
+                            upgrade.unlocked && gameState.money >= upgrade.cost
+                              ? 'bg-purple-600 hover:bg-purple-700'
+                              : 'bg-gray-600 cursor-not-allowed'
+                          }`}
+                        >
+                          {upgrade.unlocked ? 'Améliorer' : 'Verrouillé'}
+                        </Button>
+                      )}
                     </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-yellow-400">{currentSalon?.capacity}</div>
-                      <div className="text-gray-400">Capacité max</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-400">{allVips.length}</div>
-                      <div className="text-gray-400">VIPs disponibles</div>
-                    </div>
-                  </div>
-                  <div className="mt-4 text-center">
-                    <p className="text-sm text-gray-300">
-                      💡 <span className="text-yellow-400 font-medium">Les revenus totaux</span> représentent la somme que vous recevrez 
-                      à la fin des jeux grâce aux frais de visionnage payés par les VIPs.
-                    </p>
-                  </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -526,6 +522,7 @@ const VipSalon = ({ gameState, updateGameState }) => {
                 .filter(celebrity => celebrity.category !== "Ancien vainqueur" && celebrity.category !== "Ancienne vainqueur")
                 .map((celebrity) => {
                   const isOwned = gameState.ownedCelebrities?.includes(celebrity.id);
+                  const isPurchasing = purchasingCelebrity === celebrity.id;
                   
                   return (
                     <Card 
@@ -599,15 +596,19 @@ const VipSalon = ({ gameState, updateGameState }) => {
                                   e.stopPropagation();
                                   purchaseCelebrity(celebrity);
                                 }}
-                                disabled={gameState.money < celebrity.price}
+                                disabled={gameState.money < celebrity.price || isPurchasing}
                                 className={`w-full text-xs ${
-                                  gameState.money >= celebrity.price
+                                  gameState.money >= celebrity.price && !isPurchasing
                                     ? 'bg-red-600 hover:bg-red-700'
                                     : 'bg-gray-600 cursor-not-allowed'
                                 }`}
                               >
-                                <ShoppingCart className="w-3 h-3 mr-1" />
-                                Acheter
+                                {isPurchasing ? (
+                                  <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                                ) : (
+                                  <ShoppingCart className="w-3 h-3 mr-1" />
+                                )}
+                                {isPurchasing ? 'Achat...' : 'Acheter'}
                               </Button>
                             </div>
                           )}
@@ -620,6 +621,7 @@ const VipSalon = ({ gameState, updateGameState }) => {
               {/* Afficher les vrais anciens gagnants */}
               {pastWinners.map((winner) => {
                 const isOwned = gameState.ownedCelebrities?.includes(winner.id);
+                const isPurchasing = purchasingCelebrity === winner.id;
                 
                 return (
                   <Card 
@@ -692,15 +694,19 @@ const VipSalon = ({ gameState, updateGameState }) => {
                                 e.stopPropagation();
                                 purchaseCelebrity(winner);
                               }}
-                              disabled={gameState.money < winner.price}
+                              disabled={gameState.money < winner.price || isPurchasing}
                               className={`w-full text-xs ${
-                                gameState.money >= winner.price
+                                gameState.money >= winner.price && !isPurchasing
                                   ? 'bg-yellow-600 hover:bg-yellow-700 text-black font-bold'
                                   : 'bg-gray-600 cursor-not-allowed'
                               }`}
                             >
-                              <Crown className="w-3 h-3 mr-1" />
-                              Acheter
+                              {isPurchasing ? (
+                                <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                              ) : (
+                                <Crown className="w-3 h-3 mr-1" />
+                              )}
+                              {isPurchasing ? 'Achat...' : 'Acheter'}
                             </Button>
                           </div>
                         )}
@@ -765,7 +771,11 @@ const VipSalon = ({ gameState, updateGameState }) => {
               <CardContent className="space-y-4">
                 <div className="text-center">
                   <div className="w-20 h-20 bg-gray-600 rounded-full mx-auto mb-3 flex items-center justify-center">
-                    <Star className="w-10 h-10 text-yellow-400" />
+                    {selectedCelebrity.category === "Ancien gagnant" ? (
+                      <Crown className="w-10 h-10 text-yellow-400" />
+                    ) : (
+                      <Star className="w-10 h-10 text-yellow-400" />
+                    )}
                   </div>
                   <Badge variant="outline" className="text-gray-300">
                     {selectedCelebrity.nationality}
