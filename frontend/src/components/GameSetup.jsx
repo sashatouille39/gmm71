@@ -36,6 +36,7 @@ const GameSetup = ({ gameState, onStartGame }) => {
   const [preserveEventOrder, setPreserveEventOrder] = useState(true); // Nouvel état pour préserver l'ordre
   const [currentGameId, setCurrentGameId] = useState(null); // Pour gérer les groupes
   const [showGroupManager, setShowGroupManager] = useState(false);
+  const [pastWinners, setPastWinners] = useState([]);
 
   const gameModes = {
     standard: { name: 'Standard', cost: 100000, description: 'Jeu classique avec épreuves variées' }
