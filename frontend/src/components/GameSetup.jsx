@@ -235,6 +235,7 @@ const GameSetup = ({ gameState, onStartGame }) => {
 
   useEffect(() => {
     loadEventsFromAPI();
+    loadPastWinners();
   }, []);
 
   // Supprimer la sélection automatique d'épreuves
