@@ -19,7 +19,7 @@ import {
   TrendingUp,
   RefreshCw
 } from 'lucide-react';
-import { MOCK_CELEBRITIES } from '../mock/mockData';
+// Retrait des mocks: les célébrités sont désormais chargées depuis le backend
 import { vipService } from '../services/vipService';
 
 // Fonction pour obtenir l'emoji correspondant au masque animal
