@@ -120,6 +120,22 @@ const VipSalon = ({ gameState, updateGameState }) => {
     }
   };
 
+  const loadShopCelebrities = async () => {
+    try {
+      setLoadingCelebs(true);
+      const backendUrl = process.env.REACT_APP_BACKEND_URL;
+      const response = await fetch(`${backendUrl}/api/celebrities/?limit=60`);
+      if (response.ok) {
+        const celebs = await response.json();
+        setShopCelebrities(celebs);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des célébrités:', error);
+    } finally {
+      setLoadingCelebs(false);
+    }
+  };
+
   const loadSalonVips = async () => {
     try {
       setLoadingVips(true);
