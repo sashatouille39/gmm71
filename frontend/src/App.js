@@ -25,7 +25,7 @@ function App() {
   const loadGameStateFromBackend = async () => {
     setIsLoadingGameState(true);
     try {
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      const backendUrl = process.env.REACT_APP_BACKEND_URL;
       const response = await fetch(`${backendUrl}/api/gamestate/`);
       
       if (!response.ok) {
