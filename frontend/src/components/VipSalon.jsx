@@ -249,41 +249,24 @@ const VipSalon = ({ gameState, updateGameState }) => {
         setPurchasingCelebrity(celebrity.id);
         const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
         
-        // Appeler l'API backend pour effectuer l'achat
-        const response = await fetch(`${backendUrl}/api/celebrities/${celebrity.id}/purchase`, {
+        // Utiliser l'API gamestate/purchase pour gérer l'argent + possession atomiquement
+        const response = await fetch(`${backendUrl}/api/gamestate/purchase`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          }
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            item_type: 'celebrity',
+            item_id: celebrity.id,
+            price: celebrity.price
+          })
         });
 
         if (response.ok) {
-          // Mettre à jour le gamestate local ET backend
-          const newOwnedCelebrities = [...(gameState.ownedCelebrities || []), celebrity.id];
-          const newMoney = gameState.money - celebrity.price;
-          
-          // Mettre à jour le frontend
+          const updatedState = await response.json();
+          // Adapter le format backend -> frontend
           updateGameState({
-            money: newMoney,
-            ownedCelebrities: newOwnedCelebrities
+            money: updatedState.money,
+            ownedCelebrities: updatedState.owned_celebrities || []
           });
-
-          // Synchroniser avec le backend
-          const updateResponse = await fetch(`${backendUrl}/api/gamestate/`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              money: newMoney,
-              owned_celebrities: newOwnedCelebrities
-            })
-          });
-
-          if (!updateResponse.ok) {
-            console.error('Erreur lors de la synchronisation du gamestate');
-          }
-
           console.log(`Célébrité ${celebrity.name} achetée avec succès !`);
         } else {
           console.error('Erreur lors de l\'achat de la célébrité');
