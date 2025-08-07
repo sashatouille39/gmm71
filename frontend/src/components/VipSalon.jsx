@@ -247,7 +247,7 @@ const VipSalon = ({ gameState, updateGameState }) => {
     if (gameState.money >= celebrity.price && !purchasingCelebrity) {
       try {
         setPurchasingCelebrity(celebrity.id);
-        const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+        const backendUrl = process.env.REACT_APP_BACKEND_URL;
         
         // Utiliser l'API gamestate/purchase pour gérer l'argent + possession atomiquement
         const response = await fetch(`${backendUrl}/api/gamestate/purchase`, {
