@@ -93,12 +93,15 @@ const VipSalon = ({ gameState, updateGameState }) => {
   const [pastWinners, setPastWinners] = useState([]);
   const [loadingWinners, setLoadingWinners] = useState(false);
   const [purchasingCelebrity, setPurchasingCelebrity] = useState(null);
+  const [shopCelebrities, setShopCelebrities] = useState([]);
+  const [loadingCelebs, setLoadingCelebs] = useState(false);
 
-  // Charger les VIPs et les gagnants lors du montage du composant
+  // Charger les VIPs, célébrités et les gagnants lors du montage du composant
   useEffect(() => {
     loadSalonVips();
     loadAllVips();
     loadPastWinners();
+    loadShopCelebrities();
   }, [gameState.vipSalonLevel]);
 
   const loadPastWinners = async () => {
