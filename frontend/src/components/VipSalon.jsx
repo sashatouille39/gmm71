@@ -107,7 +107,7 @@ const VipSalon = ({ gameState, updateGameState }) => {
   const loadPastWinners = async () => {
     try {
       setLoadingWinners(true);
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      const backendUrl = process.env.REACT_APP_BACKEND_URL;
       const response = await fetch(`${backendUrl}/api/statistics/winners`);
       if (response.ok) {
         const winners = await response.json();
