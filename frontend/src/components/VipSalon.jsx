@@ -537,7 +537,7 @@ const VipSalon = ({ gameState, updateGameState }) => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Afficher les célébrités normales (filtrer les faux anciens gagnants) */}
-              {MOCK_CELEBRITIES
+              {shopCelebrities
                 .filter(celebrity => celebrity.category !== "Ancien vainqueur" && celebrity.category !== "Ancienne vainqueur")
                 .map((celebrity) => {
                   const isOwned = gameState.ownedCelebrities?.includes(celebrity.id);
