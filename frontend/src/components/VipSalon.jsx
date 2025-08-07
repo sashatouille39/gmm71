@@ -154,7 +154,7 @@ const VipSalon = ({ gameState, updateGameState }) => {
 
   const loadAllVips = async () => {
     try {
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      const backendUrl = process.env.REACT_APP_BACKEND_URL;
       const response = await fetch(`${backendUrl}/api/vips/all`);
       if (response.ok) {
         const vips = await response.json();
