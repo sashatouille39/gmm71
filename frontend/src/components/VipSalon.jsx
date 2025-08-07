@@ -525,7 +525,7 @@ const VipSalon = ({ gameState, updateGameState }) => {
                 </Badge>
                 <Badge variant="outline" className="text-gray-400">
                   {/* Calculer le total : célébrités normales + vrais gagnants */}
-                  {MOCK_CELEBRITIES.filter(c => c.category !== "Ancien vainqueur" && c.category !== "Ancienne vainqueur").length + pastWinners.length} disponibles
+                  {shopCelebrities.filter(c => c.category !== "Ancien vainqueur" && c.category !== "Ancienne vainqueur").length + pastWinners.length} disponibles
                 </Badge>
                 {pastWinners.length > 0 && (
                   <Badge variant="outline" className="text-green-400 border-green-400">
