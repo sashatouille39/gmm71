@@ -253,6 +253,7 @@ const GameSetup = ({ gameState, onStartGame }) => {
   useEffect(() => {
     loadEventsFromAPI();
     loadPastWinners();
+    loadOwnedCelebrities();
   }, []);
 
   // Supprimer la sélection automatique d'épreuves
