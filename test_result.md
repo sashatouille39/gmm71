@@ -1380,19 +1380,15 @@
 
 ## test_plan:
   current_focus:
-    - "Test des gains VIP dans le classement final"
-    - "Test du calcul correct des gains VIP"
-    - "Test de la route de statut des gains VIP"
-    - "Test de cohérence des données VIP"
+    - "VIP salon initialization fix - start at level 0 instead of 1"
   stuck_tasks:
-    - "Test du calcul correct des gains VIP"
-    - "Test des gains VIP dans le classement final"
-    - "Test de la route de statut des gains VIP"
-    - "Test de cohérence des données VIP"
+    - "VIP salon initialization fix - start at level 0 instead of 1"
   test_all: false
   test_priority: "high_first"
 
 ## agent_communication:
+    - agent: "testing"
+      message: "❌ VIP SALON INITIALIZATION FIX PARTIELLEMENT VALIDÉE: Tests exhaustifs effectués selon la review request spécifique révèlent que la correction principale fonctionne (vip_salon_level démarre à 0) mais des problèmes subsistent dans la logique d'assignation des VIPs. ✅ SUCCÈS: 1) Niveau initial correct (0 au lieu de 1), 2) Achat salon standard (100k, déduction correcte). ❌ PROBLÈMES: 3) VIPs disponibles au niveau 0 (1 trouvé au lieu de 0), 4) Capacité salon niveau 1 (1 VIP au lieu de 3), 5) Assignation VIPs lors création partie niveau 0 (1 assigné au lieu de 0). Backend tests: 2/5 passed (40% success rate). La correction du modèle GameState fonctionne mais la logique VIP selon le niveau de salon nécessite des corrections supplémentaires."
     - agent: "testing"
       message: "✅ FONCTIONNALITÉ SÉLECTION CÉLÉBRITÉS POUR JEUX PARFAITEMENT VALIDÉE! Tests exhaustifs effectués selon la review request spécifique sur le problème 422 lors de la sélection de célébrités: 1) **Structure données célébrités**: ✅ CONFIRMÉ - API /api/celebrities/ retourne structure complète avec tous champs requis. 2) **Conversion célébrité→joueur**: ✅ CONFIRMÉ - Format corrigé avec role='intelligent' (pas 'celebrity') et champs portrait corrects (face_shape, skin_color, etc. pas faceShape, skinColor). 3) **Création jeu sans erreur 422**: ✅ CONFIRMÉ - POST /api/games/create avec all_players contenant célébrité convertie réussit parfaitement. Célébrité 'Orion Hernandez' incluse avec succès. 4) **Test multi-célébrités**: ✅ CONFIRMÉ - Création avec 2 célébrités simultanément fonctionne. Backend tests: 3/3 passed (100% success rate). Le bug 'quand je sélectionne une célébrité pour les jeux, les jeux ne se lance plus, le bouton lancer la partie ne fonctionne plus' avec erreur 422 est complètement résolu."
     - agent: "main"
