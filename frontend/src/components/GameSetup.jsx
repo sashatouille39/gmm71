@@ -177,8 +177,25 @@ const GameSetup = ({ gameState, onStartGame }) => {
   };
 
   const startGame = async () => {
-    if (!canAfford()) return;
-    if (players.length === 0 || selectedEvents.length === 0) return;
+    console.log('startGame appelé');
+    console.log('canAfford():', canAfford());
+    console.log('players.length:', players.length);
+    console.log('selectedEvents.length:', selectedEvents.length);
+    console.log('players:', players);
+    console.log('selectedEvents:', selectedEvents);
+    
+    if (!canAfford()) {
+      console.log('Budget insuffisant');
+      return;
+    }
+    if (players.length === 0) {
+      console.log('Aucun joueur');
+      return;
+    }
+    if (selectedEvents.length === 0) {
+      console.log('Aucune épreuve sélectionnée');
+      return;
+    }
     
     const eventsData = availableEvents.filter(event => selectedEvents.includes(event.id));
     // Réorganiser les événements selon l'ordre sélectionné
