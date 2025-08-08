@@ -45,7 +45,7 @@ const GameSetup = ({ gameState, onStartGame }) => {
   // Charger les anciens gagnants depuis l'API backend
   const loadPastWinners = async () => {
     try {
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      const backendUrl = process.env.REACT_APP_BACKEND_URL;
       const response = await fetch(`${backendUrl}/api/statistics/winners`);
       if (response.ok) {
         const winners = await response.json();
