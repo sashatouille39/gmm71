@@ -58,6 +58,21 @@ const GameSetup = ({ gameState, onStartGame }) => {
     }
   };
 
+  // Charger les célébrités possédées
+  const loadOwnedCelebrities = async () => {
+    try {
+      if (gameState.ownedCelebrities && gameState.ownedCelebrities.length > 0) {
+        const celebrities = await celebritiesService.getOwnedCelebrities(gameState.ownedCelebrities);
+        setOwnedCelebrities(celebrities);
+      } else {
+        setOwnedCelebrities([]);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des célébrités possédées:', error);
+      setOwnedCelebrities([]);
+    }
+  };
+
   // Charger les épreuves depuis l'API backend
   const loadEventsFromAPI = async () => {
     setIsLoadingEvents(true);
