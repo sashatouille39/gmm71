@@ -137,6 +137,12 @@ const VipSalon = ({ gameState, updateGameState }) => {
   };
 
   const loadSalonVips = async () => {
+    if (gameState.vipSalonLevel === 0) {
+      // Pas de salon = pas de VIPs
+      setCurrentVips([]);
+      return;
+    }
+    
     try {
       setLoadingVips(true);
       const backendUrl = process.env.REACT_APP_BACKEND_URL;
