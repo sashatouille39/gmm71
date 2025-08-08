@@ -56,12 +56,33 @@ async def get_past_winners(user_id: str = "default_user"):
         winners = []
         for game in completed_games:
             if game.winner and game.final_ranking:
-                # Récupérer les données du gagnant depuis le classement final
+                # CORRECTION : Récupérer le VRAI gagnant (winner) au lieu du premier du classement
                 winner_data = None
+                winner_name = game.winner.get('name') if isinstance(game.winner, dict) else getattr(game.winner, 'name', None)
+                
+                # Chercher le vrai gagnant dans le classement final
                 for ranking_entry in game.final_ranking:
-                    if ranking_entry.get('position') == 1:  # Premier du classement
+                    player_info = ranking_entry.get('player', {})
+                    if player_info.get('name') == winner_name:
                         winner_data = ranking_entry
                         break
+                
+                # Fallback : si on ne trouve pas le gagnant par nom, utiliser l'objet winner directement
+                if not winner_data and isinstance(game.winner, dict):
+                    winner_data = {
+                        'player': game.winner,
+                        'player_stats': getattr(game.winner, 'stats', {}),
+                        'total_score': getattr(game.winner, 'total_score', 0)
+                    }
+                elif not winner_data and hasattr(game.winner, 'name'):
+                    winner_data = {
+                        'player': {
+                            'name': game.winner.name,
+                            'nationality': getattr(game.winner, 'nationality', 'Inconnue')
+                        },
+                        'player_stats': getattr(game.winner, 'stats', {}),
+                        'total_score': getattr(game.winner, 'total_score', 0)
+                    }
                 
                 if winner_data and winner_data.get('player'):
                     player_info = winner_data['player']
