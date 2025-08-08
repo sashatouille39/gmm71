@@ -256,6 +256,11 @@ const GameSetup = ({ gameState, onStartGame }) => {
     loadOwnedCelebrities();
   }, []);
 
+  // Recharger les célébrités quand la liste des célébrités possédées change
+  useEffect(() => {
+    loadOwnedCelebrities();
+  }, [gameState.ownedCelebrities]);
+
   // Supprimer la sélection automatique d'épreuves
   // L'utilisateur doit choisir explicitement "mon ordre" ou "choisir aléatoirement"
 
