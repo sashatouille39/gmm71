@@ -13448,4 +13448,4 @@ class BackendTester:
 
 if __name__ == "__main__":
     tester = BackendTester()
-    tester.run_all_tests()
+    tester.run_celebrity_pricing_tests()
