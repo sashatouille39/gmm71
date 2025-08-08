@@ -615,7 +615,7 @@ const GameSetup = ({ gameState, onStartGame }) => {
                                 console.log('Célébrité sélectionnée:', celebrity);
                                 console.log('Stats de la célébrité:', celebrity.stats);
                                 
-                                // Convertir la célébrité en joueur
+                                // Convertir la célébrité en joueur avec format correct pour l'API
                                 const celebrityAsPlayer = {
                                   id: Date.now() + Math.random(),
                                   number: String(players.length + 1).padStart(3, '0'),
@@ -623,15 +623,18 @@ const GameSetup = ({ gameState, onStartGame }) => {
                                   nationality: celebrity.nationality,
                                   gender: Math.random() > 0.5 ? 'M' : 'F',
                                   age: 25 + Math.floor(Math.random() * 20),
-                                  role: 'celebrity',
+                                  // Utiliser un rôle valide selon la catégorie de la célébrité
+                                  role: celebrity.category === 'Sportifs' ? 'sportif' : 
+                                        celebrity.category === 'Scientifiques' ? 'intelligent' : 'normal',
                                   stats: celebrity.stats,
+                                  // Utiliser les noms de champs corrects pour l'API backend
                                   portrait: {
-                                    faceShape: 'Ovale',
-                                    skinColor: '#F4B980',
+                                    face_shape: 'Ovale',
+                                    skin_color: '#F4B980',
                                     hairstyle: 'Cheveux courts',
-                                    hairColor: '#2C1B18',
-                                    eyeColor: '#654321',
-                                    eyeShape: 'Amande'
+                                    hair_color: '#2C1B18',
+                                    eye_color: '#654321',
+                                    eye_shape: 'Amande'
                                   },
                                   uniform: {
                                     style: 'Classic',
@@ -645,6 +648,7 @@ const GameSetup = ({ gameState, onStartGame }) => {
                                   totalScore: 0,
                                   celebrityId: celebrity.id,
                                   isCelebrity: true,
+                                  isCustom: true, // Marquer comme custom pour être inclus dans all_players
                                   category: celebrity.category,
                                   stars: celebrity.stars,
                                   wins: celebrity.wins || 0,
