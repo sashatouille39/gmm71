@@ -170,12 +170,22 @@ async def create_game(request: GameCreateRequest):
         
         # Récupérer le niveau de salon VIP - priorité à la requête, sinon celui du joueur
         salon_level = request.vip_salon_level if request.vip_salon_level is not None else game_state.vip_salon_level
-        capacity_map = {1: 1, 2: 3, 3: 5, 4: 8, 5: 10, 6: 12, 7: 15, 8: 17, 9: 20}
-        vip_capacity = capacity_map.get(salon_level, 1)
         
-        # Assigner des VIPs avec leurs viewing_fee (200k-3M)
-        game_vips = VipService.get_random_vips(vip_capacity)
-        active_vips_by_game[f'{game.id}_salon_{salon_level}'] = game_vips
+        # Si salon_level = 0, pas de VIPs assignés
+        if salon_level == 0:
+            # Pas de VIPs pour le niveau 0
+            active_vips_by_game[f'{game.id}_salon_{salon_level}'] = []
+        else:
+            # Capacités correctes selon VipSalon.jsx
+            capacity_map = {1: 3, 2: 5, 3: 8, 4: 10, 5: 12, 6: 15, 7: 17, 8: 18, 9: 20}
+            vip_capacity = capacity_map.get(salon_level, 0)
+            
+            if vip_capacity > 0:
+                # Assigner des VIPs avec leurs viewing_fee (200k-3M)
+                game_vips = VipService.get_random_vips(vip_capacity)
+                active_vips_by_game[f'{game.id}_salon_{salon_level}'] = game_vips
+            else:
+                active_vips_by_game[f'{game.id}_salon_{salon_level}'] = []
         
         # Stocker le salon_level utilisé dans le jeu pour les calculs futurs
         game.vip_salon_level = salon_level
