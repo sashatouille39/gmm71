@@ -13638,4 +13638,34 @@ class BackendTester:
 
 if __name__ == "__main__":
     tester = BackendTester()
-    tester.run_celebrity_pricing_tests()
+    
+    print(f"\n🎯 STARTING CELEBRITY SELECTION GAME CREATION TESTS")
+    print(f"Backend URL: {BACKEND_URL}")
+    print(f"API Base: {API_BASE}")
+    print("=" * 80)
+    
+    # Test server connectivity first
+    if not tester.test_server_startup():
+        print("❌ Server not accessible, aborting tests")
+        exit(1)
+    
+    # Run the celebrity selection test
+    tester.test_celebrity_selection_for_game_creation()
+    
+    # Print summary
+    print(f"\n📊 TEST SUMMARY:")
+    print("=" * 80)
+    print(f"Total tests: {tester.total_tests}")
+    print(f"Tests passed: {tester.passed_tests}")
+    print(f"Tests failed: {tester.total_tests - tester.passed_tests}")
+    print(f"Success rate: {(tester.passed_tests/tester.total_tests*100):.1f}%" if tester.total_tests > 0 else "0%")
+    
+    # Show detailed results
+    print(f"\n📋 DETAILED RESULTS:")
+    print("-" * 80)
+    for result in tester.results:
+        print(f"{result['status']}: {result['test']} - {result['message']}")
+        if result.get('details'):
+            print(f"   Details: {result['details']}")
+    
+    print("\n" + "=" * 80)
