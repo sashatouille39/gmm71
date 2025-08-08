@@ -173,9 +173,9 @@ const VipSalon = ({ gameState, updateGameState }) => {
       level: 1, 
       name: 'Salon Standard', 
       capacity: 3, 
-      cost: 0, 
+      cost: 100000, // 100k - doit être acheté maintenant
       description: 'Salon de base, 3 places VIP',
-      unlocked: true 
+      unlocked: gameState.money >= 100000 // Plus automatiquement débloqué
     },
     { 
       level: 2, 
