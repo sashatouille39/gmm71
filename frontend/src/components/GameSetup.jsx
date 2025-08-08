@@ -20,7 +20,8 @@ import {
   Crown,
   Star
 } from 'lucide-react';
-import { generateRandomPlayer, MOCK_CELEBRITIES, EVENT_CATEGORIES } from '../mock/mockData';
+import { generateRandomPlayer, EVENT_CATEGORIES } from '../mock/mockData';
+import { celebritiesService } from '../services/celebritiesService';
 import CustomPlayersList from './CustomPlayersList';
 import GroupManager from './GroupManager';
 
