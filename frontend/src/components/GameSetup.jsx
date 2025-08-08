@@ -581,8 +581,7 @@ const GameSetup = ({ gameState, onStartGame }) => {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {/* Afficher les célébrités normales possédées */}
-                    {MOCK_CELEBRITIES
-                      .filter(celebrity => gameState.ownedCelebrities.includes(celebrity.id))
+                    {ownedCelebrities
                       .map((celebrity) => {
                         const isSelected = players.some(p => p.celebrityId === celebrity.id);
                         
