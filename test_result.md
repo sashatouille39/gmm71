@@ -105,6 +105,18 @@
 ## user_problem_statement: "Corrige ces problèmes sur le jeu : quand j'achète une célébrité et que je vais dans 'jouer', dans le menu, puis dans 'célébrités', je ne voit pas les célébrités ou les anciens gagnants que j'ai acheté donc je ne peux pas les sélectionner pour les faire participer aux jeux et enfin le prix des célébrités dans la boutique des célébrités n'est pas cohérent et aléatoire ; une célérité 1 étoile doit coûter entre 2 et 5 millions et donc je te laisse déduire le prix logique des célébrités 2,3,4,5 étoiles"
 
 ## backend:
+  - task: "Test de la fonctionnalité de sélection de célébrités pour la création de jeux"
+    implemented: true
+    working: true
+    file: "routes/game_routes.py, models/game_models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ FONCTIONNALITÉ DE SÉLECTION DE CÉLÉBRITÉS PARFAITEMENT VALIDÉE! Tests exhaustifs effectués selon la review request spécifique: 1) **Structure des données célébrités**: ✅ CONFIRMÉ - API /api/celebrities/ retourne la structure correcte avec tous les champs requis (id, name, category, stars, price, nationality, wins, stats, biography, is_owned, created_at). 2) **Conversion célébrité vers joueur**: ✅ CONFIRMÉ - Conversion réussie avec format corrigé: role='intelligent' (au lieu de 'celebrity'), portrait avec champs corrects (face_shape, skin_color, etc. au lieu de faceShape, skinColor). 3) **Création de jeu avec célébrité**: ✅ CONFIRMÉ - Requête POST /api/games/create avec all_players contenant une célébrité convertie réussit sans erreur 422. Célébrité 'Orion Hernandez' incluse avec succès dans le jeu (ID: 2151d04e-a717-4c5f-b562-49f24e0b6b26). 4) **Test avec plusieurs célébrités**: ✅ CONFIRMÉ - Création de jeu avec 2 célébrités simultanément fonctionne parfaitement. 5) **Validation des champs**: ✅ CONFIRMÉ - Tous les champs portrait utilisent la nomenclature correcte (snake_case) et les rôles sont valides ('normal', 'sportif', 'intelligent'). Backend tests: 3/3 passed (100% success rate). Le problème 422 lors de la sélection de célébrités pour les jeux est complètement résolu - la fonctionnalité fonctionne parfaitement."
+
   - task: "Correction des prix des célébrités selon la logique française"
     implemented: true
     working: true
