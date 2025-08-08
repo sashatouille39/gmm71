@@ -12014,7 +12014,38 @@ class BackendTester:
         except Exception as e:
             self.log_result("Celebrity Purchase Critical Issue", False, f"Error during diagnostic: {str(e)}")
 
-    def run_all_tests(self):
+    def run_celebrity_pricing_tests(self):
+        """Run celebrity pricing tests according to French review request"""
+        print(f"\n🇫🇷 STARTING CELEBRITY PRICING TESTS - FRENCH REVIEW REQUEST")
+        print(f"Backend URL: {BACKEND_URL}")
+        print(f"API Base: {API_BASE}")
+        print("=" * 80)
+        
+        # Test server connectivity first
+        if not self.test_server_startup():
+            print("❌ Server not accessible, aborting tests")
+            return
+        
+        # Run the main celebrity pricing test
+        self.test_celebrity_pricing_logic_french_specs()
+        
+        # Print summary
+        print(f"\n📊 RÉSUMÉ DES TESTS:")
+        print("=" * 80)
+        print(f"Total tests: {self.total_tests}")
+        print(f"Tests réussis: {self.passed_tests}")
+        print(f"Tests échoués: {self.total_tests - self.passed_tests}")
+        print(f"Taux de réussite: {(self.passed_tests/self.total_tests*100):.1f}%" if self.total_tests > 0 else "0%")
+        
+        # Show detailed results
+        print(f"\n📋 DÉTAILS DES RÉSULTATS:")
+        print("-" * 80)
+        for result in self.results:
+            print(f"{result['status']}: {result['test']}")
+            if result['details']:
+                print(f"   Détails: {result['details']}")
+        
+        return self.passed_tests == self.total_tests
         """Exécute tous les tests backend selon la review request française"""
         print(f"\n🎯 DÉMARRAGE DES TESTS BACKEND - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print("=" * 80)
