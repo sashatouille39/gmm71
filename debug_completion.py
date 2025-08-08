@@ -30,7 +30,7 @@ def debug_game_completion():
     # Step 1: Create a simple game
     print("Step 1: Creating a simple game...")
     game_request = {
-        "player_count": 10,  # Small game for quick completion
+        "player_count": 20,  # Minimum required
         "game_mode": "standard",
         "selected_events": [1, 2, 3],  # Few events
         "manual_players": []
