@@ -160,7 +160,7 @@ class CompletedGame(BaseModel):
     duration: str
     total_players: int
     survivors: int
-    winner: Optional[str] = None
+    winner: Optional[Union[str, Dict[str, Any], Player]] = None  # Peut être string (legacy) ou objet Player complet
     earnings: int = 0
     events_played: List[str] = []
     final_ranking: List[Dict[str, Any]] = []
