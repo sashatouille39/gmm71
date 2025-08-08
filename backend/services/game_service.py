@@ -845,16 +845,16 @@ class GameService:
         """Génère une liste de célébrités fictives"""
         celebrities = []
         categories = [
-            ("Ancien vainqueur", 5, 45000, 55000),
-            ("Sportif", 4, 20000, 30000),
-            ("Scientifique", 4, 18000, 28000),
-            ("Acteur", 3, 12000, 20000),
-            ("Chanteuse", 3, 10000, 18000),
-            ("Influenceur", 2, 6000, 12000),
-            ("Chef", 2, 5000, 10000),
-            ("Politicien", 3, 15000, 25000),
-            ("Écrivain", 2, 8000, 15000),
-            ("Artiste", 3, 10000, 20000)
+            ("Ancien vainqueur", 5, 35000000, 60000000),      # 35-60 millions pour 5 étoiles
+            ("Sportif", 4, 15000000, 35000000),               # 15-35 millions pour 4 étoiles
+            ("Scientifique", 4, 15000000, 35000000),          # 15-35 millions pour 4 étoiles
+            ("Acteur", 3, 5000000, 15000000),                 # 5-15 millions pour 3 étoiles
+            ("Chanteuse", 3, 5000000, 15000000),              # 5-15 millions pour 3 étoiles
+            ("Influenceur", 2, 2000000, 5000000),             # 2-5 millions pour 2 étoiles
+            ("Chef", 2, 2000000, 5000000),                    # 2-5 millions pour 2 étoiles
+            ("Politicien", 3, 5000000, 15000000),             # 5-15 millions pour 3 étoiles
+            ("Écrivain", 2, 2000000, 5000000),                # 2-5 millions pour 2 étoiles
+            ("Artiste", 3, 5000000, 15000000)                 # 5-15 millions pour 3 étoiles
         ]
         
         first_names = ['Alex', 'Jordan', 'Taylor', 'Morgan', 'Casey', 'Riley', 'Avery', 'Quinn', 
