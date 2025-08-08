@@ -970,6 +970,227 @@ class BackendTester:
         except Exception as e:
             self.log_result("Celebrity Owned List Route", False, f"Error: {str(e)}")
 
+    def test_celebrity_pricing_logic_french_specs(self):
+        """Test FRENCH REVIEW REQUEST: Tester la logique corrigée des prix des célébrités selon la nouvelle spécification française"""
+        try:
+            print("\n🇫🇷 TESTING CELEBRITY PRICING LOGIC - FRENCH SPECIFICATIONS")
+            print("=" * 80)
+            print("OBJECTIF: Tester les corrections des prix des célébrités selon les spécifications françaises:")
+            print("- 2 étoiles : 2-5 millions")
+            print("- 3 étoiles : 5-15 millions")  
+            print("- 4 étoiles : 15-35 millions")
+            print("- 5 étoiles : 35-60 millions")
+            print()
+            
+            # Test 1: Génération de nouvelles célébrités avec count=20
+            print("🔍 TEST 1: GÉNÉRATION DE NOUVELLES CÉLÉBRITÉS (count=20)")
+            print("-" * 60)
+            
+            response = requests.post(f"{API_BASE}/celebrities/generate-new", 
+                                   json={"count": 20},
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Celebrity Pricing - Generation", False, f"Could not generate celebrities - HTTP {response.status_code}")
+                return
+                
+            generation_data = response.json()
+            print(f"   ✅ {generation_data.get('message', 'Célébrités générées')}")
+            
+            # Test 2: Récupération des célébrités avec limit=100
+            print("\n🔍 TEST 2: RÉCUPÉRATION DES CÉLÉBRITÉS (limit=100)")
+            print("-" * 60)
+            
+            response = requests.get(f"{API_BASE}/celebrities/?limit=100", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Celebrity Pricing - Retrieval", False, f"Could not get celebrities - HTTP {response.status_code}")
+                return
+                
+            celebrities = response.json()
+            print(f"   ✅ Récupéré {len(celebrities)} célébrités")
+            
+            if len(celebrities) == 0:
+                self.log_result("Celebrity Pricing - No Data", False, "Aucune célébrité trouvée pour tester les prix")
+                return
+            
+            # Test 3: Analyse de la distribution des prix par étoiles
+            print("\n🔍 TEST 3: ANALYSE DE LA DISTRIBUTION DES PRIX PAR ÉTOILES")
+            print("-" * 60)
+            
+            price_analysis = {
+                2: {"celebrities": [], "min_expected": 2000000, "max_expected": 5000000},
+                3: {"celebrities": [], "min_expected": 5000000, "max_expected": 15000000},
+                4: {"celebrities": [], "min_expected": 15000000, "max_expected": 35000000},
+                5: {"celebrities": [], "min_expected": 35000000, "max_expected": 60000000}
+            }
+            
+            # Grouper les célébrités par étoiles
+            for celebrity in celebrities:
+                stars = celebrity.get('stars', 0)
+                price = celebrity.get('price', 0)
+                
+                if stars in price_analysis:
+                    price_analysis[stars]["celebrities"].append({
+                        "name": celebrity.get('name', 'Unknown'),
+                        "category": celebrity.get('category', 'Unknown'),
+                        "price": price,
+                        "stars": stars
+                    })
+            
+            # Analyser chaque niveau d'étoiles
+            pricing_errors = []
+            pricing_success = []
+            
+            for stars, data in price_analysis.items():
+                celebrities_list = data["celebrities"]
+                min_expected = data["min_expected"]
+                max_expected = data["max_expected"]
+                
+                if not celebrities_list:
+                    print(f"   ⚠️  Aucune célébrité {stars} étoiles trouvée")
+                    continue
+                
+                prices = [c["price"] for c in celebrities_list]
+                min_price = min(prices)
+                max_price = max(prices)
+                avg_price = sum(prices) / len(prices)
+                
+                print(f"   📊 {stars} étoiles ({len(celebrities_list)} célébrités):")
+                print(f"      - Fourchette attendue: {min_expected:,}$ - {max_expected:,}$")
+                print(f"      - Fourchette réelle: {min_price:,}$ - {max_price:,}$")
+                print(f"      - Prix moyen: {avg_price:,.0f}$")
+                
+                # Vérifier que tous les prix sont dans la fourchette
+                out_of_range = []
+                for celebrity in celebrities_list:
+                    price = celebrity["price"]
+                    if price < min_expected or price > max_expected:
+                        out_of_range.append(f"{celebrity['name']} ({celebrity['category']}): {price:,}$")
+                
+                if out_of_range:
+                    pricing_errors.extend([f"{stars} étoiles - {error}" for error in out_of_range[:3]])
+                    print(f"      ❌ {len(out_of_range)} prix hors fourchette")
+                else:
+                    pricing_success.append(f"{stars} étoiles: {len(celebrities_list)} célébrités, tous prix corrects")
+                    print(f"      ✅ Tous les prix respectent la fourchette")
+            
+            # Test 4: Vérification de cohérence par catégorie
+            print("\n🔍 TEST 4: VÉRIFICATION DE COHÉRENCE PAR CATÉGORIE")
+            print("-" * 60)
+            
+            category_analysis = {}
+            for celebrity in celebrities:
+                category = celebrity.get('category', 'Unknown')
+                stars = celebrity.get('stars', 0)
+                price = celebrity.get('price', 0)
+                
+                if category not in category_analysis:
+                    category_analysis[category] = []
+                category_analysis[category].append({"stars": stars, "price": price, "name": celebrity.get('name', 'Unknown')})
+            
+            category_consistency_errors = []
+            
+            expected_categories = {
+                "Ancien vainqueur": 5,  # 35-60 millions
+                "Sportif": 4,          # 15-35 millions  
+                "Scientifique": 4,     # 15-35 millions
+                "Acteur": 3,           # 5-15 millions
+                "Chanteuse": 3,        # 5-15 millions
+                "Politicien": 3,       # 5-15 millions
+                "Artiste": 3,          # 5-15 millions
+                "Influenceur": 2,      # 2-5 millions
+                "Chef": 2,             # 2-5 millions
+                "Écrivain": 2          # 2-5 millions
+            }
+            
+            for category, celebrities_list in category_analysis.items():
+                if category in expected_categories:
+                    expected_stars = expected_categories[category]
+                    
+                    # Vérifier que toutes les célébrités de cette catégorie ont le bon nombre d'étoiles
+                    wrong_stars = [c for c in celebrities_list if c["stars"] != expected_stars]
+                    
+                    if wrong_stars:
+                        for wrong in wrong_stars[:2]:  # Limiter à 2 exemples
+                            category_consistency_errors.append(
+                                f"{category}: {wrong['name']} a {wrong['stars']} étoiles au lieu de {expected_stars}"
+                            )
+                    
+                    # Vérifier les fourchettes de prix
+                    min_expected = price_analysis[expected_stars]["min_expected"]
+                    max_expected = price_analysis[expected_stars]["max_expected"]
+                    
+                    wrong_prices = [c for c in celebrities_list if c["price"] < min_expected or c["price"] > max_expected]
+                    
+                    if wrong_prices:
+                        for wrong in wrong_prices[:2]:  # Limiter à 2 exemples
+                            category_consistency_errors.append(
+                                f"{category}: {wrong['name']} prix {wrong['price']:,}$ hors fourchette {min_expected:,}$-{max_expected:,}$"
+                            )
+                    
+                    print(f"   📋 {category} ({expected_stars} étoiles): {len(celebrities_list)} célébrités")
+                    if not wrong_stars and not wrong_prices:
+                        print(f"      ✅ Toutes cohérentes")
+                    else:
+                        print(f"      ❌ {len(wrong_stars)} étoiles incorrectes, {len(wrong_prices)} prix incorrects")
+            
+            # Test 5: Exemples concrets
+            print("\n🔍 TEST 5: EXEMPLES CONCRETS DE CÉLÉBRITÉS")
+            print("-" * 60)
+            
+            # Prendre quelques exemples de chaque catégorie
+            examples = []
+            for stars in [2, 3, 4, 5]:
+                celebrities_with_stars = [c for c in celebrities if c.get('stars') == stars]
+                if celebrities_with_stars:
+                    example = celebrities_with_stars[0]
+                    examples.append(example)
+                    min_expected = price_analysis[stars]["min_expected"]
+                    max_expected = price_analysis[stars]["max_expected"]
+                    price = example.get('price', 0)
+                    
+                    status = "✅" if min_expected <= price <= max_expected else "❌"
+                    print(f"   {status} {example.get('name', 'Unknown')} ({example.get('category', 'Unknown')}):")
+                    print(f"      {stars} étoiles, {price:,}$ (fourchette: {min_expected:,}$-{max_expected:,}$)")
+            
+            # Évaluation finale
+            print("\n📊 RÉSULTATS FINAUX:")
+            print("-" * 60)
+            
+            total_errors = len(pricing_errors) + len(category_consistency_errors)
+            total_celebrities_tested = len(celebrities)
+            
+            if total_errors == 0:
+                self.log_result("Celebrity Pricing Logic French Specs", True, 
+                              f"✅ SUCCÈS TOTAL: {total_celebrities_tested} célébrités testées, tous les prix respectent la logique française")
+                
+                print(f"   ✅ Tous les prix respectent les fourchettes par étoiles")
+                print(f"   ✅ Toutes les catégories ont les bonnes étoiles et prix")
+                print(f"   ✅ Aucun prix incohérent détecté")
+                
+                for success in pricing_success:
+                    print(f"   ✅ {success}")
+                    
+            else:
+                self.log_result("Celebrity Pricing Logic French Specs", False, 
+                              f"❌ PROBLÈMES DÉTECTÉS: {total_errors} erreurs sur {total_celebrities_tested} célébrités testées")
+                
+                print(f"   ❌ {len(pricing_errors)} erreurs de fourchettes de prix")
+                print(f"   ❌ {len(category_consistency_errors)} erreurs de cohérence catégorie/étoiles")
+                
+                # Afficher quelques exemples d'erreurs
+                all_errors = pricing_errors + category_consistency_errors
+                for error in all_errors[:5]:  # Limiter à 5 exemples
+                    print(f"   ❌ {error}")
+                
+                if len(all_errors) > 5:
+                    print(f"   ... et {len(all_errors) - 5} autres erreurs")
+                
+        except Exception as e:
+            self.log_result("Celebrity Pricing Logic French Specs", False, f"Error during test: {str(e)}")
+
     def test_celebrity_stats_improvement_rules(self):
         """Test: Vérifier que les stats des célébrités s'améliorent selon les règles"""
         try:
