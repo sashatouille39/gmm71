@@ -14006,7 +14006,7 @@ class BackendTester:
 if __name__ == "__main__":
     tester = BackendTester()
     
-    print(f"\n🎯 STARTING CELEBRITY SELECTION GAME CREATION TESTS")
+    print(f"\n🎯 STARTING VIP SALON INITIALIZATION FIX TESTS")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"API Base: {API_BASE}")
     print("=" * 80)
@@ -14016,8 +14016,8 @@ if __name__ == "__main__":
         print("❌ Server not accessible, aborting tests")
         exit(1)
     
-    # Run the celebrity selection test
-    tester.test_celebrity_selection_for_game_creation()
+    # Run the VIP salon initialization test
+    tester.test_vip_salon_initialization_fix()
     
     # Print summary
     print(f"\n📊 TEST SUMMARY:")
