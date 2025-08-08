@@ -88,6 +88,25 @@ async def reset_game_state(user_id: str = "default_user"):
     game_state = GameState(user_id=user_id)
     game_states_db[user_id] = game_state
     return game_state
+@router.post("/upgrade-salon", response_model=dict)
+async def upgrade_salon(level: int, cost: int, user_id: str = "default_user"):
+    """Améliore le niveau de salon VIP"""
+    if user_id not in game_states_db:
+        game_state = GameState(user_id=user_id)
+        game_states_db[user_id] = game_state
+    else:
+        game_state = game_states_db[user_id]
+    
+    if game_state.money < cost:
+        raise HTTPException(status_code=400, detail="Fonds insuffisants")
+    
+    # Déduire l'argent et améliorer le salon
+    game_state.money -= cost
+    game_state.vip_salon_level = level
+    game_state.updated_at = datetime.utcnow()
+    game_states_db[user_id] = game_state
+    
+    return {"message": f"Salon amélioré au niveau {level} pour {cost:,}$"}
 
 @router.post("/add-earnings")
 async def add_earnings(earnings: int, user_id: str = "default_user"):
