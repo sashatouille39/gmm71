@@ -285,15 +285,21 @@ async def simulate_event(game_id: str):
             # Définir l'utilisateur par défaut
             user_id = "default_user"
             
+            print(f"🔍 DEBUG: Attempting to save completed game {game_id} for user {user_id}")
+            
             # Récupérer le classement final pour les statistiques
             try:
                 final_ranking_response = await get_final_ranking(game_id)
                 final_ranking = final_ranking_response.get('ranking', [])
-            except:
+                print(f"🔍 DEBUG: Final ranking retrieved with {len(final_ranking)} entries")
+            except Exception as ranking_error:
+                print(f"🔍 DEBUG: Failed to get final ranking: {ranking_error}")
                 final_ranking = []
             
             # Sauvegarder la partie terminée dans les statistiques
-            StatisticsService.save_completed_game(user_id, game, final_ranking)
+            print(f"🔍 DEBUG: Calling StatisticsService.save_completed_game...")
+            completed_game = StatisticsService.save_completed_game(user_id, game, final_ranking)
+            print(f"🔍 DEBUG: Game saved successfully: {completed_game.id}")
             
             # Mettre à jour les stats de base dans gamestate
             if user_id in game_states_db:
@@ -306,8 +312,14 @@ async def simulate_event(game_id: str):
                     game_state.game_stats.total_earnings += game.earnings
                 game_state.updated_at = datetime.utcnow()
                 game_states_db[user_id] = game_state
+                print(f"🔍 DEBUG: GameState updated for user {user_id}")
+            else:
+                print(f"🔍 DEBUG: User {user_id} not found in game_states_db")
+                
         except Exception as e:
-            print(f"Erreur lors de la sauvegarde des statistiques: {e}")
+            print(f"❌ Erreur lors de la sauvegarde des statistiques: {e}")
+            import traceback
+            print(f"❌ Traceback: {traceback.format_exc()}")
             # Continue même en cas d'erreur de sauvegarde
         
         # Retourner un résultat vide car aucun événement n'a été simulé
