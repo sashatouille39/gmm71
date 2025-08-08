@@ -595,6 +595,9 @@ const GameSetup = ({ gameState, onStartGame }) => {
                             }`}
                             onClick={() => {
                               if (!isSelected) {
+                                console.log('Célébrité sélectionnée:', celebrity);
+                                console.log('Stats de la célébrité:', celebrity.stats);
+                                
                                 // Convertir la célébrité en joueur
                                 const celebrityAsPlayer = {
                                   id: Date.now() + Math.random(),
@@ -613,6 +616,11 @@ const GameSetup = ({ gameState, onStartGame }) => {
                                     eyeColor: '#654321',
                                     eyeShape: 'Amande'
                                   },
+                                  uniform: {
+                                    style: 'Classic',
+                                    color: 'Rouge',
+                                    pattern: 'Uni'
+                                  },
                                   alive: true,
                                   kills: 0,
                                   betrayals: 0,
@@ -626,7 +634,12 @@ const GameSetup = ({ gameState, onStartGame }) => {
                                   biography: celebrity.biography
                                 };
                                 
-                                setPlayers(prev => [...prev, celebrityAsPlayer]);
+                                console.log('Joueur créé depuis célébrité:', celebrityAsPlayer);
+                                setPlayers(prev => {
+                                  const newPlayers = [...prev, celebrityAsPlayer];
+                                  console.log('Nouveaux joueurs:', newPlayers);
+                                  return newPlayers;
+                                });
                               }
                             }}
                           >
