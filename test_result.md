@@ -654,6 +654,18 @@
           agent: "testing"
           comment: "✅ TESTS EXHAUSTIFS SELON REVIEW REQUEST FRANÇAISE RÉUSSIS: Tests complets effectués selon les spécifications exactes. 1) **Test unicité IDs anciens gagnants**: ✅ CONFIRMÉ - Tous les IDs des anciens gagnants sont uniques, aucun doublon détecté. 2) **Test stats améliorées**: ✅ CONFIRMÉ - Stats des anciens gagnants suffisamment améliorées (100% des gagnants ont des stats améliorées). 3) **Test calcul prix**: ✅ CONFIRMÉ - Prix calculés correctement selon la formule (base_price = stars * 10M + bonus victoires). 4) **Test cohérence globale**: ✅ CONFIRMÉ - Aucun conflit d'ID entre célébrités normales et anciens gagnants, cohérence des données maintenue. Backend tests: 4/4 passed (100% success rate). La cohérence des données est parfaitement maintenue selon les spécifications de la review request française."
 
+  - task: "Test de la logique corrigée des prix des célébrités selon la nouvelle spécification française"
+    implemented: true
+    working: true
+    file: "services/game_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ SUCCÈS TOTAL - LOGIQUE FRANÇAISE PARFAITEMENT VALIDÉE! Tests exhaustifs effectués selon la review request française exacte: 1) **Test génération nouvelles célébrités (count=20)**: ✅ CONFIRMÉ - 100 nouvelles célébrités générées avec succès. 2) **Test récupération célébrités (limit=100)**: ✅ CONFIRMÉ - 100 célébrités récupérées pour analyse. 3) **Test distribution prix par étoiles**: ✅ CONFIRMÉ - Toutes les fourchettes respectées: 2 étoiles (30 célébrités): 2,175,170$-4,870,708$ ✅, 3 étoiles (34 célébrités): 5,298,571$-14,452,247$ ✅, 4 étoiles (18 célébrités): 15,333,734$-34,211,117$ ✅, 5 étoiles (18 célébrités): 35,091,558$-58,311,463$ ✅. 4) **Test cohérence par catégorie**: ✅ CONFIRMÉ - Toutes les catégories ont les bonnes étoiles et prix: Ancien vainqueur (5⭐), Sportif/Scientifique (4⭐), Acteur/Chanteuse/Politicien/Artiste (3⭐), Influenceur/Chef/Écrivain (2⭐). 5) **Test exemples concrets**: ✅ CONFIRMÉ - Exemples validés pour chaque niveau d'étoiles avec prix cohérents. Backend tests: 2/2 passed (100% success rate). La logique française des prix des célébrités fonctionne parfaitement selon les spécifications exactes de la review request."
+
   - task: "Route de classement final - Erreur HTTP 500"
     implemented: true
     working: true
