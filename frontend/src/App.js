@@ -109,7 +109,7 @@ function App() {
     try {
       // Si une partie a déjà été créée (gameId fourni), récupérer les données de cette partie
       if (gameOptions.gameId) {
-        const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+        const backendUrl = process.env.REACT_APP_BACKEND_URL;
         const response = await fetch(`${backendUrl}/api/games/${gameOptions.gameId}`);
         
         if (!response.ok) {
