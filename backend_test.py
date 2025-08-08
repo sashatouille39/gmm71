@@ -707,6 +707,196 @@ class BackendTester:
         except Exception as e:
             self.log_result("Backend Logs", False, f"Could not check logs: {str(e)}")
     
+    def test_celebrity_selection_for_game_creation(self):
+        """Test CRITICAL: Celebrity selection functionality for game creation - Fix 422 error"""
+        try:
+            print("\n🎯 TESTING CELEBRITY SELECTION FOR GAME CREATION - FIX 422 ERROR")
+            print("=" * 80)
+            
+            # Step 1: Get a celebrity from the backend API to understand exact data structure
+            print("   Step 1: Getting celebrity data structure...")
+            response = requests.get(f"{API_BASE}/celebrities/?limit=1", timeout=5)
+            if response.status_code != 200:
+                self.log_result("Celebrity Selection Game Creation", False, f"Could not get celebrities - HTTP {response.status_code}")
+                return
+                
+            celebrities = response.json()
+            if not celebrities:
+                self.log_result("Celebrity Selection Game Creation", False, "No celebrities available for testing")
+                return
+            
+            celebrity = celebrities[0]
+            print(f"   Celebrity found: {celebrity.get('name', 'Unknown')} (ID: {celebrity.get('id', 'No ID')})")
+            print(f"   Celebrity structure: {list(celebrity.keys())}")
+            
+            # Step 2: Convert celebrity to player format with corrected fields
+            print("   Step 2: Converting celebrity to player format...")
+            
+            # Extract celebrity data
+            celebrity_name = celebrity.get('name', 'Celebrity Player')
+            celebrity_nationality = celebrity.get('nationality', 'Française')
+            celebrity_stats = celebrity.get('stats', {})
+            
+            # Create player data with corrected format
+            celebrity_as_player = {
+                "name": celebrity_name,
+                "nationality": celebrity_nationality,
+                "gender": "homme",  # Default gender
+                "role": "intelligent",  # Use correct role format (not 'celebrity')
+                "stats": {
+                    "intelligence": celebrity_stats.get('intelligence', 7),
+                    "force": celebrity_stats.get('force', 6),
+                    "agilité": celebrity_stats.get('agilité', 8)
+                },
+                "portrait": {
+                    # Use correct field names (not camelCase)
+                    "face_shape": "ovale",
+                    "skin_color": "#D4A574",
+                    "hairstyle": "court",
+                    "hair_color": "#8B4513",
+                    "eye_color": "#654321",
+                    "eye_shape": "amande"
+                },
+                "uniform": {
+                    "style": "classique",
+                    "color": "vert",
+                    "pattern": "uni"
+                }
+            }
+            
+            print(f"   Converted celebrity to player format:")
+            print(f"   - Name: {celebrity_as_player['name']}")
+            print(f"   - Role: {celebrity_as_player['role']} (corrected from 'celebrity')")
+            print(f"   - Portrait fields: {list(celebrity_as_player['portrait'].keys())}")
+            
+            # Step 3: Create game with celebrity in all_players
+            print("   Step 3: Testing game creation with celebrity data...")
+            
+            game_request = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": [],
+                "all_players": [celebrity_as_player]  # Include celebrity in all_players
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            # Step 4: Verify the request succeeds without 422 error
+            print(f"   Step 4: Verifying response (Status: {response.status_code})...")
+            
+            if response.status_code == 200:
+                data = response.json()
+                game_id = data.get('id')
+                players = data.get('players', [])
+                
+                # Check if celebrity was included in the game
+                celebrity_found = False
+                for player in players:
+                    if player.get('name') == celebrity_name:
+                        celebrity_found = True
+                        print(f"   ✅ Celebrity found in game: {player.get('name')} (#{player.get('number')})")
+                        print(f"   - Role: {player.get('role')}")
+                        print(f"   - Portrait: {player.get('portrait', {}).keys()}")
+                        break
+                
+                if celebrity_found:
+                    self.log_result("Celebrity Selection Game Creation", True, 
+                                  f"✅ SUCCESS: Game created with celebrity without 422 error. "
+                                  f"Celebrity '{celebrity_name}' successfully included in game {game_id}")
+                else:
+                    self.log_result("Celebrity Selection Game Creation", False, 
+                                  f"Game created but celebrity '{celebrity_name}' not found in players list")
+                    
+            elif response.status_code == 422:
+                # Parse validation error details
+                try:
+                    error_data = response.json()
+                    error_details = error_data.get('detail', [])
+                    validation_errors = []
+                    
+                    for error in error_details:
+                        field = error.get('loc', ['unknown'])[-1]
+                        message = error.get('msg', 'Unknown error')
+                        validation_errors.append(f"{field}: {message}")
+                    
+                    self.log_result("Celebrity Selection Game Creation", False, 
+                                  f"❌ 422 VALIDATION ERROR: {'; '.join(validation_errors)}", 
+                                  error_details)
+                except:
+                    self.log_result("Celebrity Selection Game Creation", False, 
+                                  f"❌ 422 VALIDATION ERROR: {response.text[:500]}")
+            else:
+                self.log_result("Celebrity Selection Game Creation", False, 
+                              f"❌ HTTP {response.status_code}: {response.text[:200]}")
+            
+            # Step 5: Test with multiple celebrities if first test passed
+            if response.status_code == 200:
+                print("   Step 5: Testing with multiple celebrities...")
+                
+                # Get more celebrities
+                response = requests.get(f"{API_BASE}/celebrities/?limit=3", timeout=5)
+                if response.status_code == 200:
+                    more_celebrities = response.json()
+                    
+                    all_celebrity_players = []
+                    for i, celeb in enumerate(more_celebrities[:2]):  # Test with 2 celebrities
+                        celeb_player = {
+                            "name": celeb.get('name', f'Celebrity {i+1}'),
+                            "nationality": celeb.get('nationality', 'Française'),
+                            "gender": "femme" if i % 2 else "homme",
+                            "role": ["intelligent", "sportif", "normal"][i % 3],  # Vary roles
+                            "stats": {
+                                "intelligence": celeb.get('stats', {}).get('intelligence', 7),
+                                "force": celeb.get('stats', {}).get('force', 6),
+                                "agilité": celeb.get('stats', {}).get('agilité', 8)
+                            },
+                            "portrait": {
+                                "face_shape": ["ovale", "carré", "rond"][i % 3],
+                                "skin_color": ["#D4A574", "#F4C2A1", "#8D5524"][i % 3],
+                                "hairstyle": ["court", "long", "bouclé"][i % 3],
+                                "hair_color": "#8B4513",
+                                "eye_color": "#654321",
+                                "eye_shape": "amande"
+                            },
+                            "uniform": {
+                                "style": "classique",
+                                "color": ["vert", "bleu", "rouge"][i % 3],
+                                "pattern": "uni"
+                            }
+                        }
+                        all_celebrity_players.append(celeb_player)
+                    
+                    multi_game_request = {
+                        "player_count": 20,
+                        "game_mode": "standard", 
+                        "selected_events": [1, 2, 3],
+                        "manual_players": [],
+                        "all_players": all_celebrity_players
+                    }
+                    
+                    response = requests.post(f"{API_BASE}/games/create", 
+                                           json=multi_game_request, 
+                                           headers={"Content-Type": "application/json"},
+                                           timeout=15)
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        players = data.get('players', [])
+                        celebrity_count = sum(1 for p in players if any(celeb['name'] == p.get('name') for celeb in all_celebrity_players))
+                        
+                        self.log_result("Multiple Celebrities Game Creation", True, 
+                                      f"✅ SUCCESS: Game created with {celebrity_count} celebrities without errors")
+                    else:
+                        self.log_result("Multiple Celebrities Game Creation", False, 
+                                      f"❌ Multiple celebrities test failed - HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Celebrity Selection Game Creation", False, f"Error during test: {str(e)}")
+
     def test_celebrity_participation_route(self):
         """Test NEW: Route de participation des célébrités PUT /api/celebrities/{id}/participation"""
         try:
