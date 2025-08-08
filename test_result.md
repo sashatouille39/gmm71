@@ -102,9 +102,21 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-## user_problem_statement: "Corrige ces problèmes sur le jeu : quand j'achète une célébrité et que je vais dans 'jouer', dans le menu, puis dans 'célébrités', je ne voit pas les célébrités ou les anciens gagnants que j'ai acheté donc je ne peux pas les sélectionner pour les faire participer aux jeux et enfin le prix des célébrités dans la boutique des célébrités n'est pas cohérent et aléatoire ; une célérité 1 étoile doit coûter entre 2 et 5 millions et donc je te laisse déduire le prix logique des célébrités 2,3,4,5 étoiles"
+## user_problem_statement: "Test the VIP salon initialization fix. The user reported that the game starts with a standard VIP salon already unlocked (level 1, capacity 3) when it should start with 0 VIP salons and require purchasing the first salon."
 
 ## backend:
+  - task: "VIP salon initialization fix - start at level 0 instead of 1"
+    implemented: true
+    working: false
+    file: "models/game_models.py, routes/gamestate_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ CORRECTION VIP SALON PARTIELLEMENT VALIDÉE: Tests exhaustifs effectués selon la review request spécifique révèlent que 2/5 tests réussissent. ✅ SUCCÈS: 1) **Niveau initial correct**: vip_salon_level démarre bien à 0 au lieu de 1 comme demandé. 2) **Achat salon standard**: L'amélioration au niveau 1 coûte 100k et fonctionne correctement (argent déduit, niveau mis à jour). ❌ PROBLÈMES IDENTIFIÉS: 3) **VIPs disponibles niveau 0**: 1 VIP trouvé au niveau 0 alors qu'il devrait y en avoir 0. 4) **Capacité salon niveau 1**: Seulement 1 VIP disponible au niveau 1 au lieu des 3 attendus. 5) **Assignation VIPs niveau 0**: Lors de la création de partie avec salon niveau 0, 1 VIP est encore assigné au lieu de 0. Backend tests: 2/5 passed (40% success rate). La correction principale (niveau initial 0) fonctionne mais la logique d'assignation des VIPs selon le niveau de salon nécessite des corrections supplémentaires."
+
   - task: "Test de la fonctionnalité de sélection de célébrités pour la création de jeux"
     implemented: true
     working: true
