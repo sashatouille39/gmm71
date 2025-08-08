@@ -604,6 +604,50 @@ async def simulate_event(game_id: str):
             print(f"💰 Nouveau solde utilisateur: {game_state.money:,}$")
         else:
             print("📋 Aucun gain VIP à collecter pour cette partie")
+        
+        # 🎯 NOUVELLE FONCTIONNALITÉ : Sauvegarder automatiquement les statistiques
+        try:
+            from services.statistics_service import StatisticsService
+            
+            # Définir l'utilisateur par défaut
+            user_id = "default_user"
+            
+            print(f"🔍 DEBUG: Attempting to save completed game {game_id} for user {user_id}")
+            
+            # Récupérer le classement final pour les statistiques
+            try:
+                final_ranking_response = await get_final_ranking(game_id)
+                final_ranking = final_ranking_response.get('ranking', [])
+                print(f"🔍 DEBUG: Final ranking retrieved with {len(final_ranking)} entries")
+            except Exception as ranking_error:
+                print(f"🔍 DEBUG: Failed to get final ranking: {ranking_error}")
+                final_ranking = []
+            
+            # Sauvegarder la partie terminée dans les statistiques
+            print(f"🔍 DEBUG: Calling StatisticsService.save_completed_game...")
+            completed_game = StatisticsService.save_completed_game(user_id, game, final_ranking)
+            print(f"🔍 DEBUG: Game saved successfully: {completed_game.id}")
+            
+            # Mettre à jour les stats de base dans gamestate
+            if user_id in game_states_db:
+                game_state = game_states_db[user_id]
+                game_state.game_stats.total_games_played += 1
+                # Compter les kills réels effectués par les survivants
+                total_kills_made = sum([p.kills for p in game.players])
+                game_state.game_stats.total_kills += total_kills_made
+                if hasattr(game, 'earnings'):
+                    game_state.game_stats.total_earnings += game.earnings
+                game_state.updated_at = datetime.utcnow()
+                game_states_db[user_id] = game_state
+                print(f"🔍 DEBUG: GameState updated for user {user_id}")
+            else:
+                print(f"🔍 DEBUG: User {user_id} not found in game_states_db")
+                
+        except Exception as e:
+            print(f"❌ Erreur lors de la sauvegarde des statistiques: {e}")
+            import traceback
+            print(f"❌ Traceback: {traceback.format_exc()}")
+            # Continue même en cas d'erreur de sauvegarde
     else:
         # NOUVEAU: Calculer les gains partiels même si le jeu n'est pas terminé
         # en utilisant les VRAIS montants VIP (200k-3M chacun)
