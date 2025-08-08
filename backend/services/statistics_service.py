@@ -19,9 +19,62 @@ class StatisticsService:
         # Calculer la durée approximative
         duration = "15-30 min"  # Placeholder - peut être calculé selon les événements
         
-        # Trouver le gagnant
+        # CORRECTION CRITIQUE : Utiliser le VRAI gagnant de game.winner au lieu du premier du classement
         winner = None
-        if final_ranking:
+        if hasattr(game, 'winner') and game.winner:
+            # Le gagnant est déjà déterminé correctement dans game_routes.py
+            # On sauvegarde l'objet winner complet pour pouvoir l'utiliser dans la boutique de célébrités
+            if isinstance(game.winner, dict):
+                winner = game.winner
+            elif hasattr(game.winner, '__dict__'):
+                # Convertir l'objet Player en dictionnaire
+                winner_dict = {
+                    'name': getattr(game.winner, 'name', 'Gagnant Inconnu'),
+                    'nationality': getattr(game.winner, 'nationality', 'Inconnue'),
+                    'role': getattr(game.winner, 'role', 'normal'),
+                    'number': getattr(game.winner, 'number', '000'),
+                    'total_score': getattr(game.winner, 'total_score', 0),
+                    'kills': getattr(game.winner, 'kills', 0),
+                    'betrayals': getattr(game.winner, 'betrayals', 0),
+                    'survived_events': getattr(game.winner, 'survived_events', 0)
+                }
+                # Ajouter les stats si disponibles
+                if hasattr(game.winner, 'stats'):
+                    winner_dict['stats'] = {
+                        'intelligence': getattr(game.winner.stats, 'intelligence', 5),
+                        'force': getattr(game.winner.stats, 'force', 5),
+                        'agilite': getattr(game.winner.stats, 'agilite', 5)
+                    }
+                elif hasattr(game.winner, 'intelligence'):
+                    # Stats directes sur l'objet Player
+                    winner_dict['stats'] = {
+                        'intelligence': getattr(game.winner, 'intelligence', 5),
+                        'force': getattr(game.winner, 'force', 5),
+                        'agilite': getattr(game.winner, 'agilite', 5)
+                    }
+                
+                # Ajouter le portrait si disponible
+                if hasattr(game.winner, 'portrait'):
+                    portrait = game.winner.portrait
+                    winner_dict['portrait'] = {
+                        'gender': getattr(portrait, 'gender', 'male'),
+                        'face_shape': getattr(portrait, 'face_shape', 'round'),
+                        'skin_color': getattr(portrait, 'skin_color', 'light'),
+                        'hair_color': getattr(portrait, 'hair_color', 'brown'),
+                        'hair_style': getattr(portrait, 'hair_style', 'short'),
+                        'eye_color': getattr(portrait, 'eye_color', 'brown')
+                    }
+                
+                winner = winner_dict
+            else:
+                # Fallback - créer un objet basique si on ne peut pas extraire les données
+                winner = {
+                    'name': str(game.winner) if game.winner else 'Gagnant Inconnu',
+                    'nationality': 'Inconnue',
+                    'total_score': 0
+                }
+        elif final_ranking:
+            # Fallback legacy : utiliser le premier du classement seulement si pas de game.winner
             winner_data = final_ranking[0]  # Premier dans le classement
             winner = f"{winner_data.get('player', {}).get('name', 'Inconnu')} (#{winner_data.get('player', {}).get('number', '000')})"
         
@@ -38,7 +91,7 @@ class StatisticsService:
             duration=duration,
             total_players=len(game.players),
             survivors=survivors,
-            winner=winner,
+            winner=winner,  # Maintenant on sauvegarde l'objet winner complet
             earnings=earnings,
             events_played=[event.name for event in game.events],
             final_ranking=final_ranking
