@@ -311,7 +311,14 @@ const VipSalon = ({ gameState, updateGameState }) => {
     }
   };
 
-  const currentSalon = salonUpgrades.find(s => s.level === gameState.vipSalonLevel);
+  const currentSalon = salonUpgrades.find(s => s.level === gameState.vipSalonLevel) || {
+    level: 0,
+    name: 'Aucun salon',
+    capacity: 0,
+    cost: 0,
+    description: 'Vous n\'avez pas encore de salon VIP',
+    unlocked: false
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-black p-6">
