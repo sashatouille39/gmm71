@@ -279,13 +279,35 @@ const VipSalon = ({ gameState, updateGameState }) => {
     }
   };
 
-  const upgradeSalon = (level) => {
+  const upgradeSalon = async (level) => {
     const upgrade = salonUpgrades.find(s => s.level === level);
     if (upgrade && gameState.money >= upgrade.cost) {
-      updateGameState({
-        money: gameState.money - upgrade.cost,
-        vipSalonLevel: level
-      });
+      try {
+        const backendUrl = process.env.REACT_APP_BACKEND_URL;
+        
+        // Utiliser l'API gamestate pour mettre à jour le salon level et l'argent
+        const response = await fetch(`${backendUrl}/api/gamestate/`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            money: gameState.money - upgrade.cost,
+            vip_salon_level: level
+          })
+        });
+
+        if (response.ok) {
+          const updatedState = await response.json();
+          updateGameState({
+            money: updatedState.money,
+            vipSalonLevel: updatedState.vip_salon_level
+          });
+          console.log(`Salon niveau ${level} acheté avec succès !`);
+        } else {
+          console.error('Erreur lors de l\'achat du salon');
+        }
+      } catch (error) {
+        console.error('Erreur de connexion lors de l\'achat du salon:', error);
+      }
     }
   };
 
