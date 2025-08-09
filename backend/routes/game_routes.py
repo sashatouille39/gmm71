@@ -265,7 +265,7 @@ async def simulate_event(game_id: str):
             game.earnings = 0
         
         # 🎯 NOUVELLE FONCTIONNALITÉ : Collection automatique des gains VIP dès la fin de partie
-        if game.earnings > 0:
+        if game.earnings > 0 and not game.vip_earnings_collected:
             # Définir l'utilisateur par défaut
             user_id = "default_user"
             
