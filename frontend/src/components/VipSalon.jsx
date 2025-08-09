@@ -425,12 +425,6 @@ const VipSalon = ({ gameState, updateGameState }) => {
                     <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                     <p>Chargement des VIPs...</p>
                   </div>
-                ) : gameState.vipSalonLevel === 0 ? (
-                  <div className="text-center py-8 text-gray-400">
-                    <Crown className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                    <p>Vous n'avez pas encore de salon VIP</p>
-                    <p className="text-sm mt-2">Achetez votre premier salon pour débloquer les VIPs</p>
-                  </div>
                 ) : currentVips.length === 0 ? (
                   <div className="text-center py-8 text-gray-400">
                     <Crown className="w-16 h-16 mx-auto mb-4 opacity-50" />
