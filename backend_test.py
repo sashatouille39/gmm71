@@ -15292,7 +15292,7 @@ class BackendTester:
 if __name__ == "__main__":
     tester = BackendTester()
     
-    print(f"\n🇫🇷 TEST SPÉCIFIQUE DE LA CORRECTION DE DOUBLE COLLECTE DES GAINS VIP")
+    print(f"\n🇫🇷 TEST DU NOUVEAU SYSTÈME DE SALON VIP CORRIGÉ")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"API Base: {API_BASE}")
     print("=" * 80)
@@ -15302,8 +15302,8 @@ if __name__ == "__main__":
         print("❌ Server not accessible, aborting tests")
         exit(1)
     
-    # Run the focused VIP double collection test
-    tester.test_vip_double_collection_fix_french_review()
+    # Run the VIP salon corrected system tests according to French review request
+    tester.test_vip_salon_corrected_system()
     
     # Print summary
     print(f"\n📊 TEST SUMMARY:")
