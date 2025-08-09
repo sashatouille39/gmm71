@@ -1160,6 +1160,239 @@ class BackendTester:
         except Exception as e:
             self.log_result("Celebrity Owned List Route", False, f"Error: {str(e)}")
 
+    def test_vip_salon_corrected_system(self):
+        """Test FRENCH REVIEW REQUEST: Test du nouveau système de salon VIP corrigé selon les spécifications françaises"""
+        try:
+            print("\n🇫🇷 TESTING CORRECTED VIP SALON SYSTEM - FRENCH SPECIFICATIONS")
+            print("=" * 80)
+            print("OBJECTIF: Tester le nouveau système de salon VIP corrigé selon les spécifications:")
+            print("- Salon niveau 0: gratuit (0$) - 1 VIP")
+            print("- Salon niveau 1: 2,500,000$ - 3 VIPs")
+            print("- Salon niveau 2: 5,000,000$ - 5 VIPs")
+            print("- Salon niveau 3: 10,000,000$ - 8 VIPs")
+            print("- Salon niveau 4: 20,000,000$ - 10 VIPs")
+            print()
+            
+            # Test 1: Vérifier que les nouveaux utilisateurs commencent avec salon niveau 0
+            print("🔍 TEST 1: NOUVEAUX UTILISATEURS COMMENCENT AVEC SALON NIVEAU 0")
+            print("-" * 60)
+            
+            response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+            
+            if response.status_code != 200:
+                self.log_result("VIP Salon Initial Level", False, f"Could not get gamestate - HTTP {response.status_code}")
+                return
+                
+            gamestate = response.json()
+            initial_vip_level = gamestate.get('vip_salon_level', -1)
+            
+            if initial_vip_level == 0:
+                self.log_result("VIP Salon Initial Level", True, f"✅ GameState initial correct: vip_salon_level = {initial_vip_level}")
+                print(f"   ✅ SUCCÈS: Niveau initial correct (0)")
+            else:
+                self.log_result("VIP Salon Initial Level", False, f"❌ GameState initial incorrect: vip_salon_level = {initial_vip_level} (attendu: 0)")
+                return
+            
+            # Test 2: Vérifier que salon niveau 0 a 1 VIP (au lieu de 0)
+            print("\n🔍 TEST 2: SALON NIVEAU 0 - 1 VIP (NOUVEAU SYSTÈME)")
+            print("-" * 60)
+            
+            response = requests.get(f"{API_BASE}/vips/salon/0", timeout=5)
+            
+            if response.status_code == 200:
+                vips_level_0 = response.json()
+                if len(vips_level_0) == 1:
+                    self.log_result("VIP Salon Level 0 VIPs", True, f"✅ Salon niveau 0: {len(vips_level_0)} VIP (nouveau système correct)")
+                    print(f"   ✅ SUCCÈS: 1 VIP au niveau 0 (nouveau système)")
+                else:
+                    self.log_result("VIP Salon Level 0 VIPs", False, f"❌ Salon niveau 0: {len(vips_level_0)} VIPs (attendu: 1)")
+                    return
+            else:
+                self.log_result("VIP Salon Level 0 VIPs", False, f"Could not get VIPs for level 0 - HTTP {response.status_code}")
+                return
+            
+            # Test 3: Vérifier le système de prix corrigé
+            print("\n🔍 TEST 3: SYSTÈME DE PRIX CORRIGÉ")
+            print("-" * 60)
+            
+            # Test des capacités selon le nouveau système
+            expected_capacities = {
+                0: 1,   # gratuit - 1 VIP
+                1: 3,   # 2,500,000$ - 3 VIPs  
+                2: 5,   # 5,000,000$ - 5 VIPs
+                3: 8,   # 10,000,000$ - 8 VIPs
+                4: 10   # 20,000,000$ - 10 VIPs
+            }
+            
+            capacity_tests_passed = 0
+            for level, expected_count in expected_capacities.items():
+                response = requests.get(f"{API_BASE}/vips/salon/{level}", timeout=5)
+                
+                if response.status_code == 200:
+                    vips = response.json()
+                    actual_count = len(vips)
+                    
+                    if actual_count == expected_count:
+                        print(f"   ✅ Salon niveau {level}: {actual_count} VIPs (correct)")
+                        capacity_tests_passed += 1
+                    else:
+                        print(f"   ❌ Salon niveau {level}: {actual_count} VIPs (attendu: {expected_count})")
+                        self.log_result("VIP Salon Capacities", False, f"❌ Salon niveau {level}: {actual_count} VIPs (attendu: {expected_count})")
+                        return
+                else:
+                    print(f"   ❌ Erreur API salon niveau {level}: HTTP {response.status_code}")
+                    self.log_result("VIP Salon Capacities", False, f"Could not get VIPs for level {level} - HTTP {response.status_code}")
+                    return
+            
+            if capacity_tests_passed == len(expected_capacities):
+                self.log_result("VIP Salon Capacities", True, f"✅ Toutes les capacités de salon correctes: {capacity_tests_passed}/{len(expected_capacities)}")
+            
+            # Test 4: Test upgrade du salon niveau 0 vers niveau 1 (coût 2.5M)
+            print("\n🔍 TEST 4: UPGRADE SALON NIVEAU 0 → NIVEAU 1 (COÛT 2.5M)")
+            print("-" * 60)
+            
+            # D'abord, s'assurer qu'on a assez d'argent
+            initial_money = gamestate.get('money', 0)
+            print(f"   Argent initial: {initial_money:,}$")
+            
+            if initial_money < 2500000:
+                # Ajouter de l'argent pour le test
+                update_data = {"money": 5000000}
+                response = requests.put(f"{API_BASE}/gamestate/", 
+                                      json=update_data,
+                                      headers={"Content-Type": "application/json"},
+                                      timeout=5)
+                if response.status_code == 200:
+                    print(f"   Argent mis à jour à 5,000,000$ pour le test")
+                    initial_money = 5000000
+                else:
+                    self.log_result("VIP Salon Upgrade", False, f"Could not update money for test - HTTP {response.status_code}")
+                    return
+            
+            # Effectuer l'upgrade
+            upgrade_data = {"level": 1, "cost": 2500000}
+            response = requests.post(f"{API_BASE}/gamestate/upgrade-salon", 
+                                   json=upgrade_data,
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=5)
+            
+            if response.status_code == 200:
+                upgrade_result = response.json()
+                print(f"   ✅ Upgrade réussi: {upgrade_result.get('message', 'No message')}")
+                
+                # Vérifier que l'argent a été déduit
+                response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+                if response.status_code == 200:
+                    updated_gamestate = response.json()
+                    new_money = updated_gamestate.get('money', 0)
+                    new_level = updated_gamestate.get('vip_salon_level', -1)
+                    
+                    expected_money = initial_money - 2500000
+                    
+                    if new_money == expected_money and new_level == 1:
+                        self.log_result("VIP Salon Upgrade", True, 
+                                      f"✅ Upgrade salon réussi: niveau {new_level}, argent déduit {initial_money:,}$ → {new_money:,}$")
+                        print(f"   ✅ SUCCÈS: Argent déduit correctement ({initial_money:,}$ → {new_money:,}$)")
+                        print(f"   ✅ SUCCÈS: Niveau mis à jour (0 → {new_level})")
+                    else:
+                        self.log_result("VIP Salon Upgrade", False, 
+                                      f"❌ Upgrade incorrect: niveau={new_level} (attendu: 1), argent={new_money:,}$ (attendu: {expected_money:,}$)")
+                        return
+                else:
+                    self.log_result("VIP Salon Upgrade", False, f"Could not verify upgrade - HTTP {response.status_code}")
+                    return
+            else:
+                self.log_result("VIP Salon Upgrade", False, f"Upgrade failed - HTTP {response.status_code}: {response.text[:200]}")
+                return
+            
+            # Test 5: Test génération de parties avec salon niveau 0 et niveau 1
+            print("\n🔍 TEST 5: GÉNÉRATION DE PARTIES AVEC DIFFÉRENTS NIVEAUX DE SALON")
+            print("-" * 60)
+            
+            # Test avec salon niveau 0 (1 VIP attendu)
+            print("   Test création partie avec salon niveau 0...")
+            game_request_level_0 = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": [],
+                "vip_salon_level": 0
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request_level_0, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data = response.json()
+                game_id_level_0 = game_data.get('id')
+                
+                # Vérifier les VIPs assignés pour cette partie
+                response = requests.get(f"{API_BASE}/vips/game/{game_id_level_0}?salon_level=0", timeout=5)
+                if response.status_code == 200:
+                    assigned_vips_level_0 = response.json()
+                    if len(assigned_vips_level_0) == 1:
+                        self.log_result("VIP Assignment Level 0", True, f"✅ Partie salon niveau 0: {len(assigned_vips_level_0)} VIP assigné (correct)")
+                        print(f"   ✅ SUCCÈS: 1 VIP assigné pour salon niveau 0")
+                    else:
+                        self.log_result("VIP Assignment Level 0", False, f"❌ Partie salon niveau 0: {len(assigned_vips_level_0)} VIPs assignés (attendu: 1)")
+                        return
+                else:
+                    self.log_result("VIP Assignment Level 0", False, f"Could not get VIPs for game level 0 - HTTP {response.status_code}")
+                    return
+            else:
+                self.log_result("VIP Assignment Level 0", False, f"Could not create game level 0 - HTTP {response.status_code}")
+                return
+            
+            # Test avec salon niveau 1 (3 VIPs attendus)
+            print("   Test création partie avec salon niveau 1...")
+            game_request_level_1 = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": [],
+                "vip_salon_level": 1
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request_level_1, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data = response.json()
+                game_id_level_1 = game_data.get('id')
+                
+                # Vérifier les VIPs assignés pour cette partie
+                response = requests.get(f"{API_BASE}/vips/game/{game_id_level_1}?salon_level=1", timeout=5)
+                if response.status_code == 200:
+                    assigned_vips_level_1 = response.json()
+                    if len(assigned_vips_level_1) == 3:
+                        self.log_result("VIP Assignment Level 1", True, f"✅ Partie salon niveau 1: {len(assigned_vips_level_1)} VIPs assignés (correct)")
+                        print(f"   ✅ SUCCÈS: 3 VIPs assignés pour salon niveau 1")
+                    else:
+                        self.log_result("VIP Assignment Level 1", False, f"❌ Partie salon niveau 1: {len(assigned_vips_level_1)} VIPs assignés (attendu: 3)")
+                        return
+                else:
+                    self.log_result("VIP Assignment Level 1", False, f"Could not get VIPs for game level 1 - HTTP {response.status_code}")
+                    return
+            else:
+                self.log_result("VIP Assignment Level 1", False, f"Could not create game level 1 - HTTP {response.status_code}")
+                return
+            
+            print("\n🎯 RÉSUMÉ DES TESTS VIP SALON CORRIGÉ:")
+            print("✅ Nouveaux utilisateurs commencent avec salon niveau 0")
+            print("✅ Salon niveau 0 a 1 VIP (nouveau système)")
+            print("✅ API /api/vips/salon/0 retourne 1 VIP")
+            print("✅ Système de capacités corrigé (0:1, 1:3, 2:5, 3:8, 4:10)")
+            print("✅ Upgrade salon niveau 0 → niveau 1 coûte 2.5M$")
+            print("✅ Génération de parties avec salon niveau 0 assigne 1 VIP")
+            print("✅ Génération de parties avec salon niveau 1 assigne 3 VIPs")
+            
+        except Exception as e:
+            self.log_result("VIP Salon Corrected System", False, f"Error during test: {str(e)}")
+
     def test_vip_salon_initialization_fix(self):
         """Test FRENCH REVIEW REQUEST: Test des corrections du salon VIP selon les demandes françaises spécifiques"""
         try:
