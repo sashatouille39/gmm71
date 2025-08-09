@@ -36,16 +36,24 @@ async def get_salon_vips(salon_level: int):
 async def get_game_vips(game_id: str, salon_level: int = 1):
     """Récupère ou génère les VIPs pour une partie spécifique"""
     try:
+        print(f"🔍 DEBUG GET_GAME_VIPS: game_id={game_id}, salon_level={salon_level}")
+        
         # Niveau 0 = pas de salon = pas de VIPs
         if salon_level == 0:
+            print(f"🎯 GET_GAME_VIPS: Salon niveau 0 - Retour liste vide")
             return []
             
         # Créer une clé unique basée sur game_id et salon_level
         vip_key = f"{game_id}_salon_{salon_level}"
         
+        print(f"🔍 DEBUG GET_GAME_VIPS: vip_key={vip_key}")
+        print(f"🔍 DEBUG GET_GAME_VIPS: active_vips_by_game keys={list(active_vips_by_game.keys())}")
+        
         # Si des VIPs sont déjà assignés pour cette combinaison partie/salon, les retourner
         if vip_key in active_vips_by_game:
-            return active_vips_by_game[vip_key]
+            vips_found = active_vips_by_game[vip_key]
+            print(f"🎯 GET_GAME_VIPS: {len(vips_found)} VIPs trouvés pour {vip_key}")
+            return vips_found
         
         # Sinon, générer de nouveaux VIPs pour cette partie et ce niveau de salon
         # Capacités correctes selon VipSalon.jsx
