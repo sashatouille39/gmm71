@@ -673,13 +673,8 @@ async def simulate_event(game_id: str):
     
     games_db[game_id] = game
     
-    # Si le jeu est terminé et que les gains VIP ont été collectés automatiquement, l'indiquer dans la réponse
+    # La réponse ne contient plus d'indication de collection automatique
     response_data = {"result": result, "game": game}
-    if game.completed and hasattr(game, 'vip_earnings_collected') and game.vip_earnings_collected:
-        response_data["vip_earnings_collected"] = {
-            "earnings_collected": game.earnings,
-            "message": f"Gains VIP collectés automatiquement: {game.earnings}$"
-        }
     
     return response_data
 
