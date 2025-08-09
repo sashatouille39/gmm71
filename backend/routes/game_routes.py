@@ -187,8 +187,10 @@ async def create_game(request: GameCreateRequest):
                 # Assigner des VIPs avec leurs viewing_fee (200k-3M)
                 game_vips = VipService.get_random_vips(vip_capacity)
                 active_vips_by_game[f'{game.id}_salon_{salon_level}'] = game_vips
+                print(f"🎯 VIP ASSIGNMENT: Salon niveau {salon_level} - {len(game_vips)} VIPs assignés pour game {game.id}")
             else:
                 active_vips_by_game[f'{game.id}_salon_{salon_level}'] = []
+                print(f"🎯 VIP ASSIGNMENT: Salon niveau {salon_level} - Aucun VIP assigné (capacité 0) pour game {game.id}")
         
         # Stocker le salon_level utilisé dans le jeu pour les calculs futurs
         game.vip_salon_level = salon_level
