@@ -1140,8 +1140,8 @@ async def collect_vip_earnings(game_id: str, user_id: str = "default_user"):
     if not game.completed:
         raise HTTPException(status_code=400, detail="La partie n'est pas terminée, impossible de collecter les gains")
     
-    if game.earnings <= 0:
-        raise HTTPException(status_code=400, detail="Aucun gain à collecter pour cette partie")
+    if game.earnings <= 0 or game.vip_earnings_collected:
+        raise HTTPException(status_code=400, detail="Aucun gain à collecter pour cette partie ou gains déjà collectés")
     
     # CORRECTION PROBLÈME 2: Ajouter les gains VIP au gamestate
     from routes.gamestate_routes import game_states_db
