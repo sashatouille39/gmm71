@@ -928,7 +928,7 @@ async def get_realtime_updates(game_id: str):
                 print(f"⚠️ ATTENTION: Aucun VIP trouvé pour la partie {game_id} avec salon niveau {salon_level}")
             
             # 🎯 COLLECTION AUTOMATIQUE DES GAINS VIP DÈS LA FIN DE PARTIE
-            if game.earnings > 0:
+            if game.earnings > 0 and not game.vip_earnings_collected:
                 from routes.gamestate_routes import game_states_db
                 user_id = "default_user"
                 
