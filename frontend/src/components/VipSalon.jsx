@@ -176,76 +176,84 @@ const VipSalon = ({ gameState, updateGameState }) => {
   // Niveaux de salon disponibles avec les détails
   const salonUpgrades = [
     { 
+      level: 0, 
+      name: 'Salon de Base', 
+      capacity: 1, 
+      cost: 0, // Gratuit au démarrage
+      description: 'Salon de démarrage, 1 place VIP',
+      unlocked: true // Toujours débloqué
+    },
+    { 
       level: 1, 
       name: 'Salon Standard', 
       capacity: 3, 
-      cost: 100000, // 100k - doit être acheté maintenant
+      cost: 2500000, // 2.5M comme demandé
       description: 'Salon de base, 3 places VIP',
-      unlocked: gameState.money >= 100000 // Plus automatiquement débloqué
+      unlocked: gameState.money >= 2500000 && gameState.vipSalonLevel >= 0
     },
     { 
       level: 2, 
       name: 'Salon Premium', 
       capacity: 5, 
-      cost: 500000, // 500k
+      cost: 5000000, // Double du précédent
       description: 'Plus de places VIP, 5 places',
-      unlocked: gameState.money >= 500000 && gameState.vipSalonLevel >= 1 
+      unlocked: gameState.money >= 5000000 && gameState.vipSalonLevel >= 1 
     },
     { 
       level: 3, 
       name: 'Salon Royal', 
       capacity: 8, 
-      cost: 2000000, // 2M
+      cost: 10000000, // Double du précédent
       description: 'Salon royal, 8 places VIP',
-      unlocked: gameState.money >= 2000000 && gameState.vipSalonLevel >= 2 
+      unlocked: gameState.money >= 10000000 && gameState.vipSalonLevel >= 2 
     },
     { 
       level: 4, 
       name: 'Salon Impérial', 
       capacity: 10, 
-      cost: 5000000, // 5M
+      cost: 20000000, // Double du précédent
       description: 'Prestige impérial, 10 places VIP',
-      unlocked: gameState.money >= 5000000 && gameState.vipSalonLevel >= 3 
+      unlocked: gameState.money >= 20000000 && gameState.vipSalonLevel >= 3 
     },
     { 
       level: 5, 
       name: 'Salon Divin', 
       capacity: 12, 
-      cost: 10000000, // 10M
+      cost: 40000000, // Double du précédent
       description: 'Salon divin ultime, 12 places VIP',
-      unlocked: gameState.money >= 10000000 && gameState.vipSalonLevel >= 4 
+      unlocked: gameState.money >= 40000000 && gameState.vipSalonLevel >= 4 
     },
     { 
       level: 6, 
       name: 'Salon Mythique', 
       capacity: 15, 
-      cost: 20000000, // 20M
+      cost: 80000000, // Double du précédent
       description: 'Prestige mythique, 15 places VIP',
-      unlocked: gameState.money >= 20000000 && gameState.vipSalonLevel >= 5 
+      unlocked: gameState.money >= 80000000 && gameState.vipSalonLevel >= 5 
     },
     { 
       level: 7, 
       name: 'Salon Cosmique', 
       capacity: 17, 
-      cost: 40000000, // 40M
+      cost: 160000000, // Double du précédent
       description: 'Influence cosmique, 17 places VIP',
-      unlocked: gameState.money >= 40000000 && gameState.vipSalonLevel >= 6 
+      unlocked: gameState.money >= 160000000 && gameState.vipSalonLevel >= 6 
     },
     { 
       level: 8, 
       name: 'Salon Transcendant', 
       capacity: 18, 
-      cost: 75000000, // 75M
+      cost: 320000000, // Double du précédent
       description: 'Pouvoir transcendant, 18 places VIP',
-      unlocked: gameState.money >= 75000000 && gameState.vipSalonLevel >= 7 
+      unlocked: gameState.money >= 320000000 && gameState.vipSalonLevel >= 7 
     },
     { 
       level: 9, 
       name: 'Salon Légendaire', 
       capacity: 20, 
-      cost: 100000000, // 100M
+      cost: 640000000, // Double du précédent
       description: 'Prestige maximum légendaire, 20 places VIP',
-      unlocked: gameState.money >= 100000000 && gameState.vipSalonLevel >= 8 
+      unlocked: gameState.money >= 640000000 && gameState.vipSalonLevel >= 8 
     }
   ];
 
