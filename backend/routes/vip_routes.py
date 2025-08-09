@@ -34,10 +34,22 @@ async def get_game_vips(game_id: str, salon_level: int = 1):
     try:
         print(f"🔍 DEBUG GET_GAME_VIPS: game_id={game_id}, salon_level={salon_level}")
         
-        # Niveau 0 = pas de salon = pas de VIPs
+        # Niveau 0 = salon de base = 1 VIP selon les nouvelles spécifications françaises
         if salon_level == 0:
-            print(f"🎯 GET_GAME_VIPS: Salon niveau 0 - Retour liste vide")
-            return []
+            # Créer une clé unique pour le salon niveau 0
+            vip_key = f"{game_id}_salon_{salon_level}"
+            
+            # Si des VIPs sont déjà assignés pour cette combinaison partie/salon, les retourner
+            if vip_key in active_vips_by_game:
+                vips_found = active_vips_by_game[vip_key]
+                print(f"🎯 GET_GAME_VIPS: Salon niveau 0 - {len(vips_found)} VIP trouvé")
+                return vips_found
+            
+            # Sinon, générer 1 VIP pour le salon niveau 0
+            game_vips = VipService.get_random_vips(1)
+            active_vips_by_game[vip_key] = game_vips
+            print(f"🎯 GET_GAME_VIPS: Salon niveau 0 - 1 VIP généré et assigné")
+            return game_vips
             
         # Créer une clé unique basée sur game_id et salon_level
         vip_key = f"{game_id}_salon_{salon_level}"
