@@ -15,7 +15,17 @@
 # The testing data must be entered in yaml format Below is the data structure:
 # 
 ## user_problem_statement: {problem_statement}
-## backend:
+  - task: "Correction du problème de double collecte des gains VIP"
+    implemented: true
+    working: "NA"  
+    file: "routes/game_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "✅ CORRECTION IMPLÉMENTÉE: Ajout de la vérification 'and not game.vip_earnings_collected' dans tous les endroits où la collection automatique des gains VIP se fait. Modifié 4 conditions dans game_routes.py (lignes ~268, ~405, ~744, ~931) + amélioration de la route manuelle collect-vip-earnings pour vérifier le flag. Le problème de doublement d'argent devrait être résolu."
 ##   - task: "Task name"
 ##     implemented: true
 ##     working: true  # or false or "NA"
