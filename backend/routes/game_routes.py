@@ -173,11 +173,12 @@ async def create_game(request: GameCreateRequest):
         
         print(f"🔍 DEBUG VIP ASSIGNMENT: request.vip_salon_level={request.vip_salon_level}, game_state.vip_salon_level={game_state.vip_salon_level}, salon_level final={salon_level}")
         
-        # Si salon_level = 0, pas de VIPs assignés
+        # Si salon_level = 0, assigner 1 VIP selon les nouvelles spécifications françaises
         if salon_level == 0:
-            # Pas de VIPs pour le niveau 0
-            active_vips_by_game[f'{game.id}_salon_{salon_level}'] = []
-            print(f"🎯 VIP ASSIGNMENT: Salon niveau 0 - Aucun VIP assigné pour game {game.id}")
+            # Assigner 1 VIP pour le niveau 0 selon les nouvelles spécifications
+            game_vips = VipService.get_random_vips(1)
+            active_vips_by_game[f'{game.id}_salon_{salon_level}'] = game_vips
+            print(f"🎯 VIP ASSIGNMENT: Salon niveau 0 - 1 VIP assigné pour game {game.id}")
         else:
             # Capacités correctes selon VipSalon.jsx - ajout niveau 0
             capacity_map = {0: 1, 1: 3, 2: 5, 3: 8, 4: 10, 5: 12, 6: 15, 7: 17, 8: 18, 9: 20}
