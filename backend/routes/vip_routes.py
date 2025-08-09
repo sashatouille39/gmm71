@@ -56,8 +56,8 @@ async def get_game_vips(game_id: str, salon_level: int = 1):
             return vips_found
         
         # Sinon, générer de nouveaux VIPs pour cette partie et ce niveau de salon
-        # Capacités correctes selon VipSalon.jsx
-        capacity_map = {1: 3, 2: 5, 3: 8, 4: 10, 5: 12, 6: 15, 7: 17, 8: 18, 9: 20}
+        # Capacités correctes selon VipSalon.jsx - ajout niveau 0
+        capacity_map = {0: 1, 1: 3, 2: 5, 3: 8, 4: 10, 5: 12, 6: 15, 7: 17, 8: 18, 9: 20}
         capacity = capacity_map.get(salon_level, 0)
         
         if capacity == 0:
