@@ -1270,11 +1270,7 @@ class BackendTester:
                     return
             
             # Effectuer l'upgrade
-            upgrade_data = {"level": 1, "cost": 2500000}
-            response = requests.post(f"{API_BASE}/gamestate/upgrade-salon", 
-                                   json=upgrade_data,
-                                   headers={"Content-Type": "application/json"},
-                                   timeout=5)
+            response = requests.post(f"{API_BASE}/gamestate/upgrade-salon?level=1&cost=2500000", timeout=5)
             
             if response.status_code == 200:
                 upgrade_result = response.json()
