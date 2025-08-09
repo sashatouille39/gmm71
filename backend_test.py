@@ -14438,10 +14438,164 @@ class BackendTester:
         except Exception as e:
             self.log_result("Complete VIP Scenario", False, f"Error during test: {str(e)}")
 
+    def test_vip_salon_level_0_fix_french_review(self):
+        """Test FRENCH REVIEW REQUEST: Test rapide de la correction VIP salon niveau 0"""
+        try:
+            print("\n🇫🇷 TEST RAPIDE DE LA CORRECTION VIP SALON NIVEAU 0")
+            print("=" * 80)
+            print("OBJECTIF: Identifier le problème avec salon niveau 0 qui assigne encore des VIPs")
+            print()
+            
+            # Test 1: Vérifier GameState initial - vip_salon_level doit être 0
+            print("🔍 TEST 1: VÉRIFIER GAMESTATE INITIAL")
+            print("-" * 60)
+            
+            response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+            
+            if response.status_code != 200:
+                self.log_result("GameState Initial Check", False, f"Could not get gamestate - HTTP {response.status_code}")
+                return
+                
+            gamestate = response.json()
+            initial_vip_level = gamestate.get('vip_salon_level', -1)
+            
+            print(f"   GameState vip_salon_level: {initial_vip_level}")
+            
+            if initial_vip_level == 0:
+                self.log_result("GameState Initial Check", True, f"✅ vip_salon_level démarre bien à 0")
+                print(f"   ✅ SUCCÈS: Niveau initial correct (0 au lieu de 1)")
+            else:
+                self.log_result("GameState Initial Check", False, f"❌ vip_salon_level = {initial_vip_level} (attendu: 0)")
+                return
+            
+            # Test 2: Test création partie avec salon niveau 0 - vérifier les logs debug
+            print("\n🔍 TEST 2: CRÉATION PARTIE AVEC SALON NIVEAU 0")
+            print("-" * 60)
+            
+            game_request = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": [],
+                "vip_salon_level": 0  # Explicitement niveau 0
+            }
+            
+            print(f"   Création partie avec vip_salon_level: 0")
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Game Creation Level 0", False, f"Could not create game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            print(f"   Partie créée avec ID: {game_id}")
+            
+            # Vérifier GET /api/vips/game/{game_id}?salon_level=0 → doit retourner 0 VIPs
+            print(f"   Vérification des VIPs assignés pour salon niveau 0...")
+            
+            vip_response = requests.get(f"{API_BASE}/vips/game/{game_id}?salon_level=0", timeout=5)
+            
+            if vip_response.status_code == 200:
+                game_vips = vip_response.json()
+                vip_count = len(game_vips)
+                
+                print(f"   VIPs trouvés pour salon niveau 0: {vip_count}")
+                
+                if vip_count == 0:
+                    self.log_result("Game Creation Level 0 VIPs", True, f"✅ Salon niveau 0: {vip_count} VIPs (correct)")
+                    print(f"   ✅ SUCCÈS: Aucun VIP assigné au salon niveau 0")
+                else:
+                    self.log_result("Game Creation Level 0 VIPs", False, f"❌ PROBLÈME: {vip_count} VIPs assignés au salon niveau 0 (attendu: 0)")
+                    print(f"   ❌ PROBLÈME IDENTIFIÉ: {vip_count} VIPs encore assignés au lieu de 0")
+                    
+                    # Afficher les détails des VIPs pour diagnostic
+                    for i, vip in enumerate(game_vips[:3]):  # Montrer les 3 premiers
+                        print(f"     VIP {i+1}: {vip.get('name', 'Unknown')} - viewing_fee: {vip.get('viewing_fee', 0):,}$")
+            else:
+                self.log_result("Game Creation Level 0 VIPs", False, f"Could not get VIPs for game - HTTP {vip_response.status_code}")
+                return
+            
+            # Test 3: Test création partie avec salon niveau 1 - vérifier 3 VIPs
+            print("\n🔍 TEST 3: CRÉATION PARTIE AVEC SALON NIVEAU 1")
+            print("-" * 60)
+            
+            game_request_level_1 = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": [],
+                "vip_salon_level": 1  # Niveau 1
+            }
+            
+            print(f"   Création partie avec vip_salon_level: 1")
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request_level_1, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Game Creation Level 1", False, f"Could not create game level 1 - HTTP {response.status_code}")
+                return
+                
+            game_data_level_1 = response.json()
+            game_id_level_1 = game_data_level_1.get('id')
+            
+            print(f"   Partie niveau 1 créée avec ID: {game_id_level_1}")
+            
+            # Vérifier GET /api/vips/game/{game_id}?salon_level=1 → doit retourner 3 VIPs
+            print(f"   Vérification des VIPs assignés pour salon niveau 1...")
+            
+            vip_response_level_1 = requests.get(f"{API_BASE}/vips/game/{game_id_level_1}?salon_level=1", timeout=5)
+            
+            if vip_response_level_1.status_code == 200:
+                game_vips_level_1 = vip_response_level_1.json()
+                vip_count_level_1 = len(game_vips_level_1)
+                
+                print(f"   VIPs trouvés pour salon niveau 1: {vip_count_level_1}")
+                
+                if vip_count_level_1 == 3:
+                    self.log_result("Game Creation Level 1 VIPs", True, f"✅ Salon niveau 1: {vip_count_level_1} VIPs (correct)")
+                    print(f"   ✅ SUCCÈS: Exactement 3 VIPs assignés au salon niveau 1")
+                    
+                    # Afficher les VIPs pour confirmation
+                    for i, vip in enumerate(game_vips_level_1):
+                        print(f"     VIP {i+1}: {vip.get('name', 'Unknown')} - viewing_fee: {vip.get('viewing_fee', 0):,}$")
+                else:
+                    self.log_result("Game Creation Level 1 VIPs", False, f"❌ Salon niveau 1: {vip_count_level_1} VIPs (attendu: 3)")
+                    print(f"   ❌ PROBLÈME: {vip_count_level_1} VIPs au lieu de 3")
+            else:
+                self.log_result("Game Creation Level 1 VIPs", False, f"Could not get VIPs for game level 1 - HTTP {vip_response_level_1.status_code}")
+                return
+            
+            # Diagnostic final
+            print(f"\n🔍 DIAGNOSTIC FINAL")
+            print("-" * 60)
+            
+            if vip_count == 0 and vip_count_level_1 == 3:
+                print(f"   ✅ CORRECTION VALIDÉE: Salon niveau 0 = 0 VIPs, Salon niveau 1 = 3 VIPs")
+                self.log_result("VIP Salon Level 0 Fix", True, f"✅ Correction VIP salon niveau 0 validée")
+            elif vip_count > 0:
+                print(f"   ❌ PROBLÈME PERSISTANT: Salon niveau 0 assigne encore {vip_count} VIPs")
+                print(f"   🔧 CAUSE PROBABLE: La logique d'assignation des VIPs dans game_routes.py ne respecte pas le salon niveau 0")
+                self.log_result("VIP Salon Level 0 Fix", False, f"❌ Salon niveau 0 assigne encore {vip_count} VIPs au lieu de 0")
+            else:
+                print(f"   ⚠️  PROBLÈME PARTIEL: Salon niveau 1 n'assigne que {vip_count_level_1} VIPs au lieu de 3")
+                self.log_result("VIP Salon Level 0 Fix", False, f"❌ Salon niveau 1 problème: {vip_count_level_1} VIPs au lieu de 3")
+            
+        except Exception as e:
+            self.log_result("VIP Salon Level 0 Fix", False, f"Error during test: {str(e)}")
+
 if __name__ == "__main__":
     tester = BackendTester()
     
-    print(f"\n🎯 STARTING VIP SALON INITIALIZATION FIX TESTS")
+    print(f"\n🇫🇷 TEST RAPIDE DE LA CORRECTION VIP SALON NIVEAU 0")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"API Base: {API_BASE}")
     print("=" * 80)
@@ -14451,8 +14605,8 @@ if __name__ == "__main__":
         print("❌ Server not accessible, aborting tests")
         exit(1)
     
-    # Run the VIP salon initialization test
-    tester.test_vip_salon_initialization_fix()
+    # Run the focused VIP salon level 0 test
+    tester.test_vip_salon_level_0_fix_french_review()
     
     # Print summary
     print(f"\n📊 TEST SUMMARY:")
