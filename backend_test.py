@@ -1160,6 +1160,232 @@ class BackendTester:
         except Exception as e:
             self.log_result("Celebrity Owned List Route", False, f"Error: {str(e)}")
 
+    def test_vip_salon_initialization_fix(self):
+        """Test FRENCH REVIEW REQUEST: Test des corrections du salon VIP selon les demandes françaises spécifiques"""
+        try:
+            print("\n🇫🇷 TESTING VIP SALON INITIALIZATION FIX - FRENCH SPECIFICATIONS")
+            print("=" * 80)
+            print("OBJECTIF: Tester les corrections du salon VIP selon les spécifications françaises:")
+            print("- PROBLÈME 1: Salon VIP commence à 0 VIP au lieu de 3")
+            print("- PROBLÈME 2: Gains VIP ne se collectent plus automatiquement")
+            print()
+            
+            # Test 1: Vérifier que le GameState initial a vip_salon_level = 0
+            print("🔍 TEST 1: GAMESTATE INITIAL - VIP_SALON_LEVEL = 0")
+            print("-" * 60)
+            
+            response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+            
+            if response.status_code != 200:
+                self.log_result("VIP Salon Initial Level", False, f"Could not get gamestate - HTTP {response.status_code}")
+                return
+                
+            gamestate = response.json()
+            initial_vip_level = gamestate.get('vip_salon_level', -1)
+            
+            if initial_vip_level == 0:
+                self.log_result("VIP Salon Initial Level", True, f"✅ GameState initial correct: vip_salon_level = {initial_vip_level}")
+                print(f"   ✅ SUCCÈS: Niveau initial correct (0 au lieu de 1)")
+            else:
+                self.log_result("VIP Salon Initial Level", False, f"❌ GameState initial incorrect: vip_salon_level = {initial_vip_level} (attendu: 0)")
+                return
+            
+            # Test 2: Vérifier qu'avec salon niveau 0, aucun VIP n'est assigné
+            print("\n🔍 TEST 2: SALON NIVEAU 0 - AUCUN VIP ASSIGNÉ")
+            print("-" * 60)
+            
+            response = requests.get(f"{API_BASE}/vips/salon/0", timeout=5)
+            
+            if response.status_code == 200:
+                vips_level_0 = response.json()
+                if len(vips_level_0) == 0:
+                    self.log_result("VIP Salon Level 0 VIPs", True, f"✅ Salon niveau 0: {len(vips_level_0)} VIPs (correct)")
+                    print(f"   ✅ SUCCÈS: Aucun VIP au niveau 0")
+                else:
+                    self.log_result("VIP Salon Level 0 VIPs", False, f"❌ Salon niveau 0: {len(vips_level_0)} VIPs (attendu: 0)")
+                    return
+            else:
+                self.log_result("VIP Salon Level 0 VIPs", False, f"Could not get VIPs for level 0 - HTTP {response.status_code}")
+                return
+            
+            # Test 3: Vérifier qu'avec salon niveau 1, exactement 3 VIPs sont assignés
+            print("\n🔍 TEST 3: SALON NIVEAU 1 - EXACTEMENT 3 VIPS ASSIGNÉS")
+            print("-" * 60)
+            
+            response = requests.get(f"{API_BASE}/vips/salon/1", timeout=5)
+            
+            if response.status_code == 200:
+                vips_level_1 = response.json()
+                if len(vips_level_1) == 3:
+                    self.log_result("VIP Salon Level 1 VIPs", True, f"✅ Salon niveau 1: {len(vips_level_1)} VIPs (correct)")
+                    print(f"   ✅ SUCCÈS: Exactement 3 VIPs au niveau 1")
+                else:
+                    self.log_result("VIP Salon Level 1 VIPs", False, f"❌ Salon niveau 1: {len(vips_level_1)} VIPs (attendu: 3)")
+                    return
+            else:
+                self.log_result("VIP Salon Level 1 VIPs", False, f"Could not get VIPs for level 1 - HTTP {response.status_code}")
+                return
+            
+            # Test 4: Créer une partie avec salon niveau 0 et vérifier qu'aucun VIP n'est assigné
+            print("\n🔍 TEST 4: CRÉATION PARTIE SALON NIVEAU 0 - AUCUN VIP ASSIGNÉ")
+            print("-" * 60)
+            
+            game_request = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": [],
+                "vip_salon_level": 0  # Forcer le salon niveau 0
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data = response.json()
+                game_id = game_data.get('id')
+                
+                # Vérifier les VIPs assignés à cette partie
+                response = requests.get(f"{API_BASE}/vips/game/{game_id}?salon_level=0", timeout=5)
+                
+                if response.status_code == 200:
+                    game_vips = response.json()
+                    if len(game_vips) == 0:
+                        self.log_result("Game Creation Level 0 VIPs", True, f"✅ Partie salon niveau 0: {len(game_vips)} VIPs assignés (correct)")
+                        print(f"   ✅ SUCCÈS: Aucun VIP assigné à la partie avec salon niveau 0")
+                    else:
+                        self.log_result("Game Creation Level 0 VIPs", False, f"❌ Partie salon niveau 0: {len(game_vips)} VIPs assignés (attendu: 0)")
+                        return
+                else:
+                    self.log_result("Game Creation Level 0 VIPs", False, f"Could not get game VIPs - HTTP {response.status_code}")
+                    return
+            else:
+                self.log_result("Game Creation Level 0", False, f"Could not create game - HTTP {response.status_code}")
+                return
+            
+            # Test 5: Créer une partie avec salon niveau 1 et vérifier que 3 VIPs sont assignés
+            print("\n🔍 TEST 5: CRÉATION PARTIE SALON NIVEAU 1 - EXACTEMENT 3 VIPS ASSIGNÉS")
+            print("-" * 60)
+            
+            game_request = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": [],
+                "vip_salon_level": 1  # Forcer le salon niveau 1
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data = response.json()
+                game_id = game_data.get('id')
+                
+                # Vérifier les VIPs assignés à cette partie
+                response = requests.get(f"{API_BASE}/vips/game/{game_id}?salon_level=1", timeout=5)
+                
+                if response.status_code == 200:
+                    game_vips = response.json()
+                    if len(game_vips) == 3:
+                        self.log_result("Game Creation Level 1 VIPs", True, f"✅ Partie salon niveau 1: {len(game_vips)} VIPs assignés (correct)")
+                        print(f"   ✅ SUCCÈS: Exactement 3 VIPs assignés à la partie avec salon niveau 1")
+                        
+                        # Tester la collection manuelle des gains VIP (PROBLÈME 2)
+                        print("\n🔍 TEST 6: GAINS VIP NE SE COLLECTENT PLUS AUTOMATIQUEMENT")
+                        print("-" * 60)
+                        
+                        # Simuler la partie jusqu'à la fin
+                        events_simulated = 0
+                        max_events = 10
+                        
+                        while events_simulated < max_events:
+                            sim_response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                            
+                            if sim_response.status_code == 200:
+                                sim_data = sim_response.json()
+                                game_state = sim_data.get('game', {})
+                                
+                                if game_state.get('completed', False):
+                                    print(f"   ✅ Partie terminée après {events_simulated + 1} événements")
+                                    
+                                    # Vérifier que les gains VIP sont calculés mais PAS collectés automatiquement
+                                    earnings = game_state.get('earnings', 0)
+                                    vip_earnings_collected = game_state.get('vip_earnings_collected', False)
+                                    
+                                    if earnings > 0 and not vip_earnings_collected:
+                                        self.log_result("VIP Earnings Not Auto-Collected", True, 
+                                                      f"✅ Gains VIP disponibles ({earnings}$) mais PAS collectés automatiquement")
+                                        print(f"   ✅ SUCCÈS: Gains VIP calculés ({earnings}$) mais flag vip_earnings_collected = {vip_earnings_collected}")
+                                        
+                                        # Vérifier que l'argent du joueur n'a pas changé automatiquement
+                                        current_gamestate_response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+                                        if current_gamestate_response.status_code == 200:
+                                            current_gamestate = current_gamestate_response.json()
+                                            current_money = current_gamestate.get('money', 0)
+                                            
+                                            # Tester la collection manuelle
+                                            collect_response = requests.post(f"{API_BASE}/games/{game_id}/collect-vip-earnings", timeout=5)
+                                            
+                                            if collect_response.status_code == 200:
+                                                collect_data = collect_response.json()
+                                                earnings_collected = collect_data.get('earnings_collected', 0)
+                                                new_money = collect_data.get('new_total_money', 0)
+                                                
+                                                if earnings_collected == earnings and new_money == current_money + earnings:
+                                                    self.log_result("VIP Earnings Manual Collection", True, 
+                                                                  f"✅ Collection manuelle fonctionne: +{earnings_collected}$ collectés")
+                                                    print(f"   ✅ SUCCÈS: Collection manuelle des gains VIP fonctionne")
+                                                    
+                                                    # Tester qu'on ne peut pas collecter deux fois
+                                                    double_collect_response = requests.post(f"{API_BASE}/games/{game_id}/collect-vip-earnings", timeout=5)
+                                                    
+                                                    if double_collect_response.status_code == 400:
+                                                        self.log_result("VIP Earnings Double Collection Prevention", True, 
+                                                                      f"✅ Double collection bloquée (HTTP 400)")
+                                                        print(f"   ✅ SUCCÈS: Double collection des gains VIP correctement bloquée")
+                                                    else:
+                                                        self.log_result("VIP Earnings Double Collection Prevention", False, 
+                                                                      f"❌ Double collection non bloquée (HTTP {double_collect_response.status_code})")
+                                                else:
+                                                    self.log_result("VIP Earnings Manual Collection", False, 
+                                                                  f"❌ Collection manuelle incorrecte: {earnings_collected}$ vs {earnings}$ attendus")
+                                            else:
+                                                self.log_result("VIP Earnings Manual Collection", False, 
+                                                              f"❌ Collection manuelle échouée - HTTP {collect_response.status_code}")
+                                        else:
+                                            self.log_result("VIP Earnings Manual Collection", False, 
+                                                          f"❌ Could not get current gamestate - HTTP {current_gamestate_response.status_code}")
+                                    else:
+                                        self.log_result("VIP Earnings Not Auto-Collected", False, 
+                                                      f"❌ Gains VIP: {earnings}$, collectés automatiquement: {vip_earnings_collected}")
+                                    break
+                                else:
+                                    events_simulated += 1
+                            else:
+                                self.log_result("Game Simulation", False, f"Simulation failed - HTTP {sim_response.status_code}")
+                                break
+                        
+                        if events_simulated >= max_events:
+                            self.log_result("Game Completion", False, f"Game did not complete after {max_events} events")
+                            
+                    else:
+                        self.log_result("Game Creation Level 1 VIPs", False, f"❌ Partie salon niveau 1: {len(game_vips)} VIPs assignés (attendu: 3)")
+                        return
+                else:
+                    self.log_result("Game Creation Level 1 VIPs", False, f"Could not get game VIPs - HTTP {response.status_code}")
+                    return
+            else:
+                self.log_result("Game Creation Level 1", False, f"Could not create game - HTTP {response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("VIP Salon Initialization Fix", False, f"Error during test: {str(e)}")
+
     def test_celebrity_pricing_logic_french_specs(self):
         """Test FRENCH REVIEW REQUEST: Tester la logique corrigée des prix des célébrités selon la nouvelle spécification française"""
         try:
