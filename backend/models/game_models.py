@@ -142,7 +142,7 @@ class Game(BaseModel):
     winner: Optional[Player] = None
     total_cost: int = 0
     earnings: int = 0
-    vip_salon_level: int = 1  # Niveau de salon VIP utilisé pour cette partie
+    vip_salon_level: int = 0  # Niveau de salon VIP utilisé pour cette partie
     vip_earnings_collected: bool = False  # Flag pour indiquer si les gains VIP ont été collectés automatiquement
 
 class GameStats(BaseModel):
