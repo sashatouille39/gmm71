@@ -14607,8 +14607,37 @@ class BackendTester:
             print("4. Test de multiple simulations")
             print()
             
+            # PRÉPARATION: Mettre à niveau le salon VIP pour avoir des VIPs
+            print("🔧 PRÉPARATION: MISE À NIVEAU DU SALON VIP")
+            print("-" * 60)
+            
+            # Vérifier l'état actuel du salon VIP
+            gamestate_response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+            if gamestate_response.status_code == 200:
+                gamestate = gamestate_response.json()
+                current_salon_level = gamestate.get('vip_salon_level', 0)
+                current_money = gamestate.get('money', 0)
+                print(f"   📊 Salon VIP actuel: niveau {current_salon_level}")
+                print(f"   💰 Argent actuel: {current_money:,}$")
+                
+                # Si salon niveau 0, le mettre à niveau 1 pour avoir des VIPs
+                if current_salon_level == 0:
+                    # Mettre à jour le salon VIP à niveau 1
+                    update_data = {"vip_salon_level": 1}
+                    update_response = requests.put(f"{API_BASE}/gamestate/", 
+                                                 json=update_data,
+                                                 headers={"Content-Type": "application/json"},
+                                                 timeout=5)
+                    
+                    if update_response.status_code == 200:
+                        print(f"   ✅ Salon VIP mis à niveau 1 pour les tests")
+                    else:
+                        print(f"   ⚠️ Impossible de mettre à niveau le salon VIP - HTTP {update_response.status_code}")
+            else:
+                print(f"   ⚠️ Impossible de récupérer le gamestate initial")
+            
             # Test 1: Test de collecte automatique unique
-            print("🔍 TEST 1: COLLECTE AUTOMATIQUE UNIQUE")
+            print("\n🔍 TEST 1: COLLECTE AUTOMATIQUE UNIQUE")
             print("-" * 60)
             
             # Créer une partie avec des VIPs (salon niveau > 0)
@@ -14654,7 +14683,13 @@ class BackendTester:
                     print(f"   ⚠️ Aucun VIP assigné à la partie")
             else:
                 expected_vip_earnings = 0
-                print(f"   ⚠️ Impossible de récupérer les VIPs assignés")
+                print(f"   ⚠️ Impossible de récupérer les VIPs assignés - HTTP {vips_response.status_code}")
+            
+            # Si pas de VIPs, on ne peut pas tester la collecte
+            if expected_vip_earnings == 0:
+                self.log_result("VIP Double Collection Fix - Test 1", False, 
+                              "Aucun VIP assigné - impossible de tester la collecte automatique")
+                return
             
             # Simuler la partie jusqu'à completion avec un gagnant
             max_events = 10
@@ -14762,183 +14797,230 @@ class BackendTester:
             print("\n🔍 TEST 3: COHÉRENCE DES MONTANTS")
             print("-" * 60)
             
-            # Créer une nouvelle partie pour tester la cohérence
-            game_request_2 = {
-                "player_count": 15,
-                "game_mode": "standard", 
-                "selected_events": [1, 2],
-                "manual_players": []
-            }
+            # Pour ce test, nous allons créer une partie avec un salon niveau spécifique
+            # en mettant d'abord à jour le gamestate
             
-            # Capturer le montant d'argent avant la partie
-            before_money_response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
-            if before_money_response.status_code == 200:
-                money_before = before_money_response.json().get('money', 0)
-                print(f"   💰 Argent avant nouvelle partie: {money_before:,}$")
-            else:
-                money_before = 0
-                print(f"   ⚠️ Impossible de récupérer l'argent avant nouvelle partie")
+            # Mettre le salon à niveau 2 pour avoir 5 VIPs
+            update_salon_data = {"vip_salon_level": 2}
+            update_salon_response = requests.put(f"{API_BASE}/gamestate/", 
+                                               json=update_salon_data,
+                                               headers={"Content-Type": "application/json"},
+                                               timeout=5)
             
-            response = requests.post(f"{API_BASE}/games/create", 
-                                   json=game_request_2, 
-                                   headers={"Content-Type": "application/json"},
-                                   timeout=15)
-            
-            if response.status_code == 200:
-                game_data_2 = response.json()
-                game_id_2 = game_data_2.get('id')
-                game_cost = game_data_2.get('total_cost', 0)
-                print(f"   ✅ Nouvelle partie créée avec ID: {game_id_2} (coût: {game_cost:,}$)")
+            if update_salon_response.status_code == 200:
+                print(f"   ✅ Salon VIP mis à niveau 2 pour test cohérence")
                 
-                # Simuler jusqu'à la fin
-                for event_num in range(5):
-                    sim_response = requests.post(f"{API_BASE}/games/{game_id_2}/simulate-event", timeout=10)
-                    if sim_response.status_code == 200:
-                        sim_data = sim_response.json()
-                        if sim_data.get('game', {}).get('completed', False):
-                            print(f"   ✅ Nouvelle partie terminée après {event_num + 1} événements")
-                            break
+                # Créer une nouvelle partie pour tester la cohérence
+                game_request_2 = {
+                    "player_count": 15,
+                    "game_mode": "standard", 
+                    "selected_events": [1, 2],
+                    "manual_players": []
+                }
                 
-                # Capturer le montant affiché comme "gagné" via status
-                status_response = requests.get(f"{API_BASE}/games/{game_id_2}/vip-earnings-status", timeout=5)
-                if status_response.status_code == 200:
-                    status_data = status_response.json()
-                    earnings_displayed = status_data.get('earnings_available', 0)
-                    print(f"   💰 Gains affichés comme disponibles: {earnings_displayed:,}$")
+                # Capturer le montant d'argent avant la partie
+                before_money_response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+                if before_money_response.status_code == 200:
+                    money_before = before_money_response.json().get('money', 0)
+                    print(f"   💰 Argent avant nouvelle partie: {money_before:,}$")
                 else:
-                    earnings_displayed = 0
-                    print(f"   ⚠️ Impossible de récupérer les gains affichés")
+                    money_before = 0
+                    print(f"   ⚠️ Impossible de récupérer l'argent avant nouvelle partie")
                 
-                # Capturer le montant d'argent après la partie
-                after_money_response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
-                if after_money_response.status_code == 200:
-                    money_after = after_money_response.json().get('money', 0)
-                    print(f"   💰 Argent après nouvelle partie: {money_after:,}$")
-                else:
-                    money_after = money_before
-                    print(f"   ⚠️ Impossible de récupérer l'argent après nouvelle partie")
+                response = requests.post(f"{API_BASE}/games/create", 
+                                       json=game_request_2, 
+                                       headers={"Content-Type": "application/json"},
+                                       timeout=15)
                 
-                # Vérifier la cohérence: argent_après = argent_avant - coût_partie + montant_gagné (si collecté automatiquement)
-                expected_money_after_cost = money_before - game_cost
-                actual_gain = money_after - expected_money_after_cost
-                
-                print(f"   📊 Analyse cohérence:")
-                print(f"      - Argent avant: {money_before:,}$")
-                print(f"      - Coût partie: {game_cost:,}$")
-                print(f"      - Argent attendu après coût: {expected_money_after_cost:,}$")
-                print(f"      - Argent réel après: {money_after:,}$")
-                print(f"      - Gain net réel: {actual_gain:,}$")
-                print(f"      - Gains affichés: {earnings_displayed:,}$")
-                
-                # Si les gains sont collectés automatiquement, earnings_displayed devrait être 0
-                # et actual_gain devrait correspondre aux gains VIP
-                if earnings_displayed == 0:  # Gains collectés automatiquement
-                    if actual_gain >= 0:  # Gain positif ou nul (pas de doublement négatif)
-                        print(f"   ✅ SUCCÈS: Cohérence validée - gains collectés automatiquement, pas de doublement")
-                        test3_success = True
-                    else:
-                        print(f"   ❌ ÉCHEC: Gain négatif inattendu: {actual_gain:,}$")
-                        test3_success = False
-                else:
-                    print(f"   ❌ ÉCHEC: Gains encore disponibles après fin de partie: {earnings_displayed:,}$")
-                    test3_success = False
+                if response.status_code == 200:
+                    game_data_2 = response.json()
+                    game_id_2 = game_data_2.get('id')
+                    game_cost = game_data_2.get('total_cost', 0)
+                    print(f"   ✅ Nouvelle partie créée avec ID: {game_id_2} (coût: {game_cost:,}$)")
                     
-                self.log_result("VIP Double Collection Fix - Test 3", test3_success, 
-                              f"{'✅' if test3_success else '❌'} Cohérence montants: gain_net={actual_gain:,}$, gains_disponibles={earnings_displayed:,}$")
+                    # Vérifier les VIPs assignés pour cette partie
+                    vips_response_2 = requests.get(f"{API_BASE}/vips/game/{game_id_2}?salon_level=2", timeout=10)
+                    if vips_response_2.status_code == 200:
+                        vips_data_2 = vips_response_2.json()
+                        if isinstance(vips_data_2, list) and len(vips_data_2) > 0:
+                            expected_vip_earnings_2 = sum(vip.get('viewing_fee', 0) for vip in vips_data_2)
+                            print(f"   🎭 {len(vips_data_2)} VIPs assignés avec viewing_fee total: {expected_vip_earnings_2:,}$")
+                        else:
+                            expected_vip_earnings_2 = 0
+                            print(f"   ⚠️ Aucun VIP assigné à la nouvelle partie")
+                    else:
+                        expected_vip_earnings_2 = 0
+                        print(f"   ⚠️ Impossible de récupérer les VIPs de la nouvelle partie")
+                    
+                    # Simuler jusqu'à la fin
+                    for event_num in range(5):
+                        sim_response = requests.post(f"{API_BASE}/games/{game_id_2}/simulate-event", timeout=10)
+                        if sim_response.status_code == 200:
+                            sim_data = sim_response.json()
+                            if sim_data.get('game', {}).get('completed', False):
+                                print(f"   ✅ Nouvelle partie terminée après {event_num + 1} événements")
+                                break
+                    
+                    # Capturer le montant affiché comme "gagné" via status
+                    status_response = requests.get(f"{API_BASE}/games/{game_id_2}/vip-earnings-status", timeout=5)
+                    if status_response.status_code == 200:
+                        status_data = status_response.json()
+                        earnings_displayed = status_data.get('earnings_available', 0)
+                        print(f"   💰 Gains affichés comme disponibles: {earnings_displayed:,}$")
+                    else:
+                        earnings_displayed = 0
+                        print(f"   ⚠️ Impossible de récupérer les gains affichés")
+                    
+                    # Capturer le montant d'argent après la partie
+                    after_money_response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+                    if after_money_response.status_code == 200:
+                        money_after = after_money_response.json().get('money', 0)
+                        print(f"   💰 Argent après nouvelle partie: {money_after:,}$")
+                    else:
+                        money_after = money_before
+                        print(f"   ⚠️ Impossible de récupérer l'argent après nouvelle partie")
+                    
+                    # Vérifier la cohérence: argent_après = argent_avant - coût_partie + montant_gagné (si collecté automatiquement)
+                    expected_money_after_cost = money_before - game_cost
+                    actual_gain = money_after - expected_money_after_cost
+                    
+                    print(f"   📊 Analyse cohérence:")
+                    print(f"      - Argent avant: {money_before:,}$")
+                    print(f"      - Coût partie: {game_cost:,}$")
+                    print(f"      - Argent attendu après coût: {expected_money_after_cost:,}$")
+                    print(f"      - Argent réel après: {money_after:,}$")
+                    print(f"      - Gain net réel: {actual_gain:,}$")
+                    print(f"      - Gains affichés: {earnings_displayed:,}$")
+                    
+                    # Si les gains sont collectés automatiquement, earnings_displayed devrait être 0
+                    # et actual_gain devrait correspondre aux gains VIP
+                    if earnings_displayed == 0:  # Gains collectés automatiquement
+                        if actual_gain >= 0:  # Gain positif ou nul (pas de doublement négatif)
+                            print(f"   ✅ SUCCÈS: Cohérence validée - gains collectés automatiquement, pas de doublement")
+                            test3_success = True
+                        else:
+                            print(f"   ❌ ÉCHEC: Gain négatif inattendu: {actual_gain:,}$")
+                            test3_success = False
+                    else:
+                        print(f"   ❌ ÉCHEC: Gains encore disponibles après fin de partie: {earnings_displayed:,}$")
+                        test3_success = False
+                        
+                    self.log_result("VIP Double Collection Fix - Test 3", test3_success, 
+                                  f"{'✅' if test3_success else '❌'} Cohérence montants: gain_net={actual_gain:,}$, gains_disponibles={earnings_displayed:,}$")
+                else:
+                    print(f"   ❌ Impossible de créer nouvelle partie pour test cohérence - HTTP {response.status_code}")
+                    self.log_result("VIP Double Collection Fix - Test 3", False, 
+                                  f"Could not create second test game - HTTP {response.status_code}")
+                    test3_success = False
             else:
-                print(f"   ❌ Impossible de créer nouvelle partie pour test cohérence - HTTP {response.status_code}")
+                print(f"   ❌ Impossible de mettre à niveau le salon VIP")
                 self.log_result("VIP Double Collection Fix - Test 3", False, 
-                              f"Could not create second test game - HTTP {response.status_code}")
+                              "Could not upgrade VIP salon for testing")
                 test3_success = False
             
             # Test 4: Test de multiple simulations
             print("\n🔍 TEST 4: MULTIPLE SIMULATIONS")
             print("-" * 60)
             
-            # Créer une partie et simuler plusieurs événements
-            game_request_3 = {
-                "player_count": 25,
-                "game_mode": "standard",
-                "selected_events": [1, 2, 3, 4],
-                "manual_players": []
-            }
+            # Mettre le salon à niveau 3 pour avoir plus de VIPs
+            update_salon_data_3 = {"vip_salon_level": 3}
+            update_salon_response_3 = requests.put(f"{API_BASE}/gamestate/", 
+                                                 json=update_salon_data_3,
+                                                 headers={"Content-Type": "application/json"},
+                                                 timeout=5)
             
-            response = requests.post(f"{API_BASE}/games/create", 
-                                   json=game_request_3, 
-                                   headers={"Content-Type": "application/json"},
-                                   timeout=15)
-            
-            if response.status_code == 200:
-                game_data_3 = response.json()
-                game_id_3 = game_data_3.get('id')
-                game_cost_3 = game_data_3.get('total_cost', 0)
-                print(f"   ✅ Partie pour test multiple créée avec ID: {game_id_3}")
+            if update_salon_response_3.status_code == 200:
+                print(f"   ✅ Salon VIP mis à niveau 3 pour test multiple simulations")
                 
-                # Capturer l'argent avant simulations
-                before_sim_response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
-                if before_sim_response.status_code == 200:
-                    money_before_sim = before_sim_response.json().get('money', 0)
-                    print(f"   💰 Argent avant simulations: {money_before_sim:,}$")
-                else:
-                    money_before_sim = 0
+                # Créer une partie et simuler plusieurs événements
+                game_request_3 = {
+                    "player_count": 25,
+                    "game_mode": "standard",
+                    "selected_events": [1, 2, 3, 4],
+                    "manual_players": []
+                }
                 
-                collection_events = []
-                money_changes = []
-                previous_money = money_before_sim
+                response = requests.post(f"{API_BASE}/games/create", 
+                                       json=game_request_3, 
+                                       headers={"Content-Type": "application/json"},
+                                       timeout=15)
                 
-                # Simuler plusieurs événements et vérifier qu'il n'y a qu'une seule collecte
-                for event_num in range(4):
-                    sim_response = requests.post(f"{API_BASE}/games/{game_id_3}/simulate-event", timeout=10)
-                    if sim_response.status_code == 200:
-                        sim_data = sim_response.json()
-                        game_state = sim_data.get('game', {})
-                        
-                        # Vérifier l'argent après chaque simulation
-                        money_response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
-                        if money_response.status_code == 200:
-                            current_money = money_response.json().get('money', 0)
-                            money_change = current_money - previous_money
-                            money_changes.append(money_change)
-                            
-                            if money_change > 0:
-                                collection_events.append({
-                                    'event': event_num + 1,
-                                    'money_added': money_change,
-                                    'total_money': current_money
-                                })
-                                print(f"   💰 Collection détectée après événement {event_num + 1}: +{money_change:,}$ (total: {current_money:,}$)")
-                            
-                            previous_money = current_money
-                        
-                        if game_state.get('completed', False):
-                            print(f"   🎮 Partie terminée après {event_num + 1} événements")
-                            break
-                
-                # Analyser les collections
-                total_collections = len(collection_events)
-                total_money_added = sum(event['money_added'] for event in collection_events)
-                
-                print(f"   📊 Analyse des collections:")
-                print(f"      - Nombre de collections détectées: {total_collections}")
-                print(f"      - Argent total ajouté: {total_money_added:,}$")
-                
-                for event in collection_events:
-                    print(f"      - Événement {event['event']}: +{event['money_added']:,}$")
-                
-                # Vérifier que les gains ne sont collectés qu'UNE fois à la fin
-                if total_collections <= 1:
-                    print(f"   ✅ SUCCÈS: Gains collectés {total_collections} fois maximum (attendu: 0 ou 1)")
-                    test4_success = True
-                else:
-                    print(f"   ❌ ÉCHEC: Multiple collections détectées - gains collectés {total_collections} fois")
-                    test4_success = False
+                if response.status_code == 200:
+                    game_data_3 = response.json()
+                    game_id_3 = game_data_3.get('id')
+                    game_cost_3 = game_data_3.get('total_cost', 0)
+                    print(f"   ✅ Partie pour test multiple créée avec ID: {game_id_3}")
                     
-                self.log_result("VIP Double Collection Fix - Test 4", test4_success, 
-                              f"{'✅' if test4_success else '❌'} Multiple simulations: {total_collections} collections détectées")
+                    # Capturer l'argent avant simulations
+                    before_sim_response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+                    if before_sim_response.status_code == 200:
+                        money_before_sim = before_sim_response.json().get('money', 0)
+                        print(f"   💰 Argent avant simulations: {money_before_sim:,}$")
+                    else:
+                        money_before_sim = 0
+                    
+                    collection_events = []
+                    money_changes = []
+                    previous_money = money_before_sim
+                    
+                    # Simuler plusieurs événements et vérifier qu'il n'y a qu'une seule collecte
+                    for event_num in range(4):
+                        sim_response = requests.post(f"{API_BASE}/games/{game_id_3}/simulate-event", timeout=10)
+                        if sim_response.status_code == 200:
+                            sim_data = sim_response.json()
+                            game_state = sim_data.get('game', {})
+                            
+                            # Vérifier l'argent après chaque simulation
+                            money_response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+                            if money_response.status_code == 200:
+                                current_money = money_response.json().get('money', 0)
+                                money_change = current_money - previous_money
+                                money_changes.append(money_change)
+                                
+                                if money_change > 0:
+                                    collection_events.append({
+                                        'event': event_num + 1,
+                                        'money_added': money_change,
+                                        'total_money': current_money
+                                    })
+                                    print(f"   💰 Collection détectée après événement {event_num + 1}: +{money_change:,}$ (total: {current_money:,}$)")
+                                
+                                previous_money = current_money
+                            
+                            if game_state.get('completed', False):
+                                print(f"   🎮 Partie terminée après {event_num + 1} événements")
+                                break
+                    
+                    # Analyser les collections
+                    total_collections = len(collection_events)
+                    total_money_added = sum(event['money_added'] for event in collection_events)
+                    
+                    print(f"   📊 Analyse des collections:")
+                    print(f"      - Nombre de collections détectées: {total_collections}")
+                    print(f"      - Argent total ajouté: {total_money_added:,}$")
+                    
+                    for event in collection_events:
+                        print(f"      - Événement {event['event']}: +{event['money_added']:,}$")
+                    
+                    # Vérifier que les gains ne sont collectés qu'UNE fois à la fin
+                    if total_collections <= 1:
+                        print(f"   ✅ SUCCÈS: Gains collectés {total_collections} fois maximum (attendu: 0 ou 1)")
+                        test4_success = True
+                    else:
+                        print(f"   ❌ ÉCHEC: Multiple collections détectées - gains collectés {total_collections} fois")
+                        test4_success = False
+                        
+                    self.log_result("VIP Double Collection Fix - Test 4", test4_success, 
+                                  f"{'✅' if test4_success else '❌'} Multiple simulations: {total_collections} collections détectées")
+                else:
+                    print(f"   ❌ Impossible de créer partie pour test multiple - HTTP {response.status_code}")
+                    self.log_result("VIP Double Collection Fix - Test 4", False, 
+                                  f"Could not create third test game - HTTP {response.status_code}")
+                    test4_success = False
             else:
-                print(f"   ❌ Impossible de créer partie pour test multiple - HTTP {response.status_code}")
+                print(f"   ❌ Impossible de mettre à niveau le salon VIP pour test multiple")
                 self.log_result("VIP Double Collection Fix - Test 4", False, 
-                              f"Could not create third test game - HTTP {response.status_code}")
+                              "Could not upgrade VIP salon for multiple simulations test")
                 test4_success = False
             
             # RÉSUMÉ FINAL DU TEST DE DOUBLE COLLECTE
@@ -14946,14 +15028,17 @@ class BackendTester:
             print("🎯 RÉSUMÉ FINAL - TEST DE DOUBLE COLLECTE DES GAINS VIP")
             print("=" * 80)
             
-            all_tests_passed = test1_success and test2_success and test3_success and test4_success
+            # Compter seulement les tests qui ont pu être exécutés
+            executed_tests = [test1_success, test2_success, test3_success, test4_success]
+            tests_passed = sum(executed_tests)
+            total_executed = len(executed_tests)
             
-            if all_tests_passed:
+            if tests_passed == total_executed:
                 print("✅ CONCLUSION: Le problème de double collecte des gains VIP est RÉSOLU")
                 print("✅ VALIDATION: Toutes les vérifications 'and not game.vip_earnings_collected' fonctionnent")
                 print("✅ COMPORTEMENT: Les gains VIP sont collectés automatiquement UNE SEULE FOIS")
                 self.log_result("VIP Double Collection Fix - Overall", True, 
-                              f"✅ Problème de double collecte résolu - tous les tests réussis")
+                              f"✅ Problème de double collecte résolu - {tests_passed}/{total_executed} tests réussis")
             else:
                 print("❌ CONCLUSION: Des problèmes persistent dans la correction de double collecte")
                 print("❌ DIAGNOSTIC: Les problèmes suivants nécessitent une correction:")
@@ -14966,7 +15051,7 @@ class BackendTester:
                 if not test4_success:
                     print("   - Multiple collections lors de simulations multiples")
                 self.log_result("VIP Double Collection Fix - Overall", False, 
-                              f"❌ Problèmes persistants dans la correction de double collecte")
+                              f"❌ Problèmes persistants dans la correction de double collecte - {tests_passed}/{total_executed} tests réussis")
                 
         except Exception as e:
             self.log_result("VIP Double Collection Fix", False, f"Error during VIP double collection test: {str(e)}")
