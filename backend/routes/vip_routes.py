@@ -15,10 +15,6 @@ vip_bets: Dict[str, List[VipBet]] = {}
 async def get_salon_vips(salon_level: int):
     """Récupère les VIPs pour un niveau de salon donné"""
     try:
-        # Niveau 0 = pas de salon = pas de VIPs
-        if salon_level == 0:
-            return []
-        
         # Capacités correctes selon VipSalon.jsx - ajout niveau 0
         capacity_map = {0: 1, 1: 3, 2: 5, 3: 8, 4: 10, 5: 12, 6: 15, 7: 17, 8: 18, 9: 20}
         capacity = capacity_map.get(salon_level, 0)
