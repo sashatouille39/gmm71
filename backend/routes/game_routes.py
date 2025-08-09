@@ -1110,15 +1110,15 @@ async def get_vip_earnings_status(game_id: str):
     
     game = games_db[game_id]
     
-    # CORRECTION: Vérifier si les gains ont déjà été collectés automatiquement
-    already_collected = getattr(game, 'vip_earnings_collected', False)
+    # Les gains VIP sont toujours disponibles si la partie est terminée et qu'il y a des gains
+    can_collect = game.completed and game.earnings > 0
     
     return {
         "game_id": game_id,
         "completed": game.completed,
         "earnings_available": game.earnings,
-        "can_collect": game.completed and game.earnings > 0 and not already_collected,
-        "already_collected_automatically": already_collected,
+        "can_collect": can_collect,
+        "already_collected_automatically": False,
         "winner": game.winner.name if game.winner else None,
         "total_players": len(game.players),
         "alive_players": len([p for p in game.players if p.alive])
