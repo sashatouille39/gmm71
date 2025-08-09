@@ -588,32 +588,13 @@ async def simulate_event(game_id: str):
             game.earnings = 0
             print(f"⚠️ ATTENTION: Aucun VIP trouvé pour la partie {game_id} avec salon niveau {salon_level}")
         
-        # 🎯 COLLECTION AUTOMATIQUE DES GAINS VIP DÈS LA FIN DE PARTIE
+        # 🎯 GAINS VIP DISPONIBLES MAIS PAS COLLECTÉS AUTOMATIQUEMENT
+        # Les gains VIP ne sont collectés QU'APRÈS la toute dernière simulation avec gagnant
+        # La collection se fait manuellement via /collect-vip-earnings
         if game.earnings > 0:
-            user_id = "default_user"
-            
-            # Ajouter automatiquement les gains VIP au portefeuille du joueur
-            if user_id not in game_states_db:
-                from models.game_models import GameState
-                game_state = GameState(user_id=user_id)
-                game_states_db[user_id] = game_state
-            else:
-                game_state = game_states_db[user_id]
-            
-            # Collection automatique des gains
-            earnings_to_collect = game.earnings
-            game_state.money += earnings_to_collect
-            game_state.game_stats.total_earnings += earnings_to_collect
-            game_state.updated_at = datetime.utcnow()
-            game_states_db[user_id] = game_state
-            
-            # Marquer que les gains ont été collectés automatiquement
-            game.vip_earnings_collected = True
-            
-            print(f"🎭 ✅ GAINS VIP COLLECTÉS AUTOMATIQUEMENT: +{earnings_to_collect:,}$ (Salon niveau {salon_level})")
-            print(f"💰 Nouveau solde utilisateur: {game_state.money:,}$")
+            print(f"💰 GAINS VIP DISPONIBLES: {game.earnings:,}$ (Salon niveau {salon_level}) - Collection manuelle requise")
         else:
-            print("📋 Aucun gain VIP à collecter pour cette partie")
+            print("📋 Aucun gain VIP disponible pour cette partie")
         
         # 🎯 NOUVELLE FONCTIONNALITÉ : Sauvegarder automatiquement les statistiques
         try:
