@@ -244,8 +244,20 @@ async def create_game(request: GameCreateRequest):
             if vip_capacity > 0:
                 # Assigner des VIPs avec leurs viewing_fee (200k-3M)
                 game_vips = VipService.get_random_vips(vip_capacity)
+                
+                # NOUVEAU : Calculer et appliquer le bonus de tarification VIP
+                pricing_multiplier = calculate_vip_pricing_bonus(players)
+                
+                # Appliquer le multiplicateur au viewing_fee de chaque VIP
+                for vip in game_vips:
+                    original_fee = vip.viewing_fee
+                    vip.viewing_fee = int(vip.viewing_fee * pricing_multiplier)
+                    print(f"🎯 VIP {vip.name}: {original_fee:,}$ → {vip.viewing_fee:,}$ (x{pricing_multiplier:.2f})")
+                
                 active_vips_by_game[f'{game.id}_salon_{salon_level}'] = game_vips
+                total_vip_earnings = sum(vip.viewing_fee for vip in game_vips)
                 print(f"🎯 VIP ASSIGNMENT: Salon niveau {salon_level} - {len(game_vips)} VIPs assignés pour game {game.id}")
+                print(f"🎯 VIP EARNINGS TOTAL: {total_vip_earnings:,}$ (avec bonus x{pricing_multiplier:.2f})")
             else:
                 active_vips_by_game[f'{game.id}_salon_{salon_level}'] = []
                 print(f"🎯 VIP ASSIGNMENT: Salon niveau {salon_level} - Aucun VIP assigné (capacité 0) pour game {game.id}")
