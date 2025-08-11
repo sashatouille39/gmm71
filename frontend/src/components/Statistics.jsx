@@ -416,10 +416,10 @@ const Statistics = ({ gameState }) => {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {['Intelligence', 'Force', 'Agilité'].map((type) => {
+                      {['intelligence', 'force', 'agilité'].map((type) => {
                         // Calculer les vraies performances basées sur les statistiques d'événements
                         const typeEvents = realStats.topEvents.filter(event => 
-                          event.type && event.type.toLowerCase() === type.toLowerCase()
+                          event.event_type && event.event_type.toLowerCase() === type.toLowerCase()
                         );
                         const averageSurvival = typeEvents.length > 0 
                           ? (typeEvents.reduce((sum, event) => sum + (event.survival_rate || 0), 0) / typeEvents.length * 100)
@@ -428,7 +428,7 @@ const Statistics = ({ gameState }) => {
                         return (
                           <div key={type} className="space-y-2">
                             <div className="flex justify-between">
-                              <span className="text-gray-300">{type}</span>
+                              <span className="text-gray-300 capitalize">{type}</span>
                               <span className="text-white">{averageSurvival.toFixed(0)}%</span>
                             </div>
                             <div className="bg-gray-700 rounded-full h-2">
