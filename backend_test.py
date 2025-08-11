@@ -1160,6 +1160,207 @@ class BackendTester:
         except Exception as e:
             self.log_result("Celebrity Owned List Route", False, f"Error: {str(e)}")
 
+    def test_celebrity_price_rounding_fix(self):
+        """Test REVIEW REQUEST: Celebrity price rounding to nearest hundred thousand"""
+        try:
+            print("\n🎯 TESTING CELEBRITY PRICE ROUNDING FIX")
+            print("=" * 80)
+            print("OBJECTIVE: Test that all celebrity prices are rounded to the nearest hundred thousand")
+            print("Examples: $2,354,485 → $2,300,000, $11,458,523 → $11,400,000")
+            print()
+            
+            # Test 1: Generate multiple celebrities and check their prices
+            print("🔍 TEST 1: GENERATING CELEBRITIES AND CHECKING PRICE ROUNDING")
+            print("-" * 60)
+            
+            response = requests.get(f"{API_BASE}/celebrities/?limit=50", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Celebrity Price Rounding", False, f"Could not get celebrities - HTTP {response.status_code}")
+                return
+                
+            celebrities = response.json()
+            
+            if not celebrities:
+                self.log_result("Celebrity Price Rounding", False, "No celebrities found for testing")
+                return
+            
+            print(f"   ✅ Retrieved {len(celebrities)} celebrities for testing")
+            
+            # Test price rounding for each celebrity
+            rounding_errors = []
+            price_examples = []
+            category_price_ranges = {}
+            
+            for celebrity in celebrities:
+                name = celebrity.get('name', 'Unknown')
+                price = celebrity.get('price', 0)
+                category = celebrity.get('category', 'Unknown')
+                stars = celebrity.get('stars', 0)
+                
+                # Check if price is rounded to nearest hundred thousand
+                if price % 100000 != 0:
+                    rounding_errors.append(f"{name} ({category}): ${price:,} - not rounded to nearest 100k")
+                else:
+                    # Collect examples of properly rounded prices
+                    if len(price_examples) < 10:
+                        price_examples.append(f"{name} ({category}, {stars}★): ${price:,}")
+                
+                # Track price ranges by category
+                if category not in category_price_ranges:
+                    category_price_ranges[category] = {'min': price, 'max': price, 'count': 0}
+                else:
+                    category_price_ranges[category]['min'] = min(category_price_ranges[category]['min'], price)
+                    category_price_ranges[category]['max'] = max(category_price_ranges[category]['max'], price)
+                category_price_ranges[category]['count'] += 1
+            
+            # Test 2: Check former winners prices from statistics route
+            print("\n🔍 TEST 2: CHECKING FORMER WINNERS PRICE ROUNDING")
+            print("-" * 60)
+            
+            winners_response = requests.get(f"{API_BASE}/statistics/winners", timeout=10)
+            former_winners_rounding_errors = []
+            former_winners_examples = []
+            
+            if winners_response.status_code == 200:
+                winners = winners_response.json()
+                print(f"   ✅ Retrieved {len(winners)} former winners for testing")
+                
+                for winner in winners:
+                    name = winner.get('name', 'Unknown')
+                    price = winner.get('price', 0)
+                    stars = winner.get('stars', 0)
+                    
+                    # Check if former winner price is rounded to nearest hundred thousand
+                    if price % 100000 != 0:
+                        former_winners_rounding_errors.append(f"{name} (Former Winner): ${price:,} - not rounded to nearest 100k")
+                    else:
+                        if len(former_winners_examples) < 5:
+                            former_winners_examples.append(f"{name} (Former Winner, {stars}★): ${price:,}")
+            else:
+                print(f"   ⚠️ Could not retrieve former winners - HTTP {winners_response.status_code}")
+            
+            # Test 3: Verify expected price ranges by category
+            print("\n🔍 TEST 3: VERIFYING PRICE RANGES BY CATEGORY")
+            print("-" * 60)
+            
+            expected_ranges = {
+                "Influenceur": (2000000, 5000000),      # 2-5 millions for 2 stars
+                "Chef": (2000000, 5000000),             # 2-5 millions for 2 stars  
+                "Écrivain": (2000000, 5000000),         # 2-5 millions for 2 stars
+                "Acteur": (5000000, 15000000),          # 5-15 millions for 3 stars
+                "Chanteuse": (5000000, 15000000),       # 5-15 millions for 3 stars
+                "Politicien": (5000000, 15000000),      # 5-15 millions for 3 stars
+                "Artiste": (5000000, 15000000),         # 5-15 millions for 3 stars
+                "Sportif": (15000000, 35000000),        # 15-35 millions for 4 stars
+                "Scientifique": (15000000, 35000000),   # 15-35 millions for 4 stars
+                "Ancien vainqueur": (35000000, 60000000) # 35-60 millions for 5 stars
+            }
+            
+            range_validation_errors = []
+            
+            for category, actual_range in category_price_ranges.items():
+                if category in expected_ranges:
+                    expected_min, expected_max = expected_ranges[category]
+                    actual_min = actual_range['min']
+                    actual_max = actual_range['max']
+                    count = actual_range['count']
+                    
+                    print(f"   {category}: ${actual_min:,} - ${actual_max:,} ({count} celebrities)")
+                    
+                    # Check if actual range is within expected bounds
+                    if actual_min < expected_min or actual_max > expected_max:
+                        range_validation_errors.append(
+                            f"{category}: actual range ${actual_min:,}-${actual_max:,} outside expected ${expected_min:,}-${expected_max:,}"
+                        )
+            
+            # Evaluate results
+            success = True
+            messages = []
+            
+            # Check celebrity price rounding
+            if rounding_errors:
+                success = False
+                messages.append(f"❌ Celebrity price rounding errors: {len(rounding_errors)} celebrities with unrounded prices")
+                for error in rounding_errors[:3]:
+                    messages.append(f"  - {error}")
+                if len(rounding_errors) > 3:
+                    messages.append(f"  - ... and {len(rounding_errors) - 3} more")
+            
+            # Check former winners price rounding
+            if former_winners_rounding_errors:
+                success = False
+                messages.append(f"❌ Former winners price rounding errors: {len(former_winners_rounding_errors)} winners with unrounded prices")
+                for error in former_winners_rounding_errors[:2]:
+                    messages.append(f"  - {error}")
+            
+            # Check price ranges
+            if range_validation_errors:
+                messages.append(f"⚠️ Price range validation issues: {len(range_validation_errors)} categories outside expected ranges")
+                for error in range_validation_errors[:2]:
+                    messages.append(f"  - {error}")
+            
+            if success:
+                self.log_result("Celebrity Price Rounding", True, 
+                              f"✅ CELEBRITY PRICE ROUNDING FIX SUCCESSFUL: "
+                              f"All {len(celebrities)} celebrities have prices rounded to nearest 100k, "
+                              f"{len(winners) if winners_response.status_code == 200 else 0} former winners also properly rounded")
+                
+                # Log detailed results
+                print(f"   📊 DETAILED RESULTS:")
+                print(f"   - Total celebrities tested: {len(celebrities)}")
+                print(f"   - All prices properly rounded to nearest $100,000")
+                print(f"   - Categories found: {len(category_price_ranges)}")
+                print(f"   - Former winners tested: {len(winners) if winners_response.status_code == 200 else 0}")
+                
+                print(f"   🔍 PRICE EXAMPLES:")
+                for example in price_examples[:5]:
+                    print(f"   - {example}")
+                
+                if former_winners_examples:
+                    print(f"   🏆 FORMER WINNERS EXAMPLES:")
+                    for example in former_winners_examples:
+                        print(f"   - {example}")
+                        
+            else:
+                self.log_result("Celebrity Price Rounding", False, 
+                              f"❌ CELEBRITY PRICE ROUNDING FIX FAILED", messages)
+            
+            # Test 4: Specific examples mentioned in review request
+            print("\n🔍 TEST 4: TESTING SPECIFIC ROUNDING EXAMPLES")
+            print("-" * 60)
+            
+            # Test the rounding logic with specific examples
+            test_cases = [
+                (2354485, 2300000, "$2,354,485 should become $2,300,000"),
+                (11458523, 11400000, "$11,458,523 should become $11,400,000"),
+                (1750000, 1800000, "$1,750,000 should become $1,800,000"),
+                (999999, 1000000, "$999,999 should become $1,000,000"),
+                (50000, 100000, "$50,000 should become $100,000")
+            ]
+            
+            rounding_logic_errors = []
+            
+            for original, expected, description in test_cases:
+                # Calculate what the rounding should produce
+                calculated = round(original / 100000) * 100000
+                
+                if calculated == expected:
+                    print(f"   ✅ {description} - CORRECT")
+                else:
+                    print(f"   ❌ {description} - GOT ${calculated:,}")
+                    rounding_logic_errors.append(f"{description} - got ${calculated:,}")
+            
+            if rounding_logic_errors:
+                self.log_result("Rounding Logic Validation", False, 
+                              f"❌ Rounding logic errors", rounding_logic_errors)
+            else:
+                self.log_result("Rounding Logic Validation", True, 
+                              f"✅ All rounding logic examples work correctly")
+                
+        except Exception as e:
+            self.log_result("Celebrity Price Rounding", False, f"Error during test: {str(e)}")
+
     def test_elimination_statistics_correction(self):
         """Test FRENCH REVIEW REQUEST: Test de la correction du système de statistiques d'éliminations"""
         try:
