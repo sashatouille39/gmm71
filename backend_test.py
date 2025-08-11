@@ -1749,18 +1749,18 @@ class BackendTester:
                     stats = player.get('stats', {})
                     total_stats = stats.get('intelligence', 0) + stats.get('force', 0) + stats.get('agilité', 0)
                     
-                    if total_stats >= 285:  # ~$30M
+                    if total_stats >= 28:  # Ajusté pour l'échelle 1-10 (28/30 = ~93%)
                         former_winner_bonus = 200
                         estimated_price = 30000000
-                        print(f"   🏆 Ancien gagnant détecté: {player.get('name')} (stats: {total_stats}, ~{estimated_price:,}$)")
-                    elif total_stats >= 270:  # ~$20M
+                        print(f"   🏆 Ancien gagnant détecté: {player.get('name')} (stats: {total_stats}/30, ~{estimated_price:,}$)")
+                    elif total_stats >= 25:  # Ajusté pour l'échelle 1-10 (25/30 = ~83%)
                         former_winner_bonus = 200
                         estimated_price = 20000000
-                        print(f"   🏆 Ancien gagnant détecté: {player.get('name')} (stats: {total_stats}, ~{estimated_price:,}$)")
-                    elif total_stats >= 255:  # ~$10M
+                        print(f"   🏆 Ancien gagnant détecté: {player.get('name')} (stats: {total_stats}/30, ~{estimated_price:,}$)")
+                    elif total_stats >= 22:  # Ajusté pour l'échelle 1-10 (22/30 = ~73%)
                         former_winner_bonus = 120
                         estimated_price = 10000000
-                        print(f"   🏆 Ancien gagnant détecté: {player.get('name')} (stats: {total_stats}, ~{estimated_price:,}$)")
+                        print(f"   🏆 Ancien gagnant détecté: {player.get('name')} (stats: {total_stats}/30, ~{estimated_price:,}$)")
                 
                 # Calculer le multiplicateur attendu
                 expected_multiplier = 1.0 + (former_winner_bonus / 100.0)
