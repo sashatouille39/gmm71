@@ -15,6 +15,63 @@ from services.events_service import EventsService
 
 router = APIRouter(prefix="/api/games", tags=["games"])
 
+def calculate_vip_pricing_bonus(players: List[Player]) -> float:
+    """
+    Calcule le multiplicateur de bonus VIP basé sur les célébrités et anciens gagnants présents
+    
+    Logique:
+    - +25% par célébrité présente
+    - +20% par étoile de célébrité  
+    - +120% si ancien gagnant à $10M présent
+    - +200% si ancien gagnant à $20M présent
+    
+    Returns:
+        float: multiplicateur final (ex: 1.0 = pas de bonus, 2.5 = +150%)
+    """
+    bonus_multiplier = 1.0
+    
+    celebrity_count = 0
+    total_stars = 0
+    former_winner_bonus = 0
+    
+    for player in players:
+        # Détecter les célébrités converties (ont des statistiques spéciales et certains rôles)
+        if player.role in ['intelligent', 'sportif'] and player.stats.intelligence > 80:
+            celebrity_count += 1
+            
+            # Estimer les étoiles basé sur les statistiques (approximation)
+            avg_stat = (player.stats.intelligence + player.stats.force + player.stats.agilité) // 3
+            if avg_stat >= 95:
+                stars = 5
+            elif avg_stat >= 85:
+                stars = 4  
+            elif avg_stat >= 75:
+                stars = 3
+            else:
+                stars = 2
+            
+            total_stars += stars
+            
+        # Détecter les anciens gagnants (noms spéciaux ou statistiques très élevées)
+        # Les anciens gagnants ont généralement des stats exceptionnelles
+        total_player_stats = player.stats.intelligence + player.stats.force + player.stats.agilité
+        if total_player_stats >= 270:  # Stats très élevées = ancien gagnant potentiel
+            # Estimer le prix basé sur les stats totales
+            if total_player_stats >= 285:  # ~$20M
+                former_winner_bonus = max(former_winner_bonus, 200)  # +200%
+            elif total_player_stats >= 270:  # ~$10M
+                former_winner_bonus = max(former_winner_bonus, 120)  # +120%
+    
+    # Appliquer les bonus
+    bonus_multiplier += (celebrity_count * 0.25)  # +25% par célébrité
+    bonus_multiplier += (total_stars * 0.20)      # +20% par étoile
+    bonus_multiplier += (former_winner_bonus / 100.0)  # Bonus ancien gagnant
+    
+    print(f"🎯 VIP PRICING BONUS: {celebrity_count} célébrités, {total_stars} étoiles totales, bonus ancien gagnant: {former_winner_bonus}%")
+    print(f"🎯 VIP PRICING BONUS: Multiplicateur final: {bonus_multiplier:.2f}x")
+    
+    return bonus_multiplier
+
 # Stockage temporaire en mémoire (à remplacer par MongoDB plus tard)
 games_db = {}
 groups_db = {}  # Stockage des groupes par partie
