@@ -120,7 +120,9 @@ async def get_past_winners(user_id: str = "default_user"):
                     
                     # Calculer le prix basé sur les étoiles et les victoires
                     base_price = stars * 10000000  # 10M par étoile
-                    final_price = base_price + (1000000 * (winner_data.get('wins', 1) - 1))  # +1M par victoire supplémentaire
+                    raw_final_price = base_price + (1000000 * (winner_data.get('wins', 1) - 1))  # +1M par victoire supplémentaire
+                    # Round to nearest hundred thousand
+                    final_price = round(raw_final_price / 100000) * 100000
                     
                     winner = {
                         "id": f"winner_{game.id}",
