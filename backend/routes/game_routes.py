@@ -1350,6 +1350,13 @@ async def collect_vip_earnings(game_id: str, user_id: str = "default_user"):
     game_state.updated_at = datetime.utcnow()
     game_states_db[user_id] = game_state
     
+    # Obtenir les détails des bonus VIP pour l'affichage
+    bonus_details = get_vip_pricing_bonus_details(game.players)
+    
+    # Calculer les frais de base (avant bonus)
+    base_earnings = int(earnings_to_collect / bonus_details["final_multiplier"]) if bonus_details["final_multiplier"] > 1.0 else earnings_to_collect
+    bonus_amount = earnings_to_collect - base_earnings
+    
     # Marquer les gains comme collectés pour éviter la double collecte
     game.earnings = 0
     game.vip_earnings_collected = True
@@ -1358,7 +1365,12 @@ async def collect_vip_earnings(game_id: str, user_id: str = "default_user"):
     return {
         "message": f"Gains VIP collectés: {earnings_to_collect}$",
         "earnings_collected": earnings_to_collect,
-        "new_total_money": game_state.money
+        "base_earnings": base_earnings,
+        "bonus_amount": bonus_amount,
+        "bonus_details": bonus_details,
+        "new_total_money": game_state.money,
+        "salon_info": f"Salon niveau {game.vip_salon_level or 1}",
+        "events_completed": len(game.events)
     }
 
 @router.get("/", response_model=List[Game])
