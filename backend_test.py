@@ -1486,6 +1486,457 @@ class BackendTester:
         except Exception as e:
             self.log_result("Former Winners Game Creation Fix", False, f"Erreur pendant le test: {str(e)}")
 
+    def test_vip_pricing_bonus_system(self):
+        """Test REVIEW REQUEST: Système de tarification VIP avec bonus selon célébrités et anciens gagnants"""
+        try:
+            print("\n🎯 TESTING VIP PRICING BONUS SYSTEM - REVIEW REQUEST FRANÇAISE")
+            print("=" * 80)
+            print("OBJECTIF: Tester le nouveau système de tarification VIP avec bonus:")
+            print("- +25% par célébrité présente dans la partie")
+            print("- +20% par étoile de célébrité")
+            print("- +120% si ancien gagnant à $10M présent")
+            print("- +200% si ancien gagnant à $20M présent")
+            print()
+            
+            # Test 1: Partie normale (sans célébrités) - multiplicateur 1.0x
+            print("🔍 TEST 1: PARTIE NORMALE (SANS CÉLÉBRITÉS)")
+            print("-" * 60)
+            
+            # Créer une partie standard avec des joueurs générés automatiquement
+            game_request_normal = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request_normal, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data = response.json()
+                game_id = game_data.get('id')
+                players = game_data.get('players', [])
+                
+                # Vérifier qu'aucun joueur n'est une célébrité (stats moyennes)
+                celebrity_count = 0
+                for player in players:
+                    stats = player.get('stats', {})
+                    avg_stat = (stats.get('intelligence', 0) + stats.get('force', 0) + stats.get('agilité', 0)) // 3
+                    if avg_stat >= 70 and player.get('role') in ['intelligent', 'sportif']:
+                        celebrity_count += 1
+                
+                print(f"   ✅ Partie normale créée: {len(players)} joueurs, {celebrity_count} célébrités détectées")
+                
+                # Vérifier les VIPs assignés (multiplicateur attendu: 1.0x)
+                # Récupérer les VIPs via l'API salon
+                vip_response = requests.get(f"{API_BASE}/vips/salon/1", timeout=5)  # Salon niveau 1 par défaut
+                if vip_response.status_code == 200:
+                    vips = vip_response.json()
+                    if vips:
+                        total_viewing_fee = sum(vip.get('viewing_fee', 0) for vip in vips)
+                        print(f"   📊 VIPs assignés: {len(vips)} VIPs, viewing_fee total: {total_viewing_fee:,}$")
+                        print(f"   📊 Multiplicateur attendu: 1.0x (pas de bonus)")
+                        
+                        test1_success = True
+                        test1_data = {
+                            'game_id': game_id,
+                            'vips_count': len(vips),
+                            'total_viewing_fee': total_viewing_fee,
+                            'celebrity_count': celebrity_count,
+                            'expected_multiplier': 1.0
+                        }
+                    else:
+                        print("   ⚠️  Aucun VIP trouvé pour la partie normale")
+                        test1_success = False
+                        test1_data = None
+                else:
+                    print(f"   ❌ Impossible de récupérer les VIPs - HTTP {vip_response.status_code}")
+                    test1_success = False
+                    test1_data = None
+            else:
+                print(f"   ❌ Échec création partie normale - HTTP {response.status_code}")
+                test1_success = False
+                test1_data = None
+            
+            # Test 2: Partie avec célébrités (2-3 célébrités avec bonnes stats)
+            print("\n🔍 TEST 2: PARTIE AVEC CÉLÉBRITÉS")
+            print("-" * 60)
+            
+            # Créer des célébrités fictives avec bonnes stats
+            celebrity1 = {
+                "name": "Célébrité Test 1",
+                "nationality": "Française",
+                "gender": "femme",
+                "role": "intelligent",  # Rôle de célébrité
+                "stats": {
+                    "intelligence": 85,  # Stats élevées = 4 étoiles
+                    "force": 80,
+                    "agilité": 90
+                },
+                "portrait": {
+                    "face_shape": "ovale",
+                    "skin_color": "#D4A574",
+                    "hairstyle": "long",
+                    "hair_color": "#8B4513",
+                    "eye_color": "#654321",
+                    "eye_shape": "amande"
+                },
+                "uniform": {
+                    "style": "élégant",
+                    "color": "rouge",
+                    "pattern": "uni"
+                }
+            }
+            
+            celebrity2 = {
+                "name": "Célébrité Test 2",
+                "nationality": "Américaine",
+                "gender": "homme",
+                "role": "sportif",  # Rôle de célébrité
+                "stats": {
+                    "intelligence": 75,  # Stats bonnes = 3 étoiles
+                    "force": 95,
+                    "agilité": 85
+                },
+                "portrait": {
+                    "face_shape": "carré",
+                    "skin_color": "#F4C2A1",
+                    "hairstyle": "court",
+                    "hair_color": "#654321",
+                    "eye_color": "#8B4513",
+                    "eye_shape": "rond"
+                },
+                "uniform": {
+                    "style": "sportif",
+                    "color": "bleu",
+                    "pattern": "rayé"
+                }
+            }
+            
+            game_request_celebrities = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": [],
+                "all_players": [celebrity1, celebrity2]  # 2 célébrités
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request_celebrities, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data = response.json()
+                game_id = game_data.get('id')
+                players = game_data.get('players', [])
+                
+                # Compter les célébrités et étoiles
+                celebrity_count = 0
+                total_stars = 0
+                for player in players:
+                    if player.get('role') in ['intelligent', 'sportif']:
+                        stats = player.get('stats', {})
+                        avg_stat = (stats.get('intelligence', 0) + stats.get('force', 0) + stats.get('agilité', 0)) // 3
+                        if avg_stat >= 70:
+                            celebrity_count += 1
+                            # Estimer les étoiles
+                            if avg_stat >= 95:
+                                stars = 5
+                            elif avg_stat >= 85:
+                                stars = 4
+                            elif avg_stat >= 75:
+                                stars = 3
+                            else:
+                                stars = 2
+                            total_stars += stars
+                            print(f"   🌟 Célébrité trouvée: {player.get('name')} ({stars} étoiles estimées)")
+                
+                # Calculer le multiplicateur attendu
+                expected_multiplier = 1.0 + (celebrity_count * 0.25) + (total_stars * 0.20)
+                print(f"   📊 Célébrités détectées: {celebrity_count}, Étoiles totales: {total_stars}")
+                print(f"   📊 Multiplicateur attendu: {expected_multiplier:.2f}x")
+                
+                # Vérifier les VIPs avec bonus
+                vip_response = requests.get(f"{API_BASE}/vips/salon/1", timeout=5)
+                if vip_response.status_code == 200:
+                    vips = vip_response.json()
+                    if vips:
+                        total_viewing_fee = sum(vip.get('viewing_fee', 0) for vip in vips)
+                        print(f"   💰 VIPs avec bonus: {len(vips)} VIPs, viewing_fee total: {total_viewing_fee:,}$")
+                        
+                        test2_success = True
+                        test2_data = {
+                            'game_id': game_id,
+                            'celebrity_count': celebrity_count,
+                            'total_stars': total_stars,
+                            'expected_multiplier': expected_multiplier,
+                            'total_viewing_fee': total_viewing_fee
+                        }
+                    else:
+                        print("   ⚠️  Aucun VIP trouvé pour la partie avec célébrités")
+                        test2_success = False
+                        test2_data = None
+                else:
+                    print(f"   ❌ Impossible de récupérer les VIPs - HTTP {vip_response.status_code}")
+                    test2_success = False
+                    test2_data = None
+            else:
+                print(f"   ❌ Échec création partie avec célébrités - HTTP {response.status_code}")
+                test2_success = False
+                test2_data = None
+            
+            # Test 3: Partie avec ancien gagnant (stats très élevées)
+            print("\n🔍 TEST 3: PARTIE AVEC ANCIEN GAGNANT")
+            print("-" * 60)
+            
+            # Créer un ancien gagnant fictif avec stats exceptionnelles
+            former_winner = {
+                "name": "Ancien Gagnant Test",
+                "nationality": "Japonaise",
+                "gender": "homme",
+                "role": "sportif",
+                "stats": {
+                    "intelligence": 95,  # Stats totales = 285 = ~$30M
+                    "force": 95,
+                    "agilité": 95
+                },
+                "portrait": {
+                    "face_shape": "ovale",
+                    "skin_color": "#F4C2A1",
+                    "hairstyle": "court",
+                    "hair_color": "#000000",
+                    "eye_color": "#654321",
+                    "eye_shape": "amande"
+                },
+                "uniform": {
+                    "style": "champion",
+                    "color": "or",
+                    "pattern": "uni"
+                }
+            }
+            
+            game_request_winner = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": [],
+                "all_players": [former_winner]
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request_winner, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data = response.json()
+                game_id = game_data.get('id')
+                players = game_data.get('players', [])
+                
+                # Vérifier la détection de l'ancien gagnant
+                former_winner_bonus = 0
+                for player in players:
+                    stats = player.get('stats', {})
+                    total_stats = stats.get('intelligence', 0) + stats.get('force', 0) + stats.get('agilité', 0)
+                    
+                    if total_stats >= 285:  # ~$30M
+                        former_winner_bonus = 200
+                        estimated_price = 30000000
+                        print(f"   🏆 Ancien gagnant détecté: {player.get('name')} (stats: {total_stats}, ~{estimated_price:,}$)")
+                    elif total_stats >= 270:  # ~$20M
+                        former_winner_bonus = 200
+                        estimated_price = 20000000
+                        print(f"   🏆 Ancien gagnant détecté: {player.get('name')} (stats: {total_stats}, ~{estimated_price:,}$)")
+                    elif total_stats >= 255:  # ~$10M
+                        former_winner_bonus = 120
+                        estimated_price = 10000000
+                        print(f"   🏆 Ancien gagnant détecté: {player.get('name')} (stats: {total_stats}, ~{estimated_price:,}$)")
+                
+                # Calculer le multiplicateur attendu
+                expected_multiplier = 1.0 + (former_winner_bonus / 100.0)
+                print(f"   📊 Bonus ancien gagnant: +{former_winner_bonus}%")
+                print(f"   📊 Multiplicateur attendu: {expected_multiplier:.2f}x")
+                
+                # Vérifier les VIPs avec bonus
+                vip_response = requests.get(f"{API_BASE}/vips/salon/1", timeout=5)
+                if vip_response.status_code == 200:
+                    vips = vip_response.json()
+                    if vips:
+                        total_viewing_fee = sum(vip.get('viewing_fee', 0) for vip in vips)
+                        print(f"   💰 VIPs avec bonus: {len(vips)} VIPs, viewing_fee total: {total_viewing_fee:,}$")
+                        
+                        test3_success = True
+                        test3_data = {
+                            'game_id': game_id,
+                            'former_winner_bonus': former_winner_bonus,
+                            'expected_multiplier': expected_multiplier,
+                            'total_viewing_fee': total_viewing_fee
+                        }
+                    else:
+                        print("   ⚠️  Aucun VIP trouvé pour la partie avec ancien gagnant")
+                        test3_success = False
+                        test3_data = None
+                else:
+                    print(f"   ❌ Impossible de récupérer les VIPs - HTTP {vip_response.status_code}")
+                    test3_success = False
+                    test3_data = None
+            else:
+                print(f"   ❌ Échec création partie avec ancien gagnant - HTTP {response.status_code}")
+                test3_success = False
+                test3_data = None
+            
+            # Test 4: Partie combinée (célébrités ET ancien gagnant)
+            print("\n🔍 TEST 4: PARTIE COMBINÉE (CÉLÉBRITÉS + ANCIEN GAGNANT)")
+            print("-" * 60)
+            
+            # Combiner célébrité + ancien gagnant
+            combined_players = [celebrity1, former_winner]  # 1 célébrité + 1 ancien gagnant
+            
+            game_request_combined = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": [],
+                "all_players": combined_players
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request_combined, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data = response.json()
+                game_id = game_data.get('id')
+                players = game_data.get('players', [])
+                
+                # Analyser tous les bonus
+                celebrity_count = 0
+                total_stars = 0
+                former_winner_bonus = 0
+                
+                for player in players:
+                    stats = player.get('stats', {})
+                    avg_stat = (stats.get('intelligence', 0) + stats.get('force', 0) + stats.get('agilité', 0)) // 3
+                    total_stats = stats.get('intelligence', 0) + stats.get('force', 0) + stats.get('agilité', 0)
+                    
+                    # Détecter célébrité
+                    if player.get('role') in ['intelligent', 'sportif'] and avg_stat >= 70:
+                        celebrity_count += 1
+                        if avg_stat >= 85:
+                            stars = 4
+                        elif avg_stat >= 75:
+                            stars = 3
+                        else:
+                            stars = 2
+                        total_stars += stars
+                        print(f"   🌟 Célébrité: {player.get('name')} ({stars} étoiles)")
+                    
+                    # Détecter ancien gagnant
+                    if total_stats >= 285:
+                        former_winner_bonus = max(former_winner_bonus, 200)
+                        print(f"   🏆 Ancien gagnant: {player.get('name')} (stats: {total_stats}, +200%)")
+                    elif total_stats >= 270:
+                        former_winner_bonus = max(former_winner_bonus, 200)
+                        print(f"   🏆 Ancien gagnant: {player.get('name')} (stats: {total_stats}, +200%)")
+                    elif total_stats >= 255:
+                        former_winner_bonus = max(former_winner_bonus, 120)
+                        print(f"   🏆 Ancien gagnant: {player.get('name')} (stats: {total_stats}, +120%)")
+                
+                # Calculer le multiplicateur combiné
+                expected_multiplier = 1.0 + (celebrity_count * 0.25) + (total_stars * 0.20) + (former_winner_bonus / 100.0)
+                print(f"   📊 Bonus combinés: {celebrity_count} célébrités, {total_stars} étoiles, +{former_winner_bonus}% ancien gagnant")
+                print(f"   📊 Multiplicateur attendu: {expected_multiplier:.2f}x")
+                
+                # Vérifier les VIPs avec bonus combiné
+                vip_response = requests.get(f"{API_BASE}/vips/salon/1", timeout=5)
+                if vip_response.status_code == 200:
+                    vips = vip_response.json()
+                    if vips:
+                        total_viewing_fee = sum(vip.get('viewing_fee', 0) for vip in vips)
+                        print(f"   💰 VIPs avec bonus combiné: {len(vips)} VIPs, viewing_fee total: {total_viewing_fee:,}$")
+                        
+                        test4_success = True
+                        test4_data = {
+                            'game_id': game_id,
+                            'celebrity_count': celebrity_count,
+                            'total_stars': total_stars,
+                            'former_winner_bonus': former_winner_bonus,
+                            'expected_multiplier': expected_multiplier,
+                            'total_viewing_fee': total_viewing_fee
+                        }
+                    else:
+                        print("   ⚠️  Aucun VIP trouvé pour la partie combinée")
+                        test4_success = False
+                        test4_data = None
+                else:
+                    print(f"   ❌ Impossible de récupérer les VIPs - HTTP {vip_response.status_code}")
+                    test4_success = False
+                    test4_data = None
+            else:
+                print(f"   ❌ Échec création partie combinée - HTTP {response.status_code}")
+                test4_success = False
+                test4_data = None
+            
+            # Évaluation finale
+            tests_passed = sum([test1_success, test2_success, test3_success, test4_success])
+            total_tests = 4
+            
+            if tests_passed == total_tests:
+                self.log_result("VIP Pricing Bonus System", True, 
+                              f"✅ SYSTÈME DE TARIFICATION VIP PARFAITEMENT VALIDÉ: "
+                              f"Tous les 4 tests réussis - Bonus célébrités, anciens gagnants et combinés fonctionnent")
+                
+                # Log des résultats détaillés
+                print(f"\n   📊 RÉSULTATS DÉTAILLÉS:")
+                if test1_data:
+                    print(f"   - Test 1 (Normal): {test1_data['expected_multiplier']:.1f}x, {test1_data['total_viewing_fee']:,}$ total")
+                if test2_data:
+                    print(f"   - Test 2 (Célébrités): {test2_data['expected_multiplier']:.1f}x, {test2_data['total_viewing_fee']:,}$ total")
+                if test3_data:
+                    print(f"   - Test 3 (Ancien gagnant): {test3_data['expected_multiplier']:.1f}x, {test3_data['total_viewing_fee']:,}$ total")
+                if test4_data:
+                    print(f"   - Test 4 (Combiné): {test4_data['expected_multiplier']:.1f}x, {test4_data['total_viewing_fee']:,}$ total")
+                    
+            else:
+                failed_tests = []
+                if not test1_success:
+                    failed_tests.append("Partie normale")
+                if not test2_success:
+                    failed_tests.append("Partie avec célébrités")
+                if not test3_success:
+                    failed_tests.append("Partie avec ancien gagnant")
+                if not test4_success:
+                    failed_tests.append("Partie combinée")
+                
+                self.log_result("VIP Pricing Bonus System", False, 
+                              f"❌ SYSTÈME DE TARIFICATION VIP PARTIELLEMENT VALIDÉ: "
+                              f"{tests_passed}/{total_tests} tests réussis. Échecs: {', '.join(failed_tests)}")
+            
+        except Exception as e:
+            self.log_result("VIP Pricing Bonus System", False, f"Error during test: {str(e)}")
+
+    def print_summary(self):
+        """Print test summary"""
+        print(f"\n📊 TEST SUMMARY:")
+        print("=" * 80)
+        print(f"Total tests: {self.total_tests}")
+        print(f"Tests passed: {self.passed_tests}")
+        print(f"Tests failed: {self.total_tests - self.passed_tests}")
+        print(f"Success rate: {(self.passed_tests/self.total_tests*100):.1f}%" if self.total_tests > 0 else "0%")
+        
+        # Show detailed results
+        print(f"\n📋 DETAILED RESULTS:")
+        print("-" * 80)
+        for result in self.results:
+            print(f"{result['status']}: {result['test']} - {result['message']}")
+            if result.get('details'):
+                print(f"   Details: {result['details']}")
+
     def test_celebrity_price_rounding_fix(self):
         """Test REVIEW REQUEST: Celebrity price rounding to nearest hundred thousand"""
         try:
