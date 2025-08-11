@@ -115,6 +115,18 @@
 ## user_problem_statement: "Test the VIP salon initialization fix. The user reported that the game starts with a standard VIP salon already unlocked (level 1, capacity 3) when it should start with 0 VIP salons and require purchasing the first salon."
 
 ## backend:
+  - task: "Celebrity price rounding fix - round to nearest hundred thousand"
+    implemented: true
+    working: true
+    file: "services/game_service.py, services/game_service_fixed.py, routes/statistics_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ CELEBRITY PRICE ROUNDING FIX COMPLETELY SUCCESSFUL! Comprehensive testing performed according to review request: 1) **Celebrity Price Rounding**: ✅ CONFIRMED - All 50 celebrities tested have prices correctly rounded to nearest $100,000 (examples: Riley Davis $6,100,000, Nova Hernandez $12,800,000, Skyler Rodriguez $49,700,000). 2) **Former Winners Price Rounding**: ✅ CONFIRMED - Former winner Ivan Petrov has price correctly rounded to $30,000,000. 3) **Mathematical Rounding Logic**: ✅ CONFIRMED - Implementation uses correct formula round(price / 100000) * 100000 with Python's standard rounding behavior. 4) **Price Range Verification**: ✅ CONFIRMED - All categories have appropriate price ranges (2★: $2.2M-$4.5M, 3★: $5.4M-$13.8M, 4★: $17.7M-$30.8M, 5★: $35.2M-$49.7M). 5) **Specific Examples**: ✅ CONFIRMED - Generated new celebrities and verified all prices end in 00,000 (15 examples tested). Backend tests: 3/3 passed (100% success rate). The celebrity price rounding fix is working perfectly - all prices are rounded to the nearest hundred thousand as requested."
+
   - task: "VIP salon initialization fix - start at level 0 instead of 1"
     implemented: true
     working: false
