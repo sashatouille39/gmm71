@@ -1160,6 +1160,332 @@ class BackendTester:
         except Exception as e:
             self.log_result("Celebrity Owned List Route", False, f"Error: {str(e)}")
 
+    def test_former_winners_game_creation_fix(self):
+        """Test REVIEW REQUEST: Former winners game creation fix - Test le problème corrigé des anciens gagnants"""
+        try:
+            print("\n🎯 TESTING FORMER WINNERS GAME CREATION FIX")
+            print("=" * 80)
+            print("OBJECTIF: Tester que les anciens gagnants peuvent maintenant être ajoutés aux parties")
+            print("PROBLÈME CORRIGÉ: 1) role: 'celebrity' → rôles valides, 2) camelCase → snake_case")
+            print()
+            
+            # Test 1: Créer une partie avec un joueur normal - doit réussir
+            print("🔍 TEST 1: CRÉATION DE PARTIE AVEC JOUEUR NORMAL")
+            print("-" * 60)
+            
+            normal_player = {
+                "name": "Joueur Normal",
+                "nationality": "Française",
+                "gender": "homme",
+                "role": "normal",
+                "stats": {
+                    "intelligence": 5,
+                    "force": 6,
+                    "agilité": 7
+                },
+                "portrait": {
+                    "face_shape": "ovale",
+                    "skin_color": "#D4A574",
+                    "hairstyle": "court",
+                    "hair_color": "#8B4513",
+                    "eye_color": "#654321",
+                    "eye_shape": "amande"
+                },
+                "uniform": {
+                    "style": "classique",
+                    "color": "vert",
+                    "pattern": "uni"
+                }
+            }
+            
+            game_request_normal = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": [],
+                "all_players": [normal_player]
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request_normal, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                print("   ✅ Partie avec joueur normal créée avec succès")
+                test1_success = True
+            else:
+                print(f"   ❌ Échec création partie normale - HTTP {response.status_code}")
+                test1_success = False
+            
+            # Test 2: Créer une partie avec une célébrité normale convertie en joueur - doit réussir
+            print("\n🔍 TEST 2: CRÉATION DE PARTIE AVEC CÉLÉBRITÉ NORMALE")
+            print("-" * 60)
+            
+            # Récupérer une célébrité existante
+            celebrities_response = requests.get(f"{API_BASE}/celebrities/?limit=1", timeout=5)
+            if celebrities_response.status_code == 200:
+                celebrities = celebrities_response.json()
+                if celebrities:
+                    celebrity = celebrities[0]
+                    
+                    celebrity_as_player = {
+                        "name": celebrity.get('name', 'Célébrité Test'),
+                        "nationality": celebrity.get('nationality', 'Française'),
+                        "gender": "femme",
+                        "role": "intelligent",  # Rôle valide au lieu de 'celebrity'
+                        "stats": {
+                            "intelligence": celebrity.get('stats', {}).get('intelligence', 8),
+                            "force": celebrity.get('stats', {}).get('force', 6),
+                            "agilité": celebrity.get('stats', {}).get('agilité', 7)
+                        },
+                        "portrait": {
+                            "face_shape": "ovale",  # snake_case au lieu de faceShape
+                            "skin_color": "#F4C2A1",  # snake_case au lieu de skinColor
+                            "hairstyle": "long",
+                            "hair_color": "#8B4513",
+                            "eye_color": "#654321",
+                            "eye_shape": "amande"
+                        },
+                        "uniform": {
+                            "style": "classique",
+                            "color": "bleu",
+                            "pattern": "uni"
+                        }
+                    }
+                    
+                    game_request_celebrity = {
+                        "player_count": 20,
+                        "game_mode": "standard",
+                        "selected_events": [1, 2, 3],
+                        "manual_players": [],
+                        "all_players": [celebrity_as_player]
+                    }
+                    
+                    response = requests.post(f"{API_BASE}/games/create", 
+                                           json=game_request_celebrity, 
+                                           headers={"Content-Type": "application/json"},
+                                           timeout=15)
+                    
+                    if response.status_code == 200:
+                        print(f"   ✅ Partie avec célébrité '{celebrity.get('name')}' créée avec succès")
+                        test2_success = True
+                    else:
+                        print(f"   ❌ Échec création partie célébrité - HTTP {response.status_code}")
+                        if response.status_code == 422:
+                            try:
+                                error_data = response.json()
+                                print(f"   Détails erreur 422: {error_data}")
+                            except:
+                                print(f"   Erreur 422: {response.text[:200]}")
+                        test2_success = False
+                else:
+                    print("   ⚠️ Aucune célébrité trouvée pour le test")
+                    test2_success = False
+            else:
+                print(f"   ❌ Impossible de récupérer les célébrités - HTTP {celebrities_response.status_code}")
+                test2_success = False
+            
+            # Test 3: Créer une partie avec un ancien gagnant converti en joueur - doit maintenant réussir
+            print("\n🔍 TEST 3: CRÉATION DE PARTIE AVEC ANCIEN GAGNANT")
+            print("-" * 60)
+            
+            # Récupérer les anciens gagnants
+            winners_response = requests.get(f"{API_BASE}/statistics/winners", timeout=10)
+            if winners_response.status_code == 200:
+                winners = winners_response.json()
+                if winners:
+                    winner = winners[0]
+                    
+                    # Convertir l'ancien gagnant en joueur avec les corrections
+                    former_winner_as_player = {
+                        "name": winner.get('name', 'Ancien Gagnant'),
+                        "nationality": winner.get('nationality', 'Française'),
+                        "gender": "homme",
+                        "role": "sportif",  # Rôle valide au lieu de 'celebrity'
+                        "stats": {
+                            "intelligence": winner.get('stats', {}).get('intelligence', 8),
+                            "force": winner.get('stats', {}).get('force', 9),
+                            "agilité": winner.get('stats', {}).get('agilité', 8)
+                        },
+                        "portrait": {
+                            "face_shape": "carré",  # snake_case corrigé
+                            "skin_color": "#8D5524",  # snake_case corrigé
+                            "hairstyle": "bouclé",
+                            "hair_color": "#2F1B14",
+                            "eye_color": "#4A4A4A",
+                            "eye_shape": "rond"
+                        },
+                        "uniform": {
+                            "style": "élégant",
+                            "color": "or",
+                            "pattern": "rayé"
+                        }
+                    }
+                    
+                    game_request_winner = {
+                        "player_count": 20,
+                        "game_mode": "standard",
+                        "selected_events": [1, 2, 3],
+                        "manual_players": [],
+                        "all_players": [former_winner_as_player]
+                    }
+                    
+                    response = requests.post(f"{API_BASE}/games/create", 
+                                           json=game_request_winner, 
+                                           headers={"Content-Type": "application/json"},
+                                           timeout=15)
+                    
+                    if response.status_code == 200:
+                        print(f"   ✅ Partie avec ancien gagnant '{winner.get('name')}' créée avec succès")
+                        test3_success = True
+                        game_data = response.json()
+                        game_id = game_data.get('id')
+                        print(f"   Game ID: {game_id}")
+                    else:
+                        print(f"   ❌ Échec création partie ancien gagnant - HTTP {response.status_code}")
+                        if response.status_code == 422:
+                            try:
+                                error_data = response.json()
+                                print(f"   Détails erreur 422: {error_data}")
+                            except:
+                                print(f"   Erreur 422: {response.text[:200]}")
+                        test3_success = False
+                else:
+                    print("   ⚠️ Aucun ancien gagnant trouvé - créer un gagnant fictif pour le test")
+                    # Créer un ancien gagnant fictif pour le test
+                    fictional_winner_as_player = {
+                        "name": "Ivan Petrov",
+                        "nationality": "Russe",
+                        "gender": "homme",
+                        "role": "intelligent",  # Rôle valide
+                        "stats": {
+                            "intelligence": 9,
+                            "force": 8,
+                            "agilité": 7
+                        },
+                        "portrait": {
+                            "face_shape": "ovale",  # snake_case corrigé
+                            "skin_color": "#F4C2A1",  # snake_case corrigé
+                            "hairstyle": "court",
+                            "hair_color": "#654321",
+                            "eye_color": "#2E8B57",
+                            "eye_shape": "amande"
+                        },
+                        "uniform": {
+                            "style": "élégant",
+                            "color": "rouge",
+                            "pattern": "uni"
+                        }
+                    }
+                    
+                    game_request_fictional = {
+                        "player_count": 20,
+                        "game_mode": "standard",
+                        "selected_events": [1, 2, 3],
+                        "manual_players": [],
+                        "all_players": [fictional_winner_as_player]
+                    }
+                    
+                    response = requests.post(f"{API_BASE}/games/create", 
+                                           json=game_request_fictional, 
+                                           headers={"Content-Type": "application/json"},
+                                           timeout=15)
+                    
+                    if response.status_code == 200:
+                        print(f"   ✅ Partie avec ancien gagnant fictif 'Ivan Petrov' créée avec succès")
+                        test3_success = True
+                    else:
+                        print(f"   ❌ Échec création partie ancien gagnant fictif - HTTP {response.status_code}")
+                        test3_success = False
+            else:
+                print(f"   ❌ Impossible de récupérer les anciens gagnants - HTTP {winners_response.status_code}")
+                test3_success = False
+            
+            # Test 4: Vérifier que l'API /api/games/create accepte maintenant les anciens gagnants sans erreur 422
+            print("\n🔍 TEST 4: VALIDATION API SANS ERREUR 422")
+            print("-" * 60)
+            
+            # Test avec plusieurs anciens gagnants/célébrités dans une même partie
+            mixed_players = [
+                {
+                    "name": "Célébrité Mixte",
+                    "nationality": "Italienne",
+                    "gender": "femme",
+                    "role": "normal",  # Rôle valide
+                    "stats": {"intelligence": 6, "force": 7, "agilité": 8},
+                    "portrait": {
+                        "face_shape": "rond",  # snake_case
+                        "skin_color": "#D4A574",  # snake_case
+                        "hairstyle": "long",
+                        "hair_color": "#8B4513",
+                        "eye_color": "#654321",
+                        "eye_shape": "amande"
+                    },
+                    "uniform": {"style": "classique", "color": "violet", "pattern": "uni"}
+                },
+                {
+                    "name": "Ancien Gagnant Mixte",
+                    "nationality": "Allemande",
+                    "gender": "homme",
+                    "role": "sportif",  # Rôle valide
+                    "stats": {"intelligence": 7, "force": 9, "agilité": 6},
+                    "portrait": {
+                        "face_shape": "carré",  # snake_case
+                        "skin_color": "#F4C2A1",  # snake_case
+                        "hairstyle": "court",
+                        "hair_color": "#2F1B14",
+                        "eye_color": "#4A4A4A",
+                        "eye_shape": "rond"
+                    },
+                    "uniform": {"style": "élégant", "color": "noir", "pattern": "rayé"}
+                }
+            ]
+            
+            game_request_mixed = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],
+                "manual_players": [],
+                "all_players": mixed_players
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request_mixed, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                print("   ✅ Partie avec mélange célébrités/anciens gagnants créée sans erreur 422")
+                test4_success = True
+            else:
+                print(f"   ❌ Échec création partie mixte - HTTP {response.status_code}")
+                test4_success = False
+            
+            # Évaluation finale
+            total_tests = 4
+            passed_tests = sum([test1_success, test2_success, test3_success, test4_success])
+            
+            if passed_tests == total_tests:
+                self.log_result("Former Winners Game Creation Fix", True, 
+                              f"✅ CORRECTION PARFAITEMENT VALIDÉE! Tous les tests réussis ({passed_tests}/{total_tests}). "
+                              f"Les anciens gagnants peuvent maintenant être ajoutés aux parties sans erreur 422. "
+                              f"Corrections appliquées: 1) Rôles valides au lieu de 'celebrity', "
+                              f"2) Champs portrait en snake_case au lieu de camelCase.")
+            else:
+                failed_tests = []
+                if not test1_success: failed_tests.append("Joueur normal")
+                if not test2_success: failed_tests.append("Célébrité normale")
+                if not test3_success: failed_tests.append("Ancien gagnant")
+                if not test4_success: failed_tests.append("Partie mixte")
+                
+                self.log_result("Former Winners Game Creation Fix", False, 
+                              f"❌ CORRECTION PARTIELLE: {passed_tests}/{total_tests} tests réussis. "
+                              f"Échecs: {', '.join(failed_tests)}")
+                
+        except Exception as e:
+            self.log_result("Former Winners Game Creation Fix", False, f"Erreur pendant le test: {str(e)}")
+
     def test_celebrity_price_rounding_fix(self):
         """Test REVIEW REQUEST: Celebrity price rounding to nearest hundred thousand"""
         try:
