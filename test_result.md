@@ -510,6 +510,18 @@
           comment: "✅ CORRECTION COMPLÈTEMENT VALIDÉE - PROBLÈME FRANÇAIS RÉSOLU! Tests exhaustifs effectués selon la review request française sur la correction limite génération joueurs: 1) **Test 100 joueurs (valeur par défaut)**: ✅ CONFIRMÉ - Génération de 100 joueurs réussie via /api/games/generate-players?count=100. 2) **Test 500 joueurs (valeur intermédiaire)**: ✅ CONFIRMÉ - Génération de 500 joueurs réussie via /api/games/generate-players?count=500. 3) **Test 1000 joueurs (limite maximale)**: ✅ CONFIRMÉ - Génération de 1000 joueurs réussie via /api/games/generate-players?count=1000. 4) **Validation paramètre count**: ✅ CONFIRMÉ - L'API accepte bien le paramètre count en query parameter comme demandé. 5) **Validation limites**: ✅ CONFIRMÉ - Validation correcte pour count > 1000 (erreur 400) et count = 0 (erreur 400). Backend tests: 5/5 passed (100% success rate). Le problème 'quand je clique sur générer il n'y a toujours que 100 joueurs qui se génèrent' signalé par l'utilisateur français est complètement résolu - l'API supporte maintenant jusqu'à 1000 joueurs avec le paramètre count."
 
 ## backend:
+  - task: "Test de la correction du système de statistiques d'éliminations"
+    implemented: true
+    working: true
+    file: "routes/statistics_routes.py, routes/game_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ CORRECTION PARFAITEMENT VALIDÉE - TESTS EXHAUSTIFS SELON REVIEW REQUEST FRANÇAISE: Tests complets effectués selon les spécifications exactes de la correction du système de statistiques d'éliminations. 1) **Création partie et simulation**: ✅ CONFIRMÉ - Partie créée avec 20 joueurs, simulée jusqu'à 18 éliminations (2 survivants). 2) **Calcul des éliminations**: ✅ CONFIRMÉ - Le système compte correctement les éliminations comme le nombre de joueurs morts (18) et NON comme la somme des kills individuels. 3) **Cohérence système**: ✅ CONFIRMÉ - Formule correcte appliquée: éliminations = total_players - alive_players. 4) **API gamestate**: ✅ CONFIRMÉ - L'API /api/gamestate/ retourne les bonnes statistiques mises à jour (total_kills: 18 = nombre de morts). 5) **Validation détaillée**: Les statistiques détaillées montrent que le système utilise bien la nouvelle logique: len(game.players) - len([p for p in game.players if p.alive]) au lieu de sum([p.kills for p in game.players]). Backend tests: 5/5 passed (100% success rate). La correction du système de statistiques d'éliminations fonctionne parfaitement selon les spécifications de la review request française."
+
   - task: "Correction système de paiement"
     implemented: true
     working: true
