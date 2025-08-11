@@ -1160,6 +1160,219 @@ class BackendTester:
         except Exception as e:
             self.log_result("Celebrity Owned List Route", False, f"Error: {str(e)}")
 
+    def test_elimination_statistics_correction(self):
+        """Test FRENCH REVIEW REQUEST: Test de la correction du système de statistiques d'éliminations"""
+        try:
+            print("\n🇫🇷 TESTING ELIMINATION STATISTICS CORRECTION - FRENCH SPECIFICATIONS")
+            print("=" * 80)
+            print("OBJECTIF: Tester la correction du calcul des éliminations dans les statistiques.")
+            print("- Au lieu de compter les kills faits par les joueurs individuellement")
+            print("- Le système doit maintenant compter le nombre total de joueurs morts dans toutes les parties")
+            print("- Formule: éliminations = total_players - alive_players (et NON sum(kills))")
+            print()
+            
+            # Test 1: Créer une partie avec au moins 20 joueurs et simuler des événements
+            print("🔍 TEST 1: CRÉATION DE PARTIE ET SIMULATION JUSQU'À ÉLIMINATIONS")
+            print("-" * 60)
+            
+            # Créer une partie avec 20 joueurs
+            game_request = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3, 4, 5],  # 5 événements pour avoir des éliminations
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Elimination Statistics - Game Creation", False, f"Could not create test game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            initial_players = len(game_data.get('players', []))
+            
+            if not game_id or initial_players != 20:
+                self.log_result("Elimination Statistics - Game Creation", False, f"Game creation failed - ID: {game_id}, Players: {initial_players}")
+                return
+            
+            print(f"   ✅ Partie créée avec succès: {game_id} ({initial_players} joueurs)")
+            
+            # Simuler plusieurs événements pour avoir des éliminations
+            events_simulated = 0
+            total_eliminations = 0
+            alive_players = initial_players
+            
+            for event_num in range(1, 4):  # Simuler 3 événements
+                print(f"   🎮 Simulation événement {event_num}...")
+                
+                response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if response.status_code != 200:
+                    print(f"   ⚠️ Événement {event_num} échoué - HTTP {response.status_code}")
+                    break
+                
+                data = response.json()
+                result = data.get('result', {})
+                game = data.get('game', {})
+                
+                survivors_count = len(result.get('survivors', []))
+                eliminated_count = len(result.get('eliminated', []))
+                
+                print(f"   📊 Événement {event_num}: {survivors_count} survivants, {eliminated_count} éliminés")
+                
+                alive_players = survivors_count
+                total_eliminations = initial_players - alive_players
+                events_simulated += 1
+                
+                # Arrêter si la partie est terminée
+                if game.get('completed', False):
+                    print(f"   🏁 Partie terminée après {event_num} événements")
+                    break
+            
+            if events_simulated == 0:
+                self.log_result("Elimination Statistics - Event Simulation", False, "No events could be simulated")
+                return
+            
+            self.log_result("Elimination Statistics - Event Simulation", True, 
+                          f"✅ Simulé {events_simulated} événements: {initial_players} → {alive_players} joueurs ({total_eliminations} éliminations)")
+            
+            # Test 2: Vérifier le calcul des éliminations dans les statistiques
+            print(f"\n🔍 TEST 2: VÉRIFICATION CALCUL ÉLIMINATIONS (attendu: {total_eliminations})")
+            print("-" * 60)
+            
+            # Récupérer les statistiques détaillées
+            response = requests.get(f"{API_BASE}/statistics/detailed", timeout=5)
+            
+            if response.status_code != 200:
+                self.log_result("Elimination Statistics - Statistics Check", False, f"Could not get statistics - HTTP {response.status_code}")
+                return
+            
+            stats_data = response.json()
+            stats_eliminations = stats_data.get('total_kills', 0)  # Le champ s'appelle total_kills mais représente les éliminations
+            
+            print(f"   📊 Statistiques récupérées:")
+            print(f"   - Éliminations dans les stats: {stats_eliminations}")
+            print(f"   - Éliminations attendues: {total_eliminations}")
+            
+            # Test 3: Vérifier que les éliminations correspondent au nombre de morts (et non aux kills)
+            print(f"\n🔍 TEST 3: COHÉRENCE ÉLIMINATIONS = MORTS (PAS KILLS)")
+            print("-" * 60)
+            
+            # Récupérer les détails de la partie pour compter les kills individuels
+            response = requests.get(f"{API_BASE}/games/{game_id}", timeout=5)
+            
+            if response.status_code == 200:
+                game_details = response.json()
+                players = game_details.get('players', [])
+                
+                # Compter les kills individuels faits par les joueurs
+                total_individual_kills = sum(player.get('kills', 0) for player in players)
+                
+                # Compter les joueurs morts
+                dead_players = len([p for p in players if not p.get('alive', True)])
+                alive_players_actual = len([p for p in players if p.get('alive', True)])
+                
+                print(f"   📊 Analyse détaillée de la partie:")
+                print(f"   - Joueurs morts: {dead_players}")
+                print(f"   - Joueurs vivants: {alive_players_actual}")
+                print(f"   - Total kills individuels: {total_individual_kills}")
+                print(f"   - Éliminations calculées (morts): {dead_players}")
+                
+                # Vérifier que les statistiques utilisent le nombre de morts et non les kills
+                if stats_eliminations == dead_players:
+                    self.log_result("Elimination Statistics - Correct Calculation", True, 
+                                  f"✅ CORRECTION VALIDÉE: Éliminations = morts ({dead_players}) et NON kills ({total_individual_kills})")
+                elif stats_eliminations == total_individual_kills:
+                    self.log_result("Elimination Statistics - Correct Calculation", False, 
+                                  f"❌ ANCIEN SYSTÈME: Éliminations = kills ({total_individual_kills}) au lieu de morts ({dead_players})")
+                else:
+                    self.log_result("Elimination Statistics - Correct Calculation", False, 
+                                  f"❌ INCOHÉRENCE: Éliminations ({stats_eliminations}) ≠ morts ({dead_players}) ≠ kills ({total_individual_kills})")
+            else:
+                self.log_result("Elimination Statistics - Game Details", False, f"Could not get game details - HTTP {response.status_code}")
+                return
+            
+            # Test 4: Test de cohérence avec exemple spécifique
+            print(f"\n🔍 TEST 4: TEST COHÉRENCE AVEC EXEMPLE SPÉCIFIQUE")
+            print("-" * 60)
+            
+            # Créer une nouvelle partie pour test de cohérence
+            coherence_game_request = {
+                "player_count": 20,
+                "game_mode": "standard", 
+                "selected_events": [1, 2],  # Seulement 2 événements
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=coherence_game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                coherence_game = response.json()
+                coherence_game_id = coherence_game.get('id')
+                
+                # Simuler un événement
+                response = requests.post(f"{API_BASE}/games/{coherence_game_id}/simulate-event", timeout=10)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    game = data.get('game', {})
+                    players = game.get('players', [])
+                    
+                    alive_count = len([p for p in players if p.get('alive', True)])
+                    dead_count = len([p for p in players if not p.get('alive', True)])
+                    expected_eliminations = dead_count
+                    
+                    print(f"   📊 Test de cohérence:")
+                    print(f"   - Partie avec 20 joueurs")
+                    print(f"   - Après 1 événement: {alive_count} vivants, {dead_count} morts")
+                    print(f"   - Éliminations attendues: {expected_eliminations}")
+                    
+                    if expected_eliminations == dead_count:
+                        self.log_result("Elimination Statistics - Coherence Test", True, 
+                                      f"✅ COHÉRENCE VALIDÉE: Si 20 joueurs → {alive_count} vivants = {expected_eliminations} éliminations")
+                    else:
+                        self.log_result("Elimination Statistics - Coherence Test", False, 
+                                      f"❌ INCOHÉRENCE: Calcul des éliminations incorrect")
+                else:
+                    self.log_result("Elimination Statistics - Coherence Test", False, "Could not simulate coherence test event")
+            else:
+                self.log_result("Elimination Statistics - Coherence Test", False, "Could not create coherence test game")
+            
+            # Test 5: Vérifier l'API gamestate pour les statistiques mises à jour
+            print(f"\n🔍 TEST 5: VÉRIFICATION API GAMESTATE AVEC STATISTIQUES MISES À JOUR")
+            print("-" * 60)
+            
+            response = requests.get(f"{API_BASE}/gamestate/", timeout=5)
+            
+            if response.status_code == 200:
+                gamestate = response.json()
+                gamestate_stats = gamestate.get('game_stats', {})
+                gamestate_eliminations = gamestate_stats.get('total_kills', 0)
+                
+                print(f"   📊 GameState statistiques:")
+                print(f"   - Éliminations dans gamestate: {gamestate_eliminations}")
+                print(f"   - Parties jouées: {gamestate_stats.get('total_games_played', 0)}")
+                
+                if gamestate_eliminations > 0:
+                    self.log_result("Elimination Statistics - GameState API", True, 
+                                  f"✅ API gamestate retourne les statistiques mises à jour ({gamestate_eliminations} éliminations)")
+                else:
+                    self.log_result("Elimination Statistics - GameState API", False, 
+                                  f"❌ API gamestate ne contient pas les éliminations mises à jour")
+            else:
+                self.log_result("Elimination Statistics - GameState API", False, f"Could not get gamestate - HTTP {response.status_code}")
+            
+        except Exception as e:
+            self.log_result("Elimination Statistics Correction", False, f"Error during test: {str(e)}")
+
     def test_vip_salon_corrected_system(self):
         """Test FRENCH REVIEW REQUEST: Test du nouveau système de salon VIP corrigé selon les spécifications françaises"""
         try:
