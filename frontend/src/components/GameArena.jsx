@@ -1115,6 +1115,44 @@ const GameArena = ({ currentGame, setCurrentGame, gameState, updateGameState, on
                             <div className="text-4xl font-bold text-green-400 mb-3 drop-shadow-lg">
                               +${collectedVipEarnings.earnings_collected.toLocaleString()}
                             </div>
+                            
+                            {/* Détails des bonus VIP */}
+                            {collectedVipEarnings.bonus_details && collectedVipEarnings.bonus_details.final_multiplier > 1.0 && (
+                              <div className="bg-purple-900/30 border border-purple-500/30 rounded-lg p-4 mb-4">
+                                <h4 className="text-purple-200 font-medium mb-3 flex items-center justify-center gap-2">
+                                  <span className="text-xl">⭐</span>
+                                  Bonus de tarification VIP
+                                  <span className="text-xl">⭐</span>
+                                </h4>
+                                
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                  <div className="bg-gray-800/50 rounded p-3">
+                                    <div className="text-gray-300 mb-1">Frais de base:</div>
+                                    <div className="text-yellow-300 font-bold">
+                                      ${(collectedVipEarnings.base_earnings || 0).toLocaleString()}
+                                    </div>
+                                  </div>
+                                  <div className="bg-gray-800/50 rounded p-3">
+                                    <div className="text-gray-300 mb-1">Bonus appliqué:</div>
+                                    <div className="text-purple-300 font-bold">
+                                      +${(collectedVipEarnings.bonus_amount || 0).toLocaleString()}
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                {collectedVipEarnings.bonus_details.bonus_description !== "Aucun bonus" && (
+                                  <div className="mt-3 p-3 bg-purple-800/20 rounded">
+                                    <div className="text-purple-200 text-sm font-medium mb-2">
+                                      Multiplicateur: x{collectedVipEarnings.bonus_details.final_multiplier.toFixed(2)}
+                                    </div>
+                                    <div className="text-purple-100 text-xs">
+                                      {collectedVipEarnings.bonus_details.bonus_description}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            
                             <div className="space-y-2">
                               <p className="text-green-300 text-base font-medium">
                                 {collectedVipEarnings.salon_info || 'Frais de visionnage des VIPs'}
