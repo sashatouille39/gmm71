@@ -15702,7 +15702,7 @@ class BackendTester:
 if __name__ == "__main__":
     tester = BackendTester()
     
-    print(f"\n🇫🇷 TEST DE LA CORRECTION DU SYSTÈME DE STATISTIQUES D'ÉLIMINATIONS")
+    print(f"\n🎯 TEST DE LA CORRECTION DU PRIX DES CÉLÉBRITÉS - ARRONDI AU CENTAINE DE MILLIERS")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"API Base: {API_BASE}")
     print("=" * 80)
@@ -15712,8 +15712,8 @@ if __name__ == "__main__":
         print("❌ Server not accessible, aborting tests")
         exit(1)
     
-    # Run the elimination statistics correction test according to French review request
-    tester.test_elimination_statistics_correction()
+    # Run the celebrity price rounding test according to review request
+    tester.test_celebrity_price_rounding_fix()
     
     # Print summary
     print(f"\n📊 TEST SUMMARY:")
