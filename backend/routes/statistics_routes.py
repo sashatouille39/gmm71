@@ -197,9 +197,9 @@ async def save_completed_game(request: SaveCompletedGameRequest):
             game_state = game_states_db[request.user_id]
             game_state.game_stats.total_games_played += 1
             
-            # Compter les kills réels effectués par les survivants
-            total_kills_made = sum([p.kills for p in game.players])
-            game_state.game_stats.total_kills += total_kills_made
+            # Compter le nombre total de joueurs morts (éliminations)
+            total_eliminations = len(game.players) - len([p for p in game.players if p.alive])
+            game_state.game_stats.total_kills += total_eliminations
             
             # Compter les trahisons
             total_betrayals = sum([p.betrayals for p in game.players])
