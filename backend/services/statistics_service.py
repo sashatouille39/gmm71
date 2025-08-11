@@ -177,7 +177,13 @@ class StatisticsService:
                 role_data[role]['total_score'] += rank_entry.get('total_score', 0)
                 
                 # Le joueur a survécu s'il est dans le classement et alive
-                if rank_entry.get('alive', False):
+                # CORRECTION BUG : Vérifier aussi dans les game_stats si disponible
+                is_alive = rank_entry.get('alive', False)
+                if not is_alive and 'game_stats' in rank_entry:
+                    # Fallback - si pas d'info "alive", vérifier si survived_events > 0
+                    is_alive = rank_entry['game_stats'].get('survived_events', 0) > 0
+                    
+                if is_alive:
                     role_data[role]['survivals'] += 1
                 
                 # Le gagnant est le premier du classement
