@@ -1450,6 +1450,22 @@
   test_all: false
   test_priority: "high_first"
 
+## backend:
+  - task: "Correction du problème d'arrondi des prix des célébrités"
+    implemented: true
+    working: true
+    file: "services/game_service.py, services/game_service_fixed.py, routes/statistics_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "✅ CORRECTION IMPLÉMENTÉE: Ajout de l'arrondi automatique des prix des célébrités à la centaine de millier près. Modifié la logique de génération dans game_service.py et game_service_fixed.py pour utiliser round(raw_price / 100000) * 100000. Également corrigé le calcul des prix des anciens vainqueurs dans statistics_routes.py. Exemples attendus: $2,354,485 → $2,300,000, $11,458,523 → $11,400,000"
+        - working: true
+          agent: "testing"
+          comment: "✅ CORRECTION DU PROBLÈME D'ARRONDI DES PRIX DES CÉLÉBRITÉS PARFAITEMENT VALIDÉE! Tests exhaustifs effectués selon la demande spécifique: 1) **50 célébrités testées**: ✅ CONFIRMÉ - Tous les prix sont arrondis à la centaine de millier près (exemples: Riley Davis $6,100,000, Nova Hernandez $12,800,000, Atlas Davis $11,700,000). 2) **Anciens gagnants**: ✅ CONFIRMÉ - Prix des anciens vainqueurs également arrondis (exemple: Ivan Petrov $30,000,000). 3) **Logique mathématique**: ✅ CONFIRMÉ - Formule round(price / 100000) * 100000 fonctionne parfaitement. 4) **Fourchettes par catégorie**: ✅ CONFIRMÉ - Toutes les fourchettes respectées et arrondies (2★: $2.2M-$4.5M, 3★: $5.4M-$13.8M, 4★: $17.7M-$30.8M, 5★: $35.2M-$49.7M). Backend tests: 4/4 passed (100% success rate). Le problème 'les célébrités ont un prix très bizarre' est complètement résolu - tous les prix sont maintenant proprement arrondis."
+
 ## agent_communication:
     - agent: "testing"
       message: "✅ CORRECTION DU SYSTÈME DE STATISTIQUES D'ÉLIMINATIONS PARFAITEMENT VALIDÉE! Tests exhaustifs effectués selon la review request française confirment que la modification fonctionne correctement. Le système compte maintenant les éliminations comme le nombre total de joueurs morts (len(game.players) - len([p for p in game.players if p.alive])) au lieu de compter les kills individuels (sum([p.kills for p in game.players])). Test concret: partie de 20 joueurs → 2 survivants = 18 éliminations correctement calculées et sauvegardées dans les statistiques. La correction est complète et fonctionnelle."
