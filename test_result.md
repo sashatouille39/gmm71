@@ -509,6 +509,21 @@
           agent: "testing"
           comment: "✅ CORRECTION COMPLÈTEMENT VALIDÉE - PROBLÈME FRANÇAIS RÉSOLU! Tests exhaustifs effectués selon la review request française sur la correction limite génération joueurs: 1) **Test 100 joueurs (valeur par défaut)**: ✅ CONFIRMÉ - Génération de 100 joueurs réussie via /api/games/generate-players?count=100. 2) **Test 500 joueurs (valeur intermédiaire)**: ✅ CONFIRMÉ - Génération de 500 joueurs réussie via /api/games/generate-players?count=500. 3) **Test 1000 joueurs (limite maximale)**: ✅ CONFIRMÉ - Génération de 1000 joueurs réussie via /api/games/generate-players?count=1000. 4) **Validation paramètre count**: ✅ CONFIRMÉ - L'API accepte bien le paramètre count en query parameter comme demandé. 5) **Validation limites**: ✅ CONFIRMÉ - Validation correcte pour count > 1000 (erreur 400) et count = 0 (erreur 400). Backend tests: 5/5 passed (100% success rate). Le problème 'quand je clique sur générer il n'y a toujours que 100 joueurs qui se génèrent' signalé par l'utilisateur français est complètement résolu - l'API supporte maintenant jusqu'à 1000 joueurs avec le paramètre count."
 
+  - task: "Correction système de calcul des éliminations dans les statistiques"
+    implemented: true
+    working: true
+    file: "routes/statistics_routes.py, routes/game_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "✅ CORRECTION PARFAITEMENT IMPLÉMENTÉE: Système de calcul des éliminations corrigé selon les spécifications. Au lieu de compter les kills faits par les joueurs individuellement (sum([p.kills for p in game.players])), le système compte maintenant le nombre total de joueurs morts dans toutes les parties (len(game.players) - len([p for p in game.players if p.alive])). Modifié dans statistics_routes.py (lignes 200-202) et game_routes.py (5 occurrences corrigées). Si une partie a 100 joueurs et 1 gagnant, cela fait maintenant correctement 99 éliminations à ajouter aux statistiques, peu importe qui a tué qui."
+        - working: true
+          agent: "testing"
+          comment: "✅ CORRECTION PARFAITEMENT VALIDÉE - SPÉCIFICATIONS FRANÇAISES RESPECTÉES! Tests exhaustifs effectués: 1) **Test cohérence**: ✅ CONFIRMÉ - Partie de 20 joueurs simulée jusqu'à 18 éliminations (2 survivants), statistiques correctement mises à jour. 2) **Test calcul**: ✅ CONFIRMÉ - Éliminations = joueurs morts (18) et NON kills individuels (12). 3) **Test formule**: ✅ CONFIRMÉ - Formule éliminations = total_players - alive_players parfaitement implémentée. 4) **Test exemple spécifique**: ✅ CONFIRMÉ - 100 joueurs + 1 gagnant = 99 éliminations correctement calculées. Backend tests: 4/4 passed (100% success rate). Le problème de double comptage des kills est complètement résolu - les éliminations représentent maintenant le nombre total de joueurs morts selon les spécifications exactes de la review request."
+
 ## backend:
   - task: "Test de la correction du système de statistiques d'éliminations"
     implemented: true
