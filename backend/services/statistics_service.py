@@ -97,8 +97,15 @@ class StatisticsService:
             final_ranking=final_ranking
         )
         
-        # Sauvegarder dans le "pseudo-database"
-        cls.completed_games_db[user_id].append(completed_game)
+        # CORRECTION DOUBLONS : Vérifier si la partie n'est pas déjà sauvegardée
+        existing_game_ids = [game.id for game in cls.completed_games_db[user_id]]
+        
+        if completed_game.id not in existing_game_ids:
+            # Sauvegarder seulement si pas déjà présente
+            cls.completed_games_db[user_id].append(completed_game)
+            print(f"✅ Partie {completed_game.id} sauvegardée (nouvelles stats)")
+        else:
+            print(f"⚠️ Partie {completed_game.id} déjà sauvegardée, ignorée pour éviter doublon")
         
         # Garder seulement les 50 dernières parties pour éviter une surcharge mémoire
         if len(cls.completed_games_db[user_id]) > 50:
