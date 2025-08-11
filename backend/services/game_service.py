@@ -867,7 +867,9 @@ class GameService:
         
         for i in range(count):
             category, stars, min_price, max_price = random.choice(categories)
-            price = random.randint(min_price, max_price)
+            # Generate price and round to nearest hundred thousand
+            raw_price = random.randint(min_price, max_price)
+            price = round(raw_price / 100000) * 100000
             
             # Générer des stats selon la catégorie
             if category == "Ancien vainqueur":
