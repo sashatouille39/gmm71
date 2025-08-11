@@ -1891,6 +1891,12 @@ class BackendTester:
                     test4_data = None
             else:
                 print(f"   ❌ Échec création partie combinée - HTTP {response.status_code}")
+                if response.status_code == 422:
+                    try:
+                        error_data = response.json()
+                        print(f"   🔍 Détails erreur 422: {error_data}")
+                    except:
+                        print(f"   🔍 Réponse erreur: {response.text[:500]}")
                 test4_success = False
                 test4_data = None
             
