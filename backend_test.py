@@ -1640,20 +1640,20 @@ class BackendTester:
                 for player in players:
                     if player.get('role') in ['intelligent', 'sportif']:
                         stats = player.get('stats', {})
-                        avg_stat = (stats.get('intelligence', 0) + stats.get('force', 0) + stats.get('agilité', 0)) // 3
-                        if avg_stat >= 70:
+                        avg_stat = (stats.get('intelligence', 0) + stats.get('force', 0) + stats.get('agilité', 0)) / 3
+                        if avg_stat >= 7:  # Seuil ajusté pour l'échelle 1-10
                             celebrity_count += 1
-                            # Estimer les étoiles
-                            if avg_stat >= 95:
+                            # Estimer les étoiles basé sur l'échelle 1-10
+                            if avg_stat >= 9.5:
                                 stars = 5
-                            elif avg_stat >= 85:
+                            elif avg_stat >= 8.5:
                                 stars = 4
-                            elif avg_stat >= 75:
+                            elif avg_stat >= 7.5:
                                 stars = 3
                             else:
                                 stars = 2
                             total_stars += stars
-                            print(f"   🌟 Célébrité trouvée: {player.get('name')} ({stars} étoiles estimées)")
+                            print(f"   🌟 Célébrité trouvée: {player.get('name')} ({stars} étoiles estimées, avg: {avg_stat:.1f})")
                 
                 # Calculer le multiplicateur attendu
                 expected_multiplier = 1.0 + (celebrity_count * 0.25) + (total_stars * 0.20)
