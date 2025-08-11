@@ -15501,7 +15501,7 @@ class BackendTester:
 if __name__ == "__main__":
     tester = BackendTester()
     
-    print(f"\n🇫🇷 TEST DU NOUVEAU SYSTÈME DE SALON VIP CORRIGÉ")
+    print(f"\n🇫🇷 TEST DE LA CORRECTION DU SYSTÈME DE STATISTIQUES D'ÉLIMINATIONS")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"API Base: {API_BASE}")
     print("=" * 80)
@@ -15511,32 +15511,8 @@ if __name__ == "__main__":
         print("❌ Server not accessible, aborting tests")
         exit(1)
     
-    # Run the VIP salon corrected system tests according to French review request
-    tester.test_vip_salon_corrected_system()
-    
-    # Test the pricing system that doubles at each level
-    print(f"\n🇫🇷 TEST DU SYSTÈME DE PRIX QUI DOUBLENT À CHAQUE NIVEAU")
-    print("=" * 80)
-    
-    # Test pricing doubling pattern
-    expected_prices = {0: 0, 1: 2500000, 2: 5000000, 3: 10000000, 4: 20000000}
-    
-    print("   🔍 Vérification du pattern de doublement:")
-    pricing_pattern_correct = True
-    for level in range(1, 4):
-        current_price = expected_prices[level]
-        next_price = expected_prices[level + 1]
-        is_double = (next_price == current_price * 2)
-        
-        print(f"     Niveau {level}: {current_price:,}$ → Niveau {level+1}: {next_price:,}$ {'✅' if is_double else '❌'}")
-        if not is_double:
-            pricing_pattern_correct = False
-    
-    if pricing_pattern_correct:
-        tester.log_result("VIP Salon Pricing Pattern", True, "✅ Les prix doublent correctement à chaque niveau")
-        print(f"   🎯 SUCCÈS: Tous les prix respectent le pattern de doublement")
-    else:
-        tester.log_result("VIP Salon Pricing Pattern", False, "❌ Les prix ne doublent pas correctement")
+    # Run the elimination statistics correction test according to French review request
+    tester.test_elimination_statistics_correction()
     
     # Print summary
     print(f"\n📊 TEST SUMMARY:")
