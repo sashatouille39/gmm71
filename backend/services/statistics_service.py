@@ -139,10 +139,39 @@ class StatisticsService:
         })
         
         for game in completed_games:
+            # AMÉLIORATION : Si pas de final_ranking, utiliser directement les données des joueurs
+            if not game.final_ranking or len(game.final_ranking) == 0:
+                # Essayer de récupérer les données depuis games_db pour obtenir les joueurs
+                try:
+                    from routes.game_routes import games_db
+                    if game.id in games_db:
+                        full_game = games_db[game.id]
+                        if hasattr(full_game, 'players') and full_game.players:
+                            # Créer un final_ranking temporaire depuis les joueurs
+                            temp_ranking = []
+                            for player in full_game.players:
+                                temp_ranking.append({
+                                    'player': {
+                                        'role': getattr(player, 'role', 'normal'),
+                                        'name': getattr(player, 'name', 'Inconnu')
+                                    },
+                                    'alive': getattr(player, 'alive', False),
+                                    'total_score': getattr(player, 'total_score', 0)
+                                })
+                            game.final_ranking = temp_ranking
+                            print(f"📊 Statistiques rôles: Créé ranking temporaire pour partie {game.id} avec {len(temp_ranking)} joueurs")
+                except:
+                    print(f"⚠️ Impossible de récupérer les données des joueurs pour la partie {game.id}")
+                    continue
+            
             # Analyser le classement final pour les statistiques
             for rank_entry in game.final_ranking:
                 player_data = rank_entry.get('player', {})
-                role = player_data.get('role', 'normal').lower()
+                role = player_data.get('role', 'normal')
+                
+                # Normaliser le rôle (enlever les majuscules, espaces, etc.)
+                if isinstance(role, str):
+                    role = role.lower().strip()
                 
                 role_data[role]['appearances'] += 1
                 role_data[role]['total_score'] += rank_entry.get('total_score', 0)
