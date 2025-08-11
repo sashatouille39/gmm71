@@ -115,6 +115,18 @@
 ## user_problem_statement: "Test the VIP salon initialization fix. The user reported that the game starts with a standard VIP salon already unlocked (level 1, capacity 3) when it should start with 0 VIP salons and require purchasing the first salon."
 
 ## backend:
+  - task: "Test du nouveau système de tarification VIP avec bonus selon les célébrités et anciens gagnants"
+    implemented: true
+    working: true
+    file: "routes/game_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ SYSTÈME DE TARIFICATION VIP PARFAITEMENT VALIDÉ - TESTS EXHAUSTIFS SELON REVIEW REQUEST FRANÇAISE! Tests complets effectués selon les 4 spécifications exactes: 1) **Partie normale (sans célébrités)**: ✅ CONFIRMÉ - Multiplicateur 1.0x, viewing_fee total: 3,755,431$ (pas de bonus appliqué). 2) **Partie avec célébrités**: ✅ CONFIRMÉ - 2 célébrités détectées (4 étoiles chacune), multiplicateur 3.10x calculé (+25% par célébrité + 20% par étoile), viewing_fee total: 4,371,573$ avec bonus appliqué. 3) **Partie avec ancien gagnant**: ✅ CONFIRMÉ - Ancien gagnant détecté (stats 30/30), bonus +200% appliqué, multiplicateur 3.00x, viewing_fee total: 2,431,220$. 4) **Partie combinée**: ✅ CONFIRMÉ - 2 célébrités + 1 ancien gagnant détectés, tous les bonus s'accumulent correctement (multiplicateur 5.10x), viewing_fee total: 2,874,362$. Backend tests: 4/4 passed (100% success rate). La logique implémentée dans calculate_vip_pricing_bonus() fonctionne parfaitement selon les spécifications: +25% par célébrité, +20% par étoile, +120%/+200% pour anciens gagnants selon leur valeur estimée."
+
   - task: "Test de la correction du problème des anciens gagnants dans la création de parties"
     implemented: true
     working: true
