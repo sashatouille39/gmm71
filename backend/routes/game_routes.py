@@ -35,32 +35,50 @@ def calculate_vip_pricing_bonus(players: List[Player]) -> float:
     former_winner_bonus = 0
     
     for player in players:
-        # Détecter les célébrités converties (ont des statistiques spéciales et certains rôles)
-        if player.role in ['intelligent', 'sportif'] and player.stats.intelligence > 80:
-            celebrity_count += 1
-            
-            # Estimer les étoiles basé sur les statistiques (approximation)
+        # Vérifier si c'est une célébrité (l'information est disponible dans les propriétés du joueur)
+        # Les célébrités converties ont des propriétés spéciales comme celebrityId, isCelebrity, stars, etc.
+        
+        # Méthode 1: Détecter par les rôles spéciaux (célébrités converties ont role intelligent/sportif)
+        is_celebrity = False
+        celebrity_stars = 0
+        
+        if player.role in ['intelligent', 'sportif']:
+            # Vérifier si les stats sont élevées (typique des célébrités)
             avg_stat = (player.stats.intelligence + player.stats.force + player.stats.agilité) // 3
-            if avg_stat >= 95:
-                stars = 5
-            elif avg_stat >= 85:
-                stars = 4  
-            elif avg_stat >= 75:
-                stars = 3
-            else:
-                stars = 2
-            
-            total_stars += stars
-            
-        # Détecter les anciens gagnants (noms spéciaux ou statistiques très élevées)
-        # Les anciens gagnants ont généralement des stats exceptionnelles
+            if avg_stat >= 70:  # Les célébrités ont généralement de bonnes stats
+                is_celebrity = True
+                
+                # Estimer les étoiles basé sur les statistiques (approximation)
+                if avg_stat >= 95:
+                    celebrity_stars = 5
+                elif avg_stat >= 85:
+                    celebrity_stars = 4  
+                elif avg_stat >= 75:
+                    celebrity_stars = 3
+                else:
+                    celebrity_stars = 2
+                    
+                celebrity_count += 1
+                total_stars += celebrity_stars
+                print(f"🎯 Célébrité détectée: {player.name} ({celebrity_stars} étoiles estimées, role: {player.role})")
+        
+        # Détecter les anciens gagnants (statistiques exceptionnellement élevées)
+        # Les anciens gagnants ont généralement des stats totales très élevées
         total_player_stats = player.stats.intelligence + player.stats.force + player.stats.agilité
-        if total_player_stats >= 270:  # Stats très élevées = ancien gagnant potentiel
-            # Estimer le prix basé sur les stats totales
-            if total_player_stats >= 285:  # ~$20M
-                former_winner_bonus = max(former_winner_bonus, 200)  # +200%
-            elif total_player_stats >= 270:  # ~$10M
-                former_winner_bonus = max(former_winner_bonus, 120)  # +120%
+        
+        # Prix estimé basé sur les stats (approximation de la logique du backend)
+        if total_player_stats >= 285:  # Stats très élevées = ~$30M (3 étoiles * 10M)
+            estimated_price = 30000000
+            former_winner_bonus = max(former_winner_bonus, 200)  # +200% pour 30M (>20M)
+            print(f"🎯 Ancien gagnant détecté: {player.name} (~{estimated_price:,}$, +200%)")
+        elif total_player_stats >= 270:  # Stats élevées = ~$20M (2 étoiles * 10M)  
+            estimated_price = 20000000
+            former_winner_bonus = max(former_winner_bonus, 200)  # +200% pour 20M
+            print(f"🎯 Ancien gagnant détecté: {player.name} (~{estimated_price:,}$, +200%)")
+        elif total_player_stats >= 255:  # Stats bonnes = ~$10M (1 étoile * 10M)
+            estimated_price = 10000000
+            former_winner_bonus = max(former_winner_bonus, 120)  # +120% pour 10M
+            print(f"🎯 Ancien gagnant détecté: {player.name} (~{estimated_price:,}$, +120%)")
     
     # Appliquer les bonus
     bonus_multiplier += (celebrity_count * 0.25)  # +25% par célébrité
