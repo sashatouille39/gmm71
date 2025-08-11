@@ -185,6 +185,7 @@ class StatisticsService:
         
         event_stats = defaultdict(lambda: {
             'name': '',
+            'event_type': '',  # Ajouter le type d'événement
             'played_count': 0,
             'total_participants': 0,
             'total_eliminations': 0,
