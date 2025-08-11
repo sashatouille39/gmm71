@@ -271,7 +271,7 @@ const Statistics = ({ gameState }) => {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="bg-gray-800/30 p-3 rounded-lg text-center">
                           <div className="text-2xl font-bold text-yellow-400">{celebrityStats.total_celebrities}</div>
-                          <div className="text-xs text-gray-400">Célébrités totales</div>
+                          <div className="text-xs text-gray-400">Célébrités disponibles</div>
                         </div>
                         <div className="bg-gray-800/30 p-3 rounded-lg text-center">
                           <div className="text-2xl font-bold text-green-400">{celebrityStats.owned_celebrities}</div>
@@ -279,12 +279,17 @@ const Statistics = ({ gameState }) => {
                         </div>
                       </div>
                       <div className="bg-gray-800/30 p-3 rounded-lg text-center">
-                        <div className="text-2xl font-bold text-orange-400">{celebrityStats.total_wins}</div>
-                        <div className="text-xs text-gray-400">Victoires totales</div>
+                        <div className="text-2xl font-bold text-orange-400">{realGames.filter(game => game.celebrity_winner).length}</div>
+                        <div className="text-xs text-gray-400">Victoires de célébrités dans vos parties</div>
                       </div>
                       <div className="bg-gray-800/30 p-3 rounded-lg text-center">
-                        <div className="text-lg font-bold text-blue-400">{celebrityStats.average_wins.toFixed(2)}</div>
-                        <div className="text-xs text-gray-400">Victoires moyennes</div>
+                        <div className="text-lg font-bold text-blue-400">
+                          {realGames.length > 0 
+                            ? ((realGames.filter(game => game.celebrity_winner).length / realGames.length) * 100).toFixed(1) + '%'
+                            : '0%'
+                          }
+                        </div>
+                        <div className="text-xs text-gray-400">Taux de victoire célébrités</div>
                       </div>
                     </div>
                   ) : (
