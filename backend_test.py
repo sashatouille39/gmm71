@@ -1833,31 +1833,31 @@ class BackendTester:
                 
                 for player in players:
                     stats = player.get('stats', {})
-                    avg_stat = (stats.get('intelligence', 0) + stats.get('force', 0) + stats.get('agilité', 0)) // 3
+                    avg_stat = (stats.get('intelligence', 0) + stats.get('force', 0) + stats.get('agilité', 0)) / 3
                     total_stats = stats.get('intelligence', 0) + stats.get('force', 0) + stats.get('agilité', 0)
                     
-                    # Détecter célébrité
-                    if player.get('role') in ['intelligent', 'sportif'] and avg_stat >= 70:
+                    # Détecter célébrité (échelle 1-10)
+                    if player.get('role') in ['intelligent', 'sportif'] and avg_stat >= 7:
                         celebrity_count += 1
-                        if avg_stat >= 85:
+                        if avg_stat >= 8.5:
                             stars = 4
-                        elif avg_stat >= 75:
+                        elif avg_stat >= 7.5:
                             stars = 3
                         else:
                             stars = 2
                         total_stars += stars
-                        print(f"   🌟 Célébrité: {player.get('name')} ({stars} étoiles)")
+                        print(f"   🌟 Célébrité: {player.get('name')} ({stars} étoiles, avg: {avg_stat:.1f})")
                     
-                    # Détecter ancien gagnant
-                    if total_stats >= 285:
+                    # Détecter ancien gagnant (échelle 1-10)
+                    if total_stats >= 28:
                         former_winner_bonus = max(former_winner_bonus, 200)
-                        print(f"   🏆 Ancien gagnant: {player.get('name')} (stats: {total_stats}, +200%)")
-                    elif total_stats >= 270:
+                        print(f"   🏆 Ancien gagnant: {player.get('name')} (stats: {total_stats}/30, +200%)")
+                    elif total_stats >= 25:
                         former_winner_bonus = max(former_winner_bonus, 200)
-                        print(f"   🏆 Ancien gagnant: {player.get('name')} (stats: {total_stats}, +200%)")
-                    elif total_stats >= 255:
+                        print(f"   🏆 Ancien gagnant: {player.get('name')} (stats: {total_stats}/30, +200%)")
+                    elif total_stats >= 22:
                         former_winner_bonus = max(former_winner_bonus, 120)
-                        print(f"   🏆 Ancien gagnant: {player.get('name')} (stats: {total_stats}, +120%)")
+                        print(f"   🏆 Ancien gagnant: {player.get('name')} (stats: {total_stats}/30, +120%)")
                 
                 # Calculer le multiplicateur combiné
                 expected_multiplier = 1.0 + (celebrity_count * 0.25) + (total_stars * 0.20) + (former_winner_bonus / 100.0)
