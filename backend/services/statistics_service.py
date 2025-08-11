@@ -230,6 +230,15 @@ class StatisticsService:
                         for event_name in completed_game.events_played:
                             if event_name not in event_stats:
                                 event_stats[event_name]['name'] = event_name
+                                
+                                # Récupérer le type d'événement depuis EventsService
+                                try:
+                                    from services.events_service import EventsService
+                                    matching_events = [e for e in EventsService.GAME_EVENTS if e.name == event_name]
+                                    if matching_events:
+                                        event_stats[event_name]['event_type'] = matching_events[0].type.value
+                                except:
+                                    event_stats[event_name]['event_type'] = 'unknown'
                             
                             event_stats[event_name]['played_count'] += 1
                             
