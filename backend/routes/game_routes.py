@@ -19,10 +19,10 @@ def calculate_vip_pricing_bonus(players: List[Player]) -> float:
     """
     Calcule le multiplicateur de bonus VIP basé sur les célébrités et anciens gagnants présents
     
-    Logique:
-    - +25% par célébrité présente
-    - +20% par étoile de célébrité  
-    - +120% si ancien gagnant à $10M présent
+    Logique MISE À JOUR:
+    - +20% par célébrité présente
+    - +25% par étoile de célébrité  
+    - +125% si ancien gagnant à $10M présent
     - +200% si ancien gagnant à $20M présent
     
     Returns:
