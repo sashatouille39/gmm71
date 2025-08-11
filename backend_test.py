@@ -1565,16 +1565,16 @@ class BackendTester:
             print("\n🔍 TEST 2: PARTIE AVEC CÉLÉBRITÉS")
             print("-" * 60)
             
-            # Créer des célébrités fictives avec bonnes stats
+            # Créer des célébrités fictives avec bonnes stats (dans la limite 1-10)
             celebrity1 = {
                 "name": "Célébrité Test 1",
                 "nationality": "Française",
                 "gender": "femme",
                 "role": "intelligent",  # Rôle de célébrité
                 "stats": {
-                    "intelligence": 85,  # Stats élevées = 4 étoiles
-                    "force": 80,
-                    "agilité": 90
+                    "intelligence": 9,  # Stats élevées dans la limite
+                    "force": 8,
+                    "agilité": 10
                 },
                 "portrait": {
                     "face_shape": "ovale",
@@ -1597,9 +1597,9 @@ class BackendTester:
                 "gender": "homme",
                 "role": "sportif",  # Rôle de célébrité
                 "stats": {
-                    "intelligence": 75,  # Stats bonnes = 3 étoiles
-                    "force": 95,
-                    "agilité": 85
+                    "intelligence": 8,  # Stats bonnes dans la limite
+                    "force": 10,
+                    "agilité": 9
                 },
                 "portrait": {
                     "face_shape": "carré",
