@@ -232,7 +232,12 @@ const Statistics = ({ gameState }) => {
                           </div>
                           <div>
                             <span className="text-gray-400">Vainqueur:</span>
-                            <div className="text-white font-medium text-xs">{game.winner || 'Aucun'}</div>
+                            <div className="text-white font-medium text-xs">
+                              {game.winner 
+                                ? (typeof game.winner === 'string' ? game.winner : game.winner.name || 'Nom inconnu')
+                                : 'Aucun'
+                              }
+                            </div>
                           </div>
                         </div>
 
