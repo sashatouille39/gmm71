@@ -1686,6 +1686,12 @@ class BackendTester:
                     test2_data = None
             else:
                 print(f"   ❌ Échec création partie avec célébrités - HTTP {response.status_code}")
+                if response.status_code == 422:
+                    try:
+                        error_data = response.json()
+                        print(f"   🔍 Détails erreur 422: {error_data}")
+                    except:
+                        print(f"   🔍 Réponse erreur: {response.text[:500]}")
                 test2_success = False
                 test2_data = None
             
