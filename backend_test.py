@@ -1699,16 +1699,16 @@ class BackendTester:
             print("\n🔍 TEST 3: PARTIE AVEC ANCIEN GAGNANT")
             print("-" * 60)
             
-            # Créer un ancien gagnant fictif avec stats exceptionnelles
+            # Créer un ancien gagnant fictif avec stats exceptionnelles (dans la limite 1-10)
             former_winner = {
                 "name": "Ancien Gagnant Test",
                 "nationality": "Japonaise",
                 "gender": "homme",
                 "role": "sportif",
                 "stats": {
-                    "intelligence": 95,  # Stats totales = 285 = ~$30M
-                    "force": 95,
-                    "agilité": 95
+                    "intelligence": 10,  # Stats maximales dans la limite
+                    "force": 10,
+                    "agilité": 10
                 },
                 "portrait": {
                     "face_shape": "ovale",
