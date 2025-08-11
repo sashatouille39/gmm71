@@ -15,6 +15,96 @@ from services.events_service import EventsService
 
 router = APIRouter(prefix="/api/games", tags=["games"])
 
+def get_vip_pricing_bonus_details(players: List[Player]) -> Dict:
+    """
+    Retourne les détails des bonus VIP appliqués pour l'affichage frontend
+    
+    Returns:
+        Dict: détails des bonus avec montants et descriptions
+    """
+    bonus_details = {
+        "base_multiplier": 1.0,
+        "celebrity_count": 0,
+        "total_stars": 0,
+        "celebrity_bonus": 0.0,
+        "star_bonus": 0.0,
+        "former_winner_bonus": 0.0,
+        "former_winner_details": [],
+        "final_multiplier": 1.0,
+        "bonus_description": ""
+    }
+    
+    celebrity_count = 0
+    total_stars = 0
+    former_winner_bonus = 0
+    former_winners_found = []
+    
+    for player in players:
+        # Détecter les célébrités
+        is_celebrity = False
+        celebrity_stars = 0
+        
+        if player.role in ['intelligent', 'sportif']:
+            avg_stat = (player.stats.intelligence + player.stats.force + player.stats.agilité) // 3
+            if avg_stat >= 70:
+                is_celebrity = True
+                
+                if avg_stat >= 95:
+                    celebrity_stars = 5
+                elif avg_stat >= 85:
+                    celebrity_stars = 4  
+                elif avg_stat >= 75:
+                    celebrity_stars = 3
+                else:
+                    celebrity_stars = 2
+                    
+                celebrity_count += 1
+                total_stars += celebrity_stars
+        
+        # Détecter les anciens gagnants
+        total_player_stats = player.stats.intelligence + player.stats.force + player.stats.agilité
+        
+        if total_player_stats >= 285:
+            estimated_price = 30000000
+            former_winner_bonus = max(former_winner_bonus, 200)
+            former_winners_found.append({"name": player.name, "bonus": 200, "price": estimated_price})
+        elif total_player_stats >= 270:
+            estimated_price = 20000000
+            former_winner_bonus = max(former_winner_bonus, 200)
+            former_winners_found.append({"name": player.name, "bonus": 200, "price": estimated_price})
+        elif total_player_stats >= 255:
+            estimated_price = 10000000
+            former_winner_bonus = max(former_winner_bonus, 125)
+            former_winners_found.append({"name": player.name, "bonus": 125, "price": estimated_price})
+    
+    # Calculer les bonus
+    celebrity_bonus = celebrity_count * 0.20
+    star_bonus = total_stars * 0.25
+    winner_bonus = former_winner_bonus / 100.0
+    final_multiplier = 1.0 + celebrity_bonus + star_bonus + winner_bonus
+    
+    # Créer la description
+    description_parts = []
+    if celebrity_count > 0:
+        description_parts.append(f"{celebrity_count} célébrité{'s' if celebrity_count > 1 else ''} (+{celebrity_bonus*100:.0f}%)")
+    if total_stars > 0:
+        description_parts.append(f"{total_stars} étoile{'s' if total_stars > 1 else ''} (+{star_bonus*100:.0f}%)")
+    if former_winner_bonus > 0:
+        description_parts.append(f"ancien{'s' if len(former_winners_found) > 1 else ''} gagnant{'s' if len(former_winners_found) > 1 else ''} (+{former_winner_bonus}%)")
+    
+    bonus_details.update({
+        "celebrity_count": celebrity_count,
+        "total_stars": total_stars,
+        "celebrity_bonus": celebrity_bonus,
+        "star_bonus": star_bonus,
+        "former_winner_bonus": winner_bonus,
+        "former_winner_details": former_winners_found,
+        "final_multiplier": final_multiplier,
+        "bonus_description": " + ".join(description_parts) if description_parts else "Aucun bonus"
+    })
+    
+    return bonus_details
+
 def calculate_vip_pricing_bonus(players: List[Player]) -> float:
     """
     Calcule le multiplicateur de bonus VIP basé sur les célébrités et anciens gagnants présents
