@@ -750,15 +750,23 @@ const GameSetup = ({ gameState, onStartGame }) => {
                                   nationality: winner.nationality,
                                   gender: Math.random() > 0.5 ? 'M' : 'F',
                                   age: 25 + Math.floor(Math.random() * 20),
-                                  role: 'celebrity',
+                                  // Utiliser un rôle valide selon la catégorie de l'ancien gagnant
+                                  role: winner.category === 'Sportifs' ? 'sportif' : 
+                                        winner.category === 'Scientifiques' ? 'intelligent' : 'normal',
                                   stats: winner.stats,
+                                  // Utiliser les noms de champs corrects pour l'API backend (snake_case)
                                   portrait: {
-                                    faceShape: 'Ovale',
-                                    skinColor: '#F4B980',
+                                    face_shape: 'Ovale',
+                                    skin_color: '#F4B980',
                                     hairstyle: 'Cheveux courts',
-                                    hairColor: '#2C1B18',
-                                    eyeColor: '#654321',
-                                    eyeShape: 'Amande'
+                                    hair_color: '#2C1B18',
+                                    eye_color: '#654321',
+                                    eye_shape: 'Amande'
+                                  },
+                                  uniform: {
+                                    style: 'Classic',
+                                    color: 'Rouge',
+                                    pattern: 'Uni'
                                   },
                                   alive: true,
                                   kills: 0,
@@ -767,6 +775,7 @@ const GameSetup = ({ gameState, onStartGame }) => {
                                   totalScore: 0,
                                   celebrityId: winner.id,
                                   isCelebrity: true,
+                                  isCustom: true, // Marquer comme custom pour être inclus dans all_players
                                   category: winner.category,
                                   stars: winner.stars,
                                   wins: winner.wins || 1,
