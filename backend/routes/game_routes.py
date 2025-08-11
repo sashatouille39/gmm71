@@ -81,8 +81,8 @@ def calculate_vip_pricing_bonus(players: List[Player]) -> float:
             print(f"🎯 Ancien gagnant détecté: {player.name} (~{estimated_price:,}$, +125%)")
     
     # Appliquer les bonus
-    bonus_multiplier += (celebrity_count * 0.25)  # +25% par célébrité
-    bonus_multiplier += (total_stars * 0.20)      # +20% par étoile
+    bonus_multiplier += (celebrity_count * 0.20)  # +20% par célébrité
+    bonus_multiplier += (total_stars * 0.25)      # +25% par étoile
     bonus_multiplier += (former_winner_bonus / 100.0)  # Bonus ancien gagnant
     
     print(f"🎯 VIP PRICING BONUS: {celebrity_count} célébrités, {total_stars} étoiles totales, bonus ancien gagnant: {former_winner_bonus}%")
