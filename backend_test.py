@@ -1524,8 +1524,8 @@ class BackendTester:
                 celebrity_count = 0
                 for player in players:
                     stats = player.get('stats', {})
-                    avg_stat = (stats.get('intelligence', 0) + stats.get('force', 0) + stats.get('agilité', 0)) // 3
-                    if avg_stat >= 70 and player.get('role') in ['intelligent', 'sportif']:
+                    avg_stat = (stats.get('intelligence', 0) + stats.get('force', 0) + stats.get('agilité', 0)) / 3
+                    if avg_stat >= 7 and player.get('role') in ['intelligent', 'sportif']:
                         celebrity_count += 1
                 
                 print(f"   ✅ Partie normale créée: {len(players)} joueurs, {celebrity_count} célébrités détectées")
