@@ -115,6 +115,18 @@
 ## user_problem_statement: "Test the VIP salon initialization fix. The user reported that the game starts with a standard VIP salon already unlocked (level 1, capacity 3) when it should start with 0 VIP salons and require purchasing the first salon."
 
 ## backend:
+  - task: "Test de la correction du problème des anciens gagnants dans la création de parties"
+    implemented: true
+    working: true
+    file: "routes/game_routes.py, models/game_models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ CORRECTION PARFAITEMENT VALIDÉE - TESTS EXHAUSTIFS SELON REVIEW REQUEST FRANÇAISE! Tests complets effectués selon les 4 spécifications exactes: 1) **Création partie avec joueur normal**: ✅ CONFIRMÉ - Partie créée avec succès sans erreur. 2) **Création partie avec célébrité normale convertie**: ✅ CONFIRMÉ - Célébrité 'Avery Miller' convertie en joueur avec role='intelligent' (au lieu de 'celebrity') et champs portrait en snake_case (face_shape, skin_color au lieu de faceShape, skinColor) fonctionne parfaitement. 3) **Création partie avec ancien gagnant converti**: ✅ CONFIRMÉ - Ancien gagnant fictif 'Ivan Petrov' avec role='sportif' et champs corrigés créé sans erreur 422. 4) **API /api/games/create accepte anciens gagnants**: ✅ CONFIRMÉ - Aucune erreur 422 ou autre erreur de validation, parties mixtes célébrités/anciens gagnants créées avec succès. Backend tests: 4/4 passed (100% success rate). Le problème français 'quand j'ajoute un ancien gagnant que j'ai acheté dans la boutique des célébrités à mes joueurs pour un jeu, le bouton pour lancer la partie ne fonctionne pas' est complètement résolu - les 2 corrections (rôles valides + snake_case) fonctionnent parfaitement."
+
   - task: "Celebrity price rounding fix - round to nearest hundred thousand"
     implemented: true
     working: true
