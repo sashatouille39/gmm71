@@ -194,32 +194,10 @@ async def save_completed_game(request: SaveCompletedGameRequest):
         # Sauvegarder la partie
         completed_game = StatisticsService.save_completed_game(request.user_id, game, final_ranking)
         
-        # Mettre à jour les stats de base dans gamestate
-        if request.user_id in game_states_db:
-            game_state = game_states_db[request.user_id]
-            game_state.game_stats.total_games_played += 1
-            
-            # Compter le nombre total de joueurs morts (éliminations)
-            total_eliminations = len(game.players) - len([p for p in game.players if p.alive])
-            game_state.game_stats.total_kills += total_eliminations
-            
-            # Compter les trahisons
-            total_betrayals = sum([p.betrayals for p in game.players])
-            game_state.game_stats.total_betrayals += total_betrayals
-            
-            # Ajouter les gains
-            if hasattr(game, 'earnings'):
-                game_state.game_stats.total_earnings += game.earnings
-            
-            # Vérifier si Le Zéro était présent
-            has_zero = any(p.role == "zero" for p in game.players)
-            if has_zero:
-                game_state.game_stats.has_seen_zero = True
-            
-            # Mettre à jour la célébrité favorite si nécessaire
-            # (pourrait être ajouté plus tard selon les besoins)
-            
-            print(f"✅ GameStats mis à jour: {game_state.game_stats.total_games_played} parties, {game_state.game_stats.total_kills} éliminations")
+        # CORRECTION BUG: Ne plus dupliquer les stats car elles sont déjà comptées dans game_routes.py
+        # Les statistiques sont déjà mises à jour quand la partie se termine dans game_routes.py
+        # On ne fait que sauvegarder ici pour l'historique détaillé
+        print(f"✅ Partie sauvegardée dans l'historique détaillé (stats déjà comptées lors du jeu)")
         
         return {
             "message": "Partie sauvegardée avec succès",
