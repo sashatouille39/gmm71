@@ -398,22 +398,40 @@ const Statistics = ({ gameState }) => {
                   <CardTitle className="text-white">Performances par type</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {['Intelligence', 'Force', 'Agilité'].map((type) => (
-                      <div key={type} className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-gray-300">{type}</span>
-                          <span className="text-white">{Math.floor(Math.random() * 30 + 60)}%</span>
-                        </div>
-                        <div className="bg-gray-700 rounded-full h-2">
-                          <div 
-                            className="bg-red-500 h-2 rounded-full transition-all duration-1000"
-                            style={{ width: `${Math.floor(Math.random() * 30 + 60)}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  {realStats.topEvents.length === 0 ? (
+                    <div className="text-center py-8 text-gray-400">
+                      <Target className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p>Aucune donnée de performance</p>
+                      <p className="text-xs">Terminez des parties pour voir les performances par type</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {['Intelligence', 'Force', 'Agilité'].map((type) => {
+                        // Calculer les vraies performances basées sur les statistiques d'événements
+                        const typeEvents = realStats.topEvents.filter(event => 
+                          event.type && event.type.toLowerCase() === type.toLowerCase()
+                        );
+                        const averageSurvival = typeEvents.length > 0 
+                          ? (typeEvents.reduce((sum, event) => sum + (event.survival_rate || 0), 0) / typeEvents.length * 100)
+                          : 0;
+                        
+                        return (
+                          <div key={type} className="space-y-2">
+                            <div className="flex justify-between">
+                              <span className="text-gray-300">{type}</span>
+                              <span className="text-white">{averageSurvival.toFixed(0)}%</span>
+                            </div>
+                            <div className="bg-gray-700 rounded-full h-2">
+                              <div 
+                                className="bg-red-500 h-2 rounded-full transition-all duration-1000"
+                                style={{ width: `${averageSurvival}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
