@@ -16036,7 +16036,7 @@ class BackendTester:
 if __name__ == "__main__":
     tester = BackendTester()
     
-    print(f"\n🎯 TEST DE LA CORRECTION DU PRIX DES CÉLÉBRITÉS - ARRONDI AU CENTAINE DE MILLIERS")
+    print(f"\n🎯 TEST DU NOUVEAU SYSTÈME DE TARIFICATION VIP AVEC BONUS")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"API Base: {API_BASE}")
     print("=" * 80)
@@ -16046,8 +16046,8 @@ if __name__ == "__main__":
         print("❌ Server not accessible, aborting tests")
         exit(1)
     
-    # Run the celebrity price rounding test according to review request
-    tester.test_celebrity_price_rounding_fix()
+    # Run the VIP pricing bonus system test according to review request
+    tester.test_vip_pricing_bonus_system()
     
     # Print summary
     print(f"\n📊 TEST SUMMARY:")
