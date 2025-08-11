@@ -412,6 +412,21 @@
           comment: "❌ CORRECTION INCOMPLÈTE IDENTIFIÉE: Tests exhaustifs selon la review request française révèlent que le bug VIP persiste partiellement. 1) **Correction du stockage appliquée**: ✅ CONFIRMÉ - Les VIPs sont maintenant stockés avec la clé 'game_id_salon_level' au lieu de 'game_id' simple. 2) **Salon niveau 3 (5 VIPs)**: ❌ PROBLÈME PERSISTANT - Attendu: 4,698,470$, Obtenu: 206,535$ (seul 1 VIP sur 5 pris en compte). 3) **Salon niveau 6 (12 VIPs)**: ❌ PROBLÈME - Erreur HTTP 500 lors de la création de partie. 4) **Cause racine identifiée**: Le problème est dans la logique de création de partie - les VIPs sont assignés avec le salon_level par défaut (1) du game_state, mais les tests utilisent des salon_level différents via l'API. Les gains sont calculés sur les VIPs du salon niveau 1 (1 VIP) au lieu du salon niveau testé (3 ou 6 VIPs). 5) **Solution requise**: Modifier la logique de création de partie pour accepter un paramètre salon_level ou synchroniser le game_state.vip_salon_level avec les appels API. Backend tests: 1/3 passed (33% success rate). La correction du stockage est bonne mais la logique de niveau de salon nécessite une correction supplémentaire."
 
 ## backend:
+  - task: "Correction du bug des anciens gagnants bloquant le lancement de partie"
+    implemented: true
+    working: true
+    file: "frontend/src/components/GameSetup.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "✅ PROBLÈME COMPLÈTEMENT RÉSOLU: L'utilisateur français reportait que 'quand j'ajoute un ancien gagnant que j'ai acheté dans la boutique des célébrités à mes joueurs pour un jeu, le bouton pour lancer la partie ne fonctionne pas'. J'ai identifié et corrigé 2 problèmes critiques: 1) RÔLE INVALIDE - Les anciens gagnants avaient role: 'celebrity' (inexistant dans enum PlayerRole) au lieu des rôles valides (normal, sportif, intelligent). 2) CHAMPS PORTRAIT INCORRECTS - Utilisaient camelCase (faceShape, skinColor) au lieu de snake_case attendu par l'API (face_shape, skin_color). Ligne 753 modifiée: role selon catégorie (sportif/intelligent/normal). Lignes 755-762 modifiées: portrait avec snake_case. Ajout uniform manquant ligne 763-767."
+        - working: true
+          agent: "testing"
+          comment: "✅ CORRECTION PARFAITEMENT VALIDÉE - TESTS EXHAUSTIFS FRANÇAIS: Tests complets effectués selon la demande spécifique de l'utilisateur français sur le problème des anciens gagnants. 1) **Test joueur normal**: ✅ CONFIRMÉ - Création de partie avec joueur normal réussie (baseline). 2) **Test célébrité normale**: ✅ CONFIRMÉ - Création de partie avec célébrité convertie en joueur réussie. 3) **Test ancien gagnant corrigé**: ✅ CONFIRMÉ - Création de partie avec ancien gagnant utilisant les nouveaux champs corrigés réussie sans erreur 422. 4) **Test validation API**: ✅ CONFIRMÉ - L'API /api/games/create accepte maintenant les anciens gagnants avec rôles valides (sportif, intelligent, normal) et champs portrait snake_case. Backend tests: 4/4 passed (100% success rate). Le problème 'le bouton pour lancer la partie ne fonctionne pas' avec les anciens gagnants est complètement résolu."
+
   - task: "Argent de base à 1 million"
     implemented: true
     working: true
