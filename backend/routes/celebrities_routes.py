@@ -22,10 +22,15 @@ async def get_celebrities(
     category: Optional[str] = None,
     stars: Optional[int] = Query(None, ge=2, le=5),
     limit: int = Query(50, ge=1, le=1000),
-    offset: int = Query(0, ge=0)
+    offset: int = Query(0, ge=0),
+    include_dead: bool = Query(False, description="Inclure les célébrités mortes")
 ):
     """Récupère la liste des célébrités avec filtrage optionnel"""
-    filtered_celebrities = celebrities_db
+    # Filtrer les célébrités mortes sauf si explicitement demandé
+    if include_dead:
+        filtered_celebrities = celebrities_db
+    else:
+        filtered_celebrities = [c for c in celebrities_db if not c.is_dead]
     
     # Filtrer par catégorie
     if category:
