@@ -1053,134 +1053,155 @@ async def get_realtime_updates(game_id: str):
     final_result = None
     
     if is_complete:
-        # Appliquer les résultats finaux au jeu
-        game = games_db[game_id]
-        
-        # Mettre à jour les joueurs dans la partie
-        for i, player in enumerate(game.players):
-            # Chercher le joueur dans les résultats pour mettre à jour ses stats
-            for survivor_data in simulation["final_result"].survivors:
-                if survivor_data["number"] == player.number:
-                    game.players[i].kills = survivor_data.get("kills", player.kills)
-                    game.players[i].total_score = survivor_data.get("total_score", player.total_score)
-                    game.players[i].survived_events = survivor_data.get("survived_events", player.survived_events)
-                    break
+        try:
+            # 🎯 CORRECTION BUG ÉPREUVE INFINIE : Toujours nettoyer la simulation même en cas d'erreur
+            print(f"🔄 FINALISATION ÉPREUVE: Game {game_id} - Progress 100%, finalisation en cours...")
             
-            for eliminated_data in simulation["final_result"].eliminated:
-                if eliminated_data["number"] == player.number:
-                    game.players[i].alive = False
-                    break
-        
-        game.event_results.append(simulation["final_result"])
-        game.current_event_index += 1
-        
-        # Vérifier si la partie est terminée
-        alive_players_after = [p for p in game.players if p.alive]
-        if len(alive_players_after) <= 1 or game.current_event_index >= len(game.events):
-            game.completed = True
-            game.end_time = datetime.utcnow()
-            if alive_players_after:
-                game.winner = max(alive_players_after, key=lambda p: p.total_score)
+            # Appliquer les résultats finaux au jeu
+            game = games_db[game_id]
             
-            # 🎯 CORRECTION COMPLÈTE : CALCUL ET COLLECTION AUTOMATIQUE DES GAINS VIP
-            from routes.vip_routes import active_vips_by_game
-            
-            # Récupérer le niveau de salon VIP utilisé pour cette partie
-            salon_level = game.vip_salon_level if hasattr(game, 'vip_salon_level') else 1
-            
-            # Utiliser la clé de stockage exacte des VIPs pour cette partie
-            vip_key = f"{game_id}_salon_{salon_level}"
-            game_vips = active_vips_by_game.get(vip_key, [])
-            
-            # Si pas trouvé avec la clé de salon, chercher dans tous les niveaux possibles
-            if not game_vips:
-                for level in range(1, 10):
-                    test_key = f"{game_id}_salon_{level}"
-                    if test_key in active_vips_by_game:
-                        game_vips = active_vips_by_game[test_key]
-                        salon_level = level  # Utiliser le niveau trouvé
+            # Mettre à jour les joueurs dans la partie
+            for i, player in enumerate(game.players):
+                # Chercher le joueur dans les résultats pour mettre à jour ses stats
+                for survivor_data in simulation["final_result"].survivors:
+                    if survivor_data["number"] == player.number:
+                        game.players[i].kills = survivor_data.get("kills", player.kills)
+                        game.players[i].total_score = survivor_data.get("total_score", player.total_score)
+                        game.players[i].survived_events = survivor_data.get("survived_events", player.survived_events)
+                        break
+                
+                for eliminated_data in simulation["final_result"].eliminated:
+                    if eliminated_data["number"] == player.number:
+                        game.players[i].alive = False
                         break
             
-            # Fallback vers l'ancienne clé pour compatibilité (salon niveau 1)
-            if not game_vips:
-                game_vips = active_vips_by_game.get(game_id, [])
-                salon_level = 1
+            game.event_results.append(simulation["final_result"])
+            game.current_event_index += 1
             
-            if game_vips:
-                # Calculer les gains réels en additionnant tous les viewing_fee des VIPs
-                total_vip_earnings = sum(vip.viewing_fee for vip in game_vips)
-                game.earnings = total_vip_earnings
+            # Vérifier si la partie est terminée
+            alive_players_after = [p for p in game.players if p.alive]
+            if len(alive_players_after) <= 1 or game.current_event_index >= len(game.events):
+                game.completed = True
+                game.end_time = datetime.utcnow()
+                if alive_players_after:
+                    game.winner = max(alive_players_after, key=lambda p: p.total_score)
                 
-                print(f"💰 CALCUL GAINS VIP (Temps réel) - Salon niveau {salon_level}: {len(game_vips)} VIPs")
-                print(f"💰 Total gains VIP: {total_vip_earnings:,}$")
-            else:
-                game.earnings = 0
-                print(f"⚠️ ATTENTION: Aucun VIP trouvé pour la partie {game_id} avec salon niveau {salon_level}")
-            
-            # 🎯 COLLECTION AUTOMATIQUE DES GAINS VIP DÈS LA FIN DE PARTIE
-            if game.earnings > 0 and not game.vip_earnings_collected:
-                from routes.gamestate_routes import game_states_db
-                user_id = "default_user"
-                
-                # Ajouter automatiquement les gains VIP au portefeuille du joueur
-                if user_id not in game_states_db:
-                    from models.game_models import GameState
-                    game_state = GameState(user_id=user_id)
-                    game_states_db[user_id] = game_state
-                else:
-                    game_state = game_states_db[user_id]
-                
-                # Collection automatique des gains
-                earnings_to_collect = game.earnings
-                game_state.money += earnings_to_collect
-                game_state.game_stats.total_earnings += earnings_to_collect
-                game_state.updated_at = datetime.utcnow()
-                game_states_db[user_id] = game_state
-                
-                # Marquer que les gains ont été collectés automatiquement
-                game.vip_earnings_collected = True
-                
-                print(f"🎭 ✅ GAINS VIP COLLECTÉS AUTOMATIQUEMENT (Temps réel): +{earnings_to_collect:,}$ (Salon niveau {salon_level})")
-                print(f"💰 Nouveau solde utilisateur: {game_state.money:,}$")
-                
-            # NOUVELLE FONCTIONNALITÉ : Sauvegarder automatiquement les statistiques
-            try:
-                from services.statistics_service import StatisticsService
-                from routes.gamestate_routes import game_states_db
-                
-                # Définir l'utilisateur par défaut
-                user_id = "default_user"
-                
-                # Récupérer le classement final pour les statistiques
+                # 🎯 COLLECTION AUTOMATIQUE DES GAINS VIP (avec protection d'erreur)
                 try:
-                    final_ranking_response = await get_final_ranking(game_id)
-                    final_ranking = final_ranking_response.get('ranking', [])
-                except:
-                    final_ranking = []
+                    from routes.vip_routes import active_vips_by_game
+                    
+                    # Récupérer le niveau de salon VIP utilisé pour cette partie
+                    salon_level = game.vip_salon_level if hasattr(game, 'vip_salon_level') else 1
+                    
+                    # Utiliser la clé de stockage exacte des VIPs pour cette partie
+                    vip_key = f"{game_id}_salon_{salon_level}"
+                    game_vips = active_vips_by_game.get(vip_key, [])
+                    
+                    # Si pas trouvé avec la clé de salon, chercher dans tous les niveaux possibles
+                    if not game_vips:
+                        for level in range(1, 10):
+                            test_key = f"{game_id}_salon_{level}"
+                            if test_key in active_vips_by_game:
+                                game_vips = active_vips_by_game[test_key]
+                                salon_level = level  # Utiliser le niveau trouvé
+                                break
+                    
+                    # Fallback vers l'ancienne clé pour compatibilité (salon niveau 1)
+                    if not game_vips:
+                        game_vips = active_vips_by_game.get(game_id, [])
+                        salon_level = 1
+                    
+                    if game_vips:
+                        # Calculer les gains réels en additionnant tous les viewing_fee des VIPs
+                        total_vip_earnings = sum(vip.viewing_fee for vip in game_vips)
+                        game.earnings = total_vip_earnings
+                        
+                        print(f"💰 CALCUL GAINS VIP (Temps réel) - Salon niveau {salon_level}: {len(game_vips)} VIPs")
+                        print(f"💰 Total gains VIP: {total_vip_earnings:,}$")
+                    else:
+                        game.earnings = 0
+                        print(f"⚠️ ATTENTION: Aucun VIP trouvé pour la partie {game_id} avec salon niveau {salon_level}")
+                    
+                    # Collection automatique des gains VIP
+                    if game.earnings > 0 and not getattr(game, 'vip_earnings_collected', False):
+                        from routes.gamestate_routes import game_states_db
+                        user_id = "default_user"
+                        
+                        # Ajouter automatiquement les gains VIP au portefeuille du joueur
+                        if user_id not in game_states_db:
+                            from models.game_models import GameState
+                            game_state = GameState(user_id=user_id)
+                            game_states_db[user_id] = game_state
+                        else:
+                            game_state = game_states_db[user_id]
+                        
+                        # Collection automatique des gains
+                        earnings_to_collect = game.earnings
+                        game_state.money += earnings_to_collect
+                        game_state.game_stats.total_earnings += earnings_to_collect
+                        game_state.updated_at = datetime.utcnow()
+                        game_states_db[user_id] = game_state
+                        
+                        # Marquer que les gains ont été collectés automatiquement
+                        game.vip_earnings_collected = True
+                        
+                        print(f"🎭 ✅ GAINS VIP COLLECTÉS AUTOMATIQUEMENT (Temps réel): +{earnings_to_collect:,}$ (Salon niveau {salon_level})")
+                        print(f"💰 Nouveau solde utilisateur: {game_state.money:,}$")
+                        
+                except Exception as vip_error:
+                    print(f"⚠️ Erreur dans la collection VIP (partie continue): {vip_error}")
+                    game.earnings = 0
                 
-                # Sauvegarder la partie terminée dans les statistiques
-                StatisticsService.save_completed_game(user_id, game, final_ranking)
-                
-                # Mettre à jour les stats de base dans gamestate
-                if user_id in game_states_db:
-                    game_state = game_states_db[user_id]
-                    game_state.game_stats.total_games_played += 1
-                    # Compter le nombre total de joueurs morts (éliminations)
-                    total_eliminations = len(game.players) - len([p for p in game.players if p.alive])
-                    game_state.game_stats.total_kills += total_eliminations
-                    if hasattr(game, 'earnings'):
-                        game_state.game_stats.total_earnings += game.earnings
-                    game_state.updated_at = datetime.utcnow()
-                    game_states_db[user_id] = game_state
-            except Exception as e:
-                print(f"Erreur lors de la sauvegarde des statistiques: {e}")
-                # Continue même en cas d'erreur de sauvegarde
+                # Sauvegarder automatiquement les statistiques (avec protection d'erreur)
+                try:
+                    from services.statistics_service import StatisticsService
+                    from routes.gamestate_routes import game_states_db
+                    
+                    # Définir l'utilisateur par défaut
+                    user_id = "default_user"
+                    
+                    # Récupérer le classement final pour les statistiques
+                    try:
+                        final_ranking_response = await get_final_ranking(game_id)
+                        final_ranking = final_ranking_response.get('ranking', [])
+                    except:
+                        final_ranking = []
+                    
+                    # Sauvegarder la partie terminée dans les statistiques
+                    StatisticsService.save_completed_game(user_id, game, final_ranking)
+                    
+                    # Mettre à jour les stats de base dans gamestate
+                    if user_id in game_states_db:
+                        game_state = game_states_db[user_id]
+                        game_state.game_stats.total_games_played += 1
+                        # Compter le nombre total de joueurs morts (éliminations)
+                        total_eliminations = len(game.players) - len([p for p in game.players if p.alive])
+                        game_state.game_stats.total_kills += total_eliminations
+                        if hasattr(game, 'earnings'):
+                            game_state.game_stats.total_earnings += game.earnings
+                        game_state.updated_at = datetime.utcnow()
+                        game_states_db[user_id] = game_state
+                        
+                except Exception as stats_error:
+                    print(f"⚠️ Erreur lors de la sauvegarde des statistiques (partie continue): {stats_error}")
+            
+            games_db[game_id] = game
+            final_result = simulation["final_result"]
+            
+            print(f"✅ FINALISATION ÉPREUVE RÉUSSIE: Game {game_id} - Simulation nettoyée")
+            
+        except Exception as completion_error:
+            # En cas d'erreur critique, on log mais on continue le nettoyage
+            print(f"❌ ERREUR CRITIQUE LORS DE LA FINALISATION: Game {game_id} - {completion_error}")
+            print("🔄 Nettoyage forcé de la simulation pour éviter un blocage infini...")
+            final_result = simulation.get("final_result", None)
         
-        games_db[game_id] = game
-        final_result = simulation["final_result"]
-        
-        # Nettoyer la simulation active
-        del active_simulations[game_id]
+        finally:
+            # 🎯 CORRECTION CRITIQUE : NETTOYAGE GARANTI DE LA SIMULATION
+            # Cette ligne DOIT toujours s'exécuter pour éviter les épreuves infinies
+            if game_id in active_simulations:
+                del active_simulations[game_id]
+                print(f"🧹 NETTOYAGE FINAL: Simulation {game_id} supprimée des simulations actives")
     
     return RealtimeEventUpdate(
         event_id=simulation["event"].id,
