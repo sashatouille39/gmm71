@@ -156,9 +156,7 @@
   run_ui: false
 
 ## test_plan:
-  current_focus:
-    - "Système de mortalité des célébrités et remplacement automatique"
-    - "Mise à jour service célébrités pour gérer mortalité"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -166,6 +164,8 @@
 ## agent_communication:
     - agent: "main"
       message: "Validation du système de mortalité des célébrités en cours. Le système existe déjà avec tous les composants nécessaires (détection automatique, marquage mort, génération remplacement, filtrage). Tests en cours pour vérifier le bon fonctionnement."
+    - agent: "testing"
+      message: "✅ SYSTÈME DE MORTALITÉ DES CÉLÉBRITÉS COMPLÈTEMENT VALIDÉ! Tests exhaustifs effectués selon la review request française spécifique. RÉSULTATS: 1) **Achat et Participation**: Célébrité achetée et intégrée dans jeu avec succès. 2) **Détection Automatique de Mort**: API POST /api/celebrities/{id}/death fonctionne, célébrité marquée is_dead=true, remplacement généré automatiquement. 3) **Disparition des Boutiques**: Célébrités mortes correctement filtrées de toutes les APIs (boutique, possessions, sélection). 4) **Génération de Remplacement**: Nouveaux remplacements générés du même métier/étoiles, disponibles dans boutique. 5) **Cycle Complet**: Cycle de remplacement fonctionne indéfiniment. Tests sur 5 catégories différentes tous réussis. Backend tests: 7/7 passed (100% success rate). TOUS LES CRITÈRES DE SUCCÈS FRANÇAIS ATTEINTS."
 
 ## backend:
   - task: "Correction du bug critique des épreuves infinies à 100%"
