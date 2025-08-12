@@ -1502,7 +1502,6 @@
 ## test_plan:
   current_focus:
     - "Test de la correction du problème des anciens gagnants dans la création de parties"
-    - "Correction du problème de double collecte des gains VIP"
   stuck_tasks:
     - "VIP salon initialization fix - start at level 0 instead of 1"
   test_all: false
