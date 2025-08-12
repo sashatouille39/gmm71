@@ -17983,7 +17983,7 @@ class BackendTester:
 if __name__ == "__main__":
     tester = BackendTester()
     
-    print(f"\n🎯 TEST DU PROBLÈME DES GAINS VIP AVEC BONUS - REVIEW REQUEST FRANÇAISE")
+    print(f"\n🎯 TEST COMPLET DU SYSTÈME DE MORTALITÉ DES CÉLÉBRITÉS - REVIEW REQUEST FRANÇAISE")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"API Base: {API_BASE}")
     print("=" * 80)
@@ -17993,10 +17993,10 @@ if __name__ == "__main__":
         print("❌ Server not accessible, aborting tests")
         exit(1)
     
-    # Run the VIP EARNINGS BONUS PROBLEM test according to French review request
-    print("\n🔥 TEST CRITIQUE - PROBLÈME GAINS VIP AVEC BONUS")
+    # Run the CELEBRITY MORTALITY SYSTEM test according to French review request
+    print("\n🔥 TEST CRITIQUE - SYSTÈME DE MORTALITÉ DES CÉLÉBRITÉS")
     print("=" * 80)
-    tester.test_vip_earnings_bonus_problem()
+    tester.test_celebrity_mortality_system_complete()
     
     # Run some basic functionality tests to ensure system still works
     print("\n🔧 TESTS DE FONCTIONNALITÉ DE BASE")
