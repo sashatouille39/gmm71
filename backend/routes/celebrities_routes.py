@@ -200,7 +200,7 @@ async def get_celebrities_stats():
     }
 
 @router.post("/{celebrity_id}/death")
-async def record_celebrity_death(celebrity_id: str, game_id: str):
+async def record_celebrity_death(celebrity_id: str, request: CelebrityDeathRequest):
     """Enregistre la mort d'une célébrité et génère automatiquement un remplacement"""
     global celebrities_db
     from datetime import datetime
@@ -214,7 +214,7 @@ async def record_celebrity_death(celebrity_id: str, game_id: str):
     
     # Marquer la célébrité comme morte
     celebrity.is_dead = True
-    celebrity.died_in_game_id = game_id
+    celebrity.died_in_game_id = request.game_id
     celebrity.death_date = datetime.utcnow()
     
     # Générer automatiquement une nouvelle célébrité du même métier/catégorie
@@ -227,7 +227,7 @@ async def record_celebrity_death(celebrity_id: str, game_id: str):
     celebrities_db.append(new_celebrity)
     
     return {
-        "message": f"Célébrité {celebrity.name} marquée comme morte dans le jeu {game_id}",
+        "message": f"Célébrité {celebrity.name} marquée comme morte dans le jeu {request.game_id}",
         "dead_celebrity": {
             "id": celebrity.id,
             "name": celebrity.name,
