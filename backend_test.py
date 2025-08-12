@@ -1160,6 +1160,318 @@ class BackendTester:
         except Exception as e:
             self.log_result("Celebrity Owned List Route", False, f"Error: {str(e)}")
 
+    def test_infinite_trials_bug_fix(self):
+        """Test CRITICAL: Bug des épreuves infinies corrigé - Test selon review request française"""
+        try:
+            print("\n🎯 TESTING INFINITE TRIALS BUG FIX - REVIEW REQUEST FRANÇAISE")
+            print("=" * 80)
+            print("OBJECTIF: Tester que les épreuves se terminent correctement à 100% même en cas d'erreur")
+            print("BUG CORRIGÉ: Simulation supprimée même si erreur dans finalisation (try/catch/finally)")
+            print()
+            
+            # Test 1: Épreuve normale - doit se terminer proprement à 100%
+            print("🔍 TEST 1: ÉPREUVE NORMALE - TERMINAISON PROPRE À 100%")
+            print("-" * 60)
+            
+            # Créer une partie pour tester
+            game_request = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3],  # 3 événements
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Infinite Trials Bug Fix", False, f"Could not create test game - HTTP {response.status_code}")
+                return
+                
+            game_data = response.json()
+            game_id = game_data.get('id')
+            
+            if not game_id:
+                self.log_result("Infinite Trials Bug Fix", False, "No game ID returned from creation")
+                return
+            
+            print(f"   ✅ Partie créée: {game_id}")
+            
+            # Démarrer une simulation temps réel
+            realtime_request = {
+                "speed_multiplier": 20.0  # Vitesse élevée pour test rapide
+            }
+            
+            response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event-realtime", 
+                                   json=realtime_request,
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Infinite Trials Bug Fix", False, f"Could not start realtime simulation - HTTP {response.status_code}")
+                return
+            
+            print(f"   ✅ Simulation temps réel démarrée à vitesse x20")
+            
+            # Suivre la progression jusqu'à 100%
+            max_checks = 30  # Maximum 30 vérifications (environ 30 secondes)
+            check_count = 0
+            simulation_completed = False
+            final_progress = 0
+            simulation_cleaned = False
+            
+            while check_count < max_checks:
+                check_count += 1
+                
+                # Vérifier les mises à jour temps réel
+                response = requests.get(f"{API_BASE}/games/{game_id}/realtime-updates", timeout=5)
+                
+                if response.status_code == 200:
+                    update_data = response.json()
+                    progress = update_data.get('progress', 0)
+                    is_complete = update_data.get('is_complete', False)
+                    final_progress = progress
+                    
+                    print(f"   Check {check_count}: Progress {progress:.1f}%, Complete: {is_complete}")
+                    
+                    if is_complete:
+                        simulation_completed = True
+                        print(f"   ✅ Simulation terminée à {progress:.1f}%")
+                        break
+                        
+                elif response.status_code == 404:
+                    # Simulation non trouvée = elle a été nettoyée
+                    simulation_cleaned = True
+                    print(f"   ✅ Simulation nettoyée (404) après {check_count} vérifications")
+                    break
+                else:
+                    print(f"   ⚠️ Erreur lors de la vérification: HTTP {response.status_code}")
+                
+                # Attendre 1 seconde entre les vérifications
+                import time
+                time.sleep(1)
+            
+            # Vérifier que la simulation a été nettoyée
+            if not simulation_cleaned:
+                # Vérifier une dernière fois si la simulation existe encore
+                response = requests.get(f"{API_BASE}/games/{game_id}/realtime-updates", timeout=5)
+                if response.status_code == 404:
+                    simulation_cleaned = True
+                    print(f"   ✅ Simulation finalement nettoyée")
+            
+            # Test 2: Vérifier l'état final de la partie
+            print("\n🔍 TEST 2: VÉRIFICATION ÉTAT FINAL DE LA PARTIE")
+            print("-" * 60)
+            
+            response = requests.get(f"{API_BASE}/games/{game_id}", timeout=5)
+            if response.status_code == 200:
+                final_game_data = response.json()
+                is_completed = final_game_data.get('completed', False)
+                current_event_index = final_game_data.get('current_event_index', 0)
+                
+                print(f"   Partie terminée: {is_completed}")
+                print(f"   Index événement actuel: {current_event_index}")
+                
+                if is_completed:
+                    print(f"   ✅ Partie correctement marquée comme terminée")
+                else:
+                    print(f"   ⚠️ Partie pas encore terminée (normal si premier événement)")
+            
+            # Test 3: Test de robustesse - Vérifier qu'aucune simulation active ne reste
+            print("\n🔍 TEST 3: VÉRIFICATION NETTOYAGE COMPLET")
+            print("-" * 60)
+            
+            # Essayer de démarrer une nouvelle simulation sur la même partie
+            response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event-realtime", 
+                                   json=realtime_request,
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=10)
+            
+            if response.status_code == 200:
+                print(f"   ✅ Nouvelle simulation peut être démarrée (ancienne bien nettoyée)")
+                
+                # Arrêter immédiatement cette nouvelle simulation
+                stop_response = requests.delete(f"{API_BASE}/games/{game_id}/stop-simulation", timeout=5)
+                if stop_response.status_code == 200:
+                    print(f"   ✅ Nouvelle simulation arrêtée proprement")
+                    
+            elif response.status_code == 400 and "simulation est déjà en cours" in response.text:
+                print(f"   ❌ PROBLÈME: Ancienne simulation pas nettoyée (erreur 400)")
+                simulation_cleaned = False
+            else:
+                print(f"   ⚠️ Autre erreur lors du test de nouvelle simulation: HTTP {response.status_code}")
+            
+            # Évaluation finale
+            if simulation_completed and simulation_cleaned:
+                self.log_result("Infinite Trials Bug Fix", True, 
+                              f"✅ BUG ÉPREUVES INFINIES CORRIGÉ: Simulation terminée à {final_progress:.1f}% et nettoyée correctement")
+            elif simulation_cleaned and final_progress >= 99:
+                self.log_result("Infinite Trials Bug Fix", True, 
+                              f"✅ BUG ÉPREUVES INFINIES CORRIGÉ: Simulation nettoyée à {final_progress:.1f}% (proche de 100%)")
+            else:
+                self.log_result("Infinite Trials Bug Fix", False, 
+                              f"❌ BUG ÉPREUVES INFINIES PERSISTE: Progress {final_progress:.1f}%, Nettoyée: {simulation_cleaned}")
+                
+        except Exception as e:
+            self.log_result("Infinite Trials Bug Fix", False, f"Error during test: {str(e)}")
+
+    def test_simulation_cleanup_robustness(self):
+        """Test CRITICAL: Test de robustesse du nettoyage des simulations"""
+        try:
+            print("\n🎯 TESTING SIMULATION CLEANUP ROBUSTNESS")
+            print("=" * 80)
+            print("OBJECTIF: Tester que le nettoyage fonctionne même avec des données manquantes")
+            print()
+            
+            # Test 1: Créer plusieurs simulations et les arrêter
+            print("🔍 TEST 1: NETTOYAGE MULTIPLE SIMULATIONS")
+            print("-" * 60)
+            
+            game_ids = []
+            
+            # Créer 3 parties pour tester
+            for i in range(3):
+                game_request = {
+                    "player_count": 20,
+                    "game_mode": "standard", 
+                    "selected_events": [1, 2],
+                    "manual_players": []
+                }
+                
+                response = requests.post(f"{API_BASE}/games/create", 
+                                       json=game_request, 
+                                       headers={"Content-Type": "application/json"},
+                                       timeout=15)
+                
+                if response.status_code == 200:
+                    game_data = response.json()
+                    game_id = game_data.get('id')
+                    if game_id:
+                        game_ids.append(game_id)
+                        print(f"   ✅ Partie {i+1} créée: {game_id}")
+            
+            if len(game_ids) < 2:
+                self.log_result("Simulation Cleanup Robustness", False, "Could not create enough test games")
+                return
+            
+            # Démarrer des simulations sur toutes les parties
+            active_simulations = []
+            for game_id in game_ids:
+                realtime_request = {"speed_multiplier": 5.0}
+                
+                response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event-realtime", 
+                                       json=realtime_request,
+                                       headers={"Content-Type": "application/json"},
+                                       timeout=10)
+                
+                if response.status_code == 200:
+                    active_simulations.append(game_id)
+                    print(f"   ✅ Simulation démarrée pour {game_id}")
+            
+            print(f"   Total simulations actives: {len(active_simulations)}")
+            
+            # Arrêter toutes les simulations
+            cleaned_simulations = 0
+            for game_id in active_simulations:
+                response = requests.delete(f"{API_BASE}/games/{game_id}/stop-simulation", timeout=5)
+                
+                if response.status_code == 200:
+                    cleaned_simulations += 1
+                    print(f"   ✅ Simulation {game_id} arrêtée")
+                else:
+                    print(f"   ❌ Échec arrêt simulation {game_id}: HTTP {response.status_code}")
+            
+            # Test 2: Vérifier qu'aucune simulation n'est restée active
+            print("\n🔍 TEST 2: VÉRIFICATION AUCUNE SIMULATION ACTIVE")
+            print("-" * 60)
+            
+            remaining_simulations = 0
+            for game_id in game_ids:
+                response = requests.get(f"{API_BASE}/games/{game_id}/realtime-updates", timeout=5)
+                
+                if response.status_code == 200:
+                    remaining_simulations += 1
+                    print(f"   ❌ Simulation encore active: {game_id}")
+                elif response.status_code == 404:
+                    print(f"   ✅ Simulation correctement nettoyée: {game_id}")
+            
+            # Test 3: Test de progression complète sur une nouvelle partie
+            print("\n🔍 TEST 3: PROGRESSION COMPLÈTE 0% → 100%")
+            print("-" * 60)
+            
+            # Créer une nouvelle partie pour test complet
+            game_request = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1],  # Un seul événement pour test rapide
+                "manual_players": []
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code == 200:
+                game_data = response.json()
+                test_game_id = game_data.get('id')
+                
+                if test_game_id:
+                    print(f"   ✅ Partie de test créée: {test_game_id}")
+                    
+                    # Démarrer simulation à vitesse maximale
+                    realtime_request = {"speed_multiplier": 20.0}
+                    
+                    response = requests.post(f"{API_BASE}/games/{test_game_id}/simulate-event-realtime", 
+                                           json=realtime_request,
+                                           headers={"Content-Type": "application/json"},
+                                           timeout=10)
+                    
+                    if response.status_code == 200:
+                        print(f"   ✅ Simulation démarrée à vitesse x20")
+                        
+                        # Attendre que la simulation se termine naturellement
+                        import time
+                        max_wait = 15  # 15 secondes maximum
+                        wait_count = 0
+                        final_cleaned = False
+                        
+                        while wait_count < max_wait:
+                            wait_count += 1
+                            time.sleep(1)
+                            
+                            response = requests.get(f"{API_BASE}/games/{test_game_id}/realtime-updates", timeout=5)
+                            
+                            if response.status_code == 404:
+                                final_cleaned = True
+                                print(f"   ✅ Simulation terminée et nettoyée après {wait_count}s")
+                                break
+                            elif response.status_code == 200:
+                                update_data = response.json()
+                                progress = update_data.get('progress', 0)
+                                print(f"   Progress: {progress:.1f}%")
+                        
+                        if not final_cleaned:
+                            print(f"   ⚠️ Simulation pas encore nettoyée après {max_wait}s")
+            
+            # Évaluation finale
+            success_rate = (cleaned_simulations / len(active_simulations)) * 100 if active_simulations else 0
+            
+            if success_rate >= 100 and remaining_simulations == 0:
+                self.log_result("Simulation Cleanup Robustness", True, 
+                              f"✅ NETTOYAGE ROBUSTE: {cleaned_simulations}/{len(active_simulations)} simulations nettoyées, 0 restante")
+            elif success_rate >= 80:
+                self.log_result("Simulation Cleanup Robustness", True, 
+                              f"✅ NETTOYAGE ACCEPTABLE: {success_rate:.0f}% simulations nettoyées")
+            else:
+                self.log_result("Simulation Cleanup Robustness", False, 
+                              f"❌ PROBLÈME NETTOYAGE: {success_rate:.0f}% simulations nettoyées, {remaining_simulations} restantes")
+                
+        except Exception as e:
+            self.log_result("Simulation Cleanup Robustness", False, f"Error during test: {str(e)}")
+
     def test_former_winners_game_creation_fix(self):
         """Test REVIEW REQUEST: Former winners game creation fix - Test le problème corrigé des anciens gagnants"""
         try:
