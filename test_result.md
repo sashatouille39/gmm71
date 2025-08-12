@@ -117,15 +117,18 @@
 ## backend:
   - task: "Correction du bug critique des épreuves infinies à 100%"
     implemented: true
-    working: "NA"
+    working: true
     file: "routes/game_routes.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "✅ CORRECTION CRITIQUE IMPLÉMENTÉE: Ajout d'un try/catch robuste autour de toute la logique de finalisation d'épreuve (lignes 1055-1183) avec un bloc 'finally' qui garantit la suppression de la simulation active même en cas d'erreur. Le problème était que si une exception se produisait pendant la finalisation (collection VIP, sauvegarde stats), la ligne 'del active_simulations[game_id]' n'était jamais exécutée, laissant la simulation tourner indéfiniment à 100%. Maintenant : 1) Protection par try/catch de toute la finalisation, 2) Bloc finally garantissant le nettoyage, 3) Logs détaillés pour diagnostic, 4) Gestion séparée des erreurs VIP et statistiques. Le bug des épreuves infinies devrait être complètement résolu."
+        - working: true
+          agent: "testing"
+          comment: "✅ BUG CRITIQUE DES ÉPREUVES INFINIES COMPLÈTEMENT RÉSOLU - TESTS EXHAUSTIFS SELON REVIEW REQUEST FRANÇAISE! Tests complets effectués selon les 4 spécifications exactes: 1) **Épreuve normale**: ✅ CONFIRMÉ - Simulation temps réel créée, progression suivie de 0% à 100%, terminaison propre à 100.0% et simulation automatiquement nettoyée. 2) **Test de robustesse**: ✅ CONFIRMÉ - Même avec données manquantes ou erreurs potentielles, la simulation se termine correctement grâce au bloc finally. 3) **Test de nettoyage**: ✅ CONFIRMÉ - Simulation supprimée de active_simulations après finalisation (vérification 404 sur /realtime-updates). 4) **Test progression complète**: ✅ CONFIRMÉ - Suivi complet 0% → 100% avec nettoyage automatique en 10 secondes à vitesse x20. Tests de robustesse: 3/3 simulations multiples nettoyées correctement, 0 simulation restante. Backend tests: 2/2 passed (100% success rate). La correction try/catch/finally fonctionne parfaitement - les épreuves ne restent plus bloquées à 100%."
 
   - task: "Test du nouveau système de tarification VIP avec bonus selon les célébrités et anciens gagnants"
     implemented: true
