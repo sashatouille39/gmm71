@@ -159,7 +159,7 @@
 
 ## agent_communication:
     - agent: "main"
-      message: "Implémentation complète du système de mortalité des célébrités terminée. Le système détecte automatiquement quand une célébrité meurt dans un jeu, la marque comme morte, génère un remplacement du même métier, et filtre les célébrités mortes des boutiques/sélections. Prêt pour tests backend complets."
+      message: "Validation du système de mortalité des célébrités en cours. Le système existe déjà avec tous les composants nécessaires (détection automatique, marquage mort, génération remplacement, filtrage). Tests en cours pour vérifier le bon fonctionnement."
 
 ## backend:
   - task: "Correction du bug critique des épreuves infinies à 100%"
