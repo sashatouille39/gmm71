@@ -1360,10 +1360,28 @@ async def get_vip_earnings_status(game_id: str):
     # Les gains VIP sont toujours disponibles si la partie est terminée et qu'il y a des gains
     can_collect = game.completed and game.earnings > 0
     
+    # 🎯 NOUVEAU : Calculer les détails des bonus pour l'affichage
+    vip_base_earnings = 0
+    vip_bonus_details = {}
+    
+    if game.earnings > 0:
+        # Obtenir les détails des bonus VIP appliqués
+        vip_bonus_details = get_vip_pricing_bonus_details(game.players)
+        
+        # Calculer le montant de base (avant bonus) si des bonus ont été appliqués
+        if vip_bonus_details["final_multiplier"] > 1.0:
+            vip_base_earnings = int(game.earnings / vip_bonus_details["final_multiplier"])
+        else:
+            vip_base_earnings = game.earnings
+    
     return {
         "game_id": game_id,
         "completed": game.completed,
-        "earnings_available": game.earnings,
+        # 🎯 CORRECTION : earnings_available doit être le montant TOTAL avec bonus
+        "earnings_available": game.earnings,  # Montant total que le joueur recevra
+        "earnings_base": vip_base_earnings,   # Montant de base sans bonus (pour info)
+        "earnings_bonus_amount": game.earnings - vip_base_earnings,  # Montant du bonus
+        "bonus_details": vip_bonus_details,   # Détails des bonus appliqués
         "can_collect": can_collect,
         "already_collected_automatically": False,
         "winner": game.winner.name if game.winner else None,
