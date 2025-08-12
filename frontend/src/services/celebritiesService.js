@@ -34,15 +34,15 @@ export class CelebritiesService {
     }
   }
 
-  // Récupère les célébrités possédées en fonction des IDs du gamestate
-  async getOwnedCelebrities(ownedIds) {
+  // Récupère les célébrités possédées en fonction des IDs du gamestate (vivantes par défaut)
+  async getOwnedCelebrities(ownedIds, includeDead = false) {
     try {
       if (!ownedIds || ownedIds.length === 0) {
         return [];
       }
 
       // Récupérer toutes les célébrités et filtrer celles possédées
-      const allCelebrities = await this.getAllCelebrities();
+      const allCelebrities = await this.getAllCelebrities(1000, includeDead);
       const ownedCelebrities = allCelebrities.filter(celebrity => 
         ownedIds.includes(celebrity.id)
       );
