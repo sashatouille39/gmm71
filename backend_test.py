@@ -1160,6 +1160,291 @@ class BackendTester:
         except Exception as e:
             self.log_result("Celebrity Owned List Route", False, f"Error: {str(e)}")
 
+    def test_celebrity_mortality_system_complete(self):
+        """Test CRITICAL: Système complet de mortalité des célébrités selon la demande française spécifique"""
+        try:
+            print("\n🎯 TESTING COMPLETE CELEBRITY MORTALITY SYSTEM - FRENCH REVIEW REQUEST")
+            print("=" * 80)
+            print("CONTEXTE: Quand on achète une célébrité et qu'on la fait participer aux jeux,")
+            print("si elle meurt, elle doit définitivement disparaître de l'onglet célébrités")
+            print("et de la boutique ; ensuite elle doit être remplacée par une nouvelle célébrité")
+            print("du même métier de nouveau achetable dans la boutique.")
+            print()
+            
+            # Test 1: Vérifier les nouvelles APIs de célébrités
+            print("🔍 TEST 1: NOUVELLES APIs CÉLÉBRITÉS")
+            print("-" * 50)
+            
+            # Test GET /api/celebrities/ avec filtrage par défaut
+            response = requests.get(f"{API_BASE}/celebrities/?limit=10", timeout=5)
+            if response.status_code == 200:
+                alive_celebrities = response.json()
+                alive_count = len(alive_celebrities)
+                print(f"   ✅ GET /api/celebrities/ retourne {alive_count} célébrités vivantes par défaut")
+                
+                # Vérifier qu'aucune célébrité morte n'est incluse
+                dead_found = any(c.get('is_dead', False) for c in alive_celebrities)
+                if not dead_found:
+                    self.log_result("Celebrity API Default Filter", True, 
+                                  f"API filtre correctement les célébrités mortes par défaut ({alive_count} vivantes)")
+                else:
+                    self.log_result("Celebrity API Default Filter", False, 
+                                  "API inclut des célébrités mortes dans le résultat par défaut")
+            else:
+                self.log_result("Celebrity API Default Filter", False, 
+                              f"Erreur API célébrités - HTTP {response.status_code}")
+                return
+            
+            # Test GET /api/celebrities/ avec include_dead=true
+            response = requests.get(f"{API_BASE}/celebrities/?limit=10&include_dead=true", timeout=5)
+            if response.status_code == 200:
+                all_celebrities = response.json()
+                all_count = len(all_celebrities)
+                print(f"   ✅ GET /api/celebrities/?include_dead=true retourne {all_count} célébrités (toutes)")
+                
+                if all_count >= alive_count:
+                    self.log_result("Celebrity API Include Dead", True, 
+                                  f"API inclut correctement les célébrités mortes avec include_dead=true")
+                else:
+                    self.log_result("Celebrity API Include Dead", False, 
+                                  f"Incohérence: include_dead=true retourne moins de célébrités ({all_count} vs {alive_count})")
+            else:
+                self.log_result("Celebrity API Include Dead", False, 
+                              f"Erreur API include_dead - HTTP {response.status_code}")
+            
+            # Test GET /api/celebrities/alive/list
+            response = requests.get(f"{API_BASE}/celebrities/alive/list", timeout=5)
+            if response.status_code == 200:
+                alive_list = response.json()
+                print(f"   ✅ GET /api/celebrities/alive/list retourne {len(alive_list)} célébrités vivantes")
+                self.log_result("Celebrity Alive List API", True, 
+                              f"API alive/list fonctionne ({len(alive_list)} célébrités)")
+            else:
+                self.log_result("Celebrity Alive List API", False, 
+                              f"Erreur API alive/list - HTTP {response.status_code}")
+            
+            # Test GET /api/celebrities/dead/list
+            response = requests.get(f"{API_BASE}/celebrities/dead/list", timeout=5)
+            if response.status_code == 200:
+                dead_list = response.json()
+                print(f"   ✅ GET /api/celebrities/dead/list retourne {len(dead_list)} célébrités mortes")
+                self.log_result("Celebrity Dead List API", True, 
+                              f"API dead/list fonctionne ({len(dead_list)} célébrités mortes)")
+            else:
+                self.log_result("Celebrity Dead List API", False, 
+                              f"Erreur API dead/list - HTTP {response.status_code}")
+            
+            # Test 2: Système de mortalité en jeu
+            print("\n🔍 TEST 2: SYSTÈME MORTALITÉ EN JEU")
+            print("-" * 50)
+            
+            # Récupérer une célébrité pour le test
+            if not alive_celebrities:
+                self.log_result("Celebrity Mortality System", False, "Aucune célébrité disponible pour le test")
+                return
+            
+            test_celebrity = alive_celebrities[0]
+            celebrity_id = test_celebrity['id']
+            celebrity_name = test_celebrity['name']
+            celebrity_category = test_celebrity['category']
+            celebrity_stars = test_celebrity['stars']
+            
+            print(f"   Célébrité de test: {celebrity_name} (ID: {celebrity_id})")
+            print(f"   Catégorie: {celebrity_category}, Étoiles: {celebrity_stars}")
+            
+            # Créer un joueur célébrité avec celebrityId pour le test
+            celebrity_player = {
+                "name": celebrity_name,
+                "nationality": test_celebrity.get('nationality', 'Française'),
+                "gender": "femme",
+                "role": "intelligent",
+                "stats": {
+                    "intelligence": test_celebrity.get('stats', {}).get('intelligence', 8),
+                    "force": test_celebrity.get('stats', {}).get('force', 7),
+                    "agilité": test_celebrity.get('stats', {}).get('agilité', 8)
+                },
+                "portrait": {
+                    "face_shape": "ovale",
+                    "skin_color": "#D4A574",
+                    "hairstyle": "long",
+                    "hair_color": "#8B4513",
+                    "eye_color": "#654321",
+                    "eye_shape": "amande"
+                },
+                "uniform": {
+                    "style": "classique",
+                    "color": "rouge",
+                    "pattern": "uni"
+                },
+                "celebrityId": celebrity_id  # Propriété spéciale pour détecter la célébrité
+            }
+            
+            # Créer une partie avec la célébrité
+            game_request = {
+                "player_count": 20,
+                "game_mode": "standard",
+                "selected_events": [1, 2, 3, 4],
+                "manual_players": [],
+                "all_players": [celebrity_player]
+            }
+            
+            response = requests.post(f"{API_BASE}/games/create", 
+                                   json=game_request, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("Celebrity Game Creation", False, 
+                              f"Impossible de créer une partie avec célébrité - HTTP {response.status_code}")
+                return
+            
+            game_data = response.json()
+            game_id = game_data.get('id')
+            print(f"   ✅ Partie créée avec célébrité (ID: {game_id})")
+            
+            # Simuler des événements jusqu'à éliminer la célébrité
+            max_events = 10
+            celebrity_eliminated = False
+            
+            for event_num in range(max_events):
+                response = requests.post(f"{API_BASE}/games/{game_id}/simulate-event", timeout=10)
+                
+                if response.status_code != 200:
+                    print(f"   ⚠️ Erreur simulation événement {event_num + 1}")
+                    break
+                
+                data = response.json()
+                result = data.get('result', {})
+                eliminated = result.get('eliminated', [])
+                
+                # Vérifier si la célébrité a été éliminée
+                for eliminated_player in eliminated:
+                    if eliminated_player.get('name') == celebrity_name:
+                        celebrity_eliminated = True
+                        print(f"   ✅ Célébrité {celebrity_name} éliminée à l'événement {event_num + 1}")
+                        break
+                
+                if celebrity_eliminated:
+                    break
+                
+                # Vérifier si le jeu est terminé
+                game = data.get('game', {})
+                if game.get('completed', False):
+                    print(f"   ⚠️ Jeu terminé sans éliminer la célébrité")
+                    break
+            
+            if celebrity_eliminated:
+                # Attendre un peu pour que le système traite la mort
+                import time
+                time.sleep(2)
+                
+                # Vérifier que la célébrité est maintenant marquée comme morte
+                response = requests.get(f"{API_BASE}/celebrities/{celebrity_id}", timeout=5)
+                if response.status_code == 200:
+                    updated_celebrity = response.json()
+                    if updated_celebrity.get('is_dead', False):
+                        self.log_result("Celebrity Death Detection", True, 
+                                      f"Célébrité {celebrity_name} correctement marquée comme morte")
+                    else:
+                        self.log_result("Celebrity Death Detection", False, 
+                                      f"Célébrité {celebrity_name} éliminée mais pas marquée comme morte")
+                else:
+                    self.log_result("Celebrity Death Detection", False, 
+                                  f"Impossible de vérifier le statut de la célébrité - HTTP {response.status_code}")
+            else:
+                self.log_result("Celebrity Death Detection", False, 
+                              f"Célébrité {celebrity_name} n'a pas été éliminée dans {max_events} événements")
+            
+            # Test 3: Remplacement automatique
+            print("\n🔍 TEST 3: REMPLACEMENT AUTOMATIQUE")
+            print("-" * 50)
+            
+            if celebrity_eliminated:
+                # Vérifier qu'une nouvelle célébrité du même métier a été générée
+                response = requests.get(f"{API_BASE}/celebrities/?category={celebrity_category}&stars={celebrity_stars}&limit=5", timeout=5)
+                if response.status_code == 200:
+                    same_category_celebrities = response.json()
+                    # Filtrer pour exclure la célébrité morte
+                    alive_same_category = [c for c in same_category_celebrities if c['id'] != celebrity_id and not c.get('is_dead', False)]
+                    
+                    if alive_same_category:
+                        replacement_celebrity = alive_same_category[0]
+                        print(f"   ✅ Nouvelle célébrité trouvée: {replacement_celebrity['name']}")
+                        print(f"   Catégorie: {replacement_celebrity['category']}, Étoiles: {replacement_celebrity['stars']}")
+                        
+                        if (replacement_celebrity['category'] == celebrity_category and 
+                            replacement_celebrity['stars'] == celebrity_stars):
+                            self.log_result("Celebrity Replacement", True, 
+                                          f"Remplacement automatique réussi - nouvelle célébrité {replacement_celebrity['name']} du même métier")
+                        else:
+                            self.log_result("Celebrity Replacement", False, 
+                                          f"Remplacement incorrect - catégorie/étoiles différentes")
+                    else:
+                        self.log_result("Celebrity Replacement", False, 
+                                      f"Aucune nouvelle célébrité du même métier trouvée")
+                else:
+                    self.log_result("Celebrity Replacement", False, 
+                                  f"Erreur lors de la recherche de remplacement - HTTP {response.status_code}")
+            
+            # Test 4: Filtrage boutique
+            print("\n🔍 TEST 4: FILTRAGE BOUTIQUE")
+            print("-" * 50)
+            
+            # Vérifier que les célébrités mortes n'apparaissent plus dans la boutique
+            response = requests.get(f"{API_BASE}/celebrities/?limit=50", timeout=5)
+            if response.status_code == 200:
+                boutique_celebrities = response.json()
+                dead_in_boutique = [c for c in boutique_celebrities if c.get('is_dead', False)]
+                
+                if not dead_in_boutique:
+                    self.log_result("Celebrity Shop Filtering", True, 
+                                  f"Boutique filtre correctement les célébrités mortes ({len(boutique_celebrities)} vivantes)")
+                else:
+                    self.log_result("Celebrity Shop Filtering", False, 
+                                  f"Boutique contient {len(dead_in_boutique)} célébrités mortes")
+            else:
+                self.log_result("Celebrity Shop Filtering", False, 
+                              f"Erreur API boutique - HTTP {response.status_code}")
+            
+            # Test 5: Endpoint mort manuelle
+            print("\n🔍 TEST 5: ENDPOINT MORT MANUELLE")
+            print("-" * 50)
+            
+            # Tester POST /api/celebrities/{id}/death avec une autre célébrité
+            if len(alive_celebrities) > 1:
+                test_celebrity_2 = alive_celebrities[1]
+                celebrity_id_2 = test_celebrity_2['id']
+                celebrity_name_2 = test_celebrity_2['name']
+                
+                death_request = {"game_id": "test_manual_death"}
+                response = requests.post(f"{API_BASE}/celebrities/{celebrity_id_2}/death", 
+                                       json=death_request,
+                                       headers={"Content-Type": "application/json"},
+                                       timeout=5)
+                
+                if response.status_code == 200:
+                    death_data = response.json()
+                    if ('dead_celebrity' in death_data and 
+                        'replacement_celebrity' in death_data):
+                        replacement = death_data['replacement_celebrity']
+                        print(f"   ✅ Mort manuelle réussie pour {celebrity_name_2}")
+                        print(f"   Remplacement: {replacement['name']} ({replacement['category']})")
+                        
+                        self.log_result("Celebrity Manual Death", True, 
+                                      f"Endpoint mort manuelle fonctionne - {celebrity_name_2} remplacée par {replacement['name']}")
+                    else:
+                        self.log_result("Celebrity Manual Death", False, 
+                                      "Réponse API mort manuelle incomplète")
+                else:
+                    self.log_result("Celebrity Manual Death", False, 
+                                  f"Erreur endpoint mort manuelle - HTTP {response.status_code}")
+            else:
+                self.log_result("Celebrity Manual Death", False, 
+                              "Pas assez de célébrités pour tester la mort manuelle")
+            
+        except Exception as e:
+            self.log_result("Celebrity Mortality System Complete", False, f"Erreur durant le test: {str(e)}")
+
     def test_vip_earnings_bonus_problem(self):
         """Test CRITICAL: Problème des gains VIP avec bonus - Review Request Française"""
         try:
