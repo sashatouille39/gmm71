@@ -15,6 +15,15 @@ from services.events_service import EventsService
 
 router = APIRouter(prefix="/api/games", tags=["games"])
 
+async def record_celebrity_death_in_game(celebrity_id: str, game_id: str):
+    """Helper function to record celebrity death in game"""
+    try:
+        # Import here to avoid circular imports
+        from routes.celebrities_routes import record_celebrity_death
+        await record_celebrity_death(celebrity_id, game_id)
+    except Exception as e:
+        print(f"⚠️ Erreur lors de l'enregistrement de la mort de la célébrité {celebrity_id}: {e}")
+
 def get_vip_pricing_bonus_details(players: List[Player]) -> Dict:
     """
     Retourne les détails des bonus VIP appliqués pour l'affichage frontend
