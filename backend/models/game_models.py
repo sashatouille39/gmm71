@@ -224,6 +224,9 @@ class Celebrity(BaseModel):
     stats: PlayerStats
     biography: str
     is_owned: bool = False
+    is_dead: bool = False  # True si la célébrité est morte dans un jeu
+    died_in_game_id: Optional[str] = None  # ID du jeu où elle est morte
+    death_date: Optional[datetime] = None  # Date de mort
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 # Request/Response Models
