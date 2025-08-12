@@ -54,10 +54,10 @@ export class CelebritiesService {
     }
   }
 
-  // Récupère les célébrités par nombre d'étoiles
-  async getCelebritiesByStars(stars) {
+  // Récupère les célébrités par nombre d'étoiles (vivantes par défaut)
+  async getCelebritiesByStars(stars, includeDead = false) {
     try {
-      const response = await fetch(`${this.backendUrl}/api/celebrities/?stars=${stars}`);
+      const response = await fetch(`${this.backendUrl}/api/celebrities/?stars=${stars}&include_dead=${includeDead}`);
       if (!response.ok) {
         throw new Error('Erreur lors du chargement des célébrités');
       }
