@@ -183,3 +183,57 @@ async def get_celebrities_stats():
         "total_wins": total_wins,
         "average_wins": total_wins / total_celebrities if total_celebrities > 0 else 0
     }
+
+@router.post("/{celebrity_id}/death")
+async def record_celebrity_death(celebrity_id: str, game_id: str):
+    """Enregistre la mort d'une célébrité et génère automatiquement un remplacement"""
+    global celebrities_db
+    from datetime import datetime
+    
+    celebrity = next((c for c in celebrities_db if c.id == celebrity_id), None)
+    if not celebrity:
+        raise HTTPException(status_code=404, detail="Célébrité non trouvée")
+    
+    if celebrity.is_dead:
+        return {"message": f"Célébrité {celebrity.name} est déjà marquée comme morte"}
+    
+    # Marquer la célébrité comme morte
+    celebrity.is_dead = True
+    celebrity.died_in_game_id = game_id
+    celebrity.death_date = datetime.utcnow()
+    
+    # Générer automatiquement une nouvelle célébrité du même métier/catégorie
+    new_celebrity = GameService.generate_single_celebrity(
+        category=celebrity.category,
+        stars=celebrity.stars
+    )
+    
+    # L'ajouter à la base de données
+    celebrities_db.append(new_celebrity)
+    
+    return {
+        "message": f"Célébrité {celebrity.name} marquée comme morte dans le jeu {game_id}",
+        "dead_celebrity": {
+            "id": celebrity.id,
+            "name": celebrity.name,
+            "category": celebrity.category,
+            "death_date": celebrity.death_date
+        },
+        "replacement_celebrity": {
+            "id": new_celebrity.id,
+            "name": new_celebrity.name,
+            "category": new_celebrity.category,
+            "stars": new_celebrity.stars,
+            "price": new_celebrity.price
+        }
+    }
+
+@router.get("/alive/list", response_model=List[Celebrity])
+async def get_alive_celebrities():
+    """Récupère la liste des célébrités vivantes (pour la boutique et la sélection)"""
+    return [c for c in celebrities_db if not c.is_dead]
+
+@router.get("/dead/list", response_model=List[Celebrity])
+async def get_dead_celebrities():
+    """Récupère la liste des célébrités mortes (pour les statistiques)"""
+    return [c for c in celebrities_db if c.is_dead]
