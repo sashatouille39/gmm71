@@ -17357,7 +17357,7 @@ class BackendTester:
 if __name__ == "__main__":
     tester = BackendTester()
     
-    print(f"\n🎯 TEST DU NOUVEAU SYSTÈME DE TARIFICATION VIP AVEC BONUS")
+    print(f"\n🎯 TEST DU BUG CRITIQUE DES ÉPREUVES INFINIES CORRIGÉ")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"API Base: {API_BASE}")
     print("=" * 80)
@@ -17367,27 +17367,20 @@ if __name__ == "__main__":
         print("❌ Server not accessible, aborting tests")
         exit(1)
     
-    # Run the NEW VIP pricing tests according to review request
-    tester.test_new_vip_pricing_system_with_corrected_bonuses()
-    tester.test_collect_vip_earnings_api_response_structure()
+    # Run the INFINITE TRIALS BUG FIX tests according to review request
+    print("\n🔥 TESTS CRITIQUES - BUG DES ÉPREUVES INFINIES")
+    print("=" * 80)
+    tester.test_infinite_trials_bug_fix()
+    tester.test_simulation_cleanup_robustness()
     
-    # Run the original VIP pricing bonus system test
-    tester.test_vip_pricing_bonus_system()
+    # Run some basic functionality tests to ensure system still works
+    print("\n🔧 TESTS DE FONCTIONNALITÉ DE BASE")
+    print("=" * 80)
+    tester.test_basic_routes()
+    tester.test_create_game()
+    tester.test_simulate_event()
     
     # Print summary
-    print(f"\n📊 TEST SUMMARY:")
-    print("=" * 80)
-    print(f"Total tests: {tester.total_tests}")
-    print(f"Tests passed: {tester.passed_tests}")
-    print(f"Tests failed: {tester.total_tests - tester.passed_tests}")
-    print(f"Success rate: {(tester.passed_tests/tester.total_tests*100):.1f}%" if tester.total_tests > 0 else "0%")
-    
-    # Show detailed results
-    print(f"\n📋 DETAILED RESULTS:")
-    print("-" * 80)
-    for result in tester.results:
-        print(f"{result['status']}: {result['test']} - {result['message']}")
-        if result.get('details'):
-            print(f"   Details: {result['details']}")
+    tester.print_summary()
     
     print("\n" + "=" * 80)
