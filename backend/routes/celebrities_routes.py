@@ -68,9 +68,15 @@ async def purchase_celebrity(celebrity_id: str):
     return {"message": f"Célébrité {celebrity.name} achetée avec succès"}
 
 @router.get("/owned/list", response_model=List[Celebrity])
-async def get_owned_celebrities():
+async def get_owned_celebrities(include_dead: bool = Query(False, description="Inclure les célébrités mortes")):
     """Récupère la liste des célébrités possédées"""
-    return [c for c in celebrities_db if c.is_owned]
+    owned_celebrities = [c for c in celebrities_db if c.is_owned]
+    
+    # Filtrer les célébrités mortes sauf si explicitement demandé
+    if not include_dead:
+        owned_celebrities = [c for c in owned_celebrities if not c.is_dead]
+    
+    return owned_celebrities
 
 @router.post("/generate-new")
 async def generate_new_celebrities(count: int = 100):
