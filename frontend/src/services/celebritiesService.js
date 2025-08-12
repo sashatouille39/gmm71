@@ -98,6 +98,36 @@ export class CelebritiesService {
       throw error;
     }
   }
+
+  // Récupère les célébrités vivantes
+  async getAliveCelebrities() {
+    try {
+      const response = await fetch(`${this.backendUrl}/api/celebrities/alive/list`);
+      if (!response.ok) {
+        throw new Error('Erreur lors du chargement des célébrités vivantes');
+      }
+      const celebrities = await response.json();
+      return celebrities;
+    } catch (error) {
+      console.error('Erreur lors du chargement des célébrités vivantes:', error);
+      throw error;
+    }
+  }
+
+  // Récupère les célébrités mortes
+  async getDeadCelebrities() {
+    try {
+      const response = await fetch(`${this.backendUrl}/api/celebrities/dead/list`);
+      if (!response.ok) {
+        throw new Error('Erreur lors du chargement des célébrités mortes');
+      }
+      const celebrities = await response.json();
+      return celebrities;
+    } catch (error) {
+      console.error('Erreur lors du chargement des célébrités mortes:', error);
+      throw error;
+    }
+  }
 }
 
 // Instance singleton
