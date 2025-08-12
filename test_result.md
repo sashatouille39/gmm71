@@ -115,7 +115,51 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-## user_problem_statement: "Correction du bug critique des épreuves infinies : quand je termine la simulation d'une épreuve et que ça arrive à 100%, l'épreuve ne se termine jamais. Le problème arrive toujours à 100% ou quelques secondes de la fin."
+## user_problem_statement: "corrige ce problème : quand on achète une célébrité ou un ancien gagnant et qu'on la fait participer aux jeux, si elle meurt, elle doit définitivement disparaître de l'onglet célébrités de quand on créé nos jeux et de la boutique des célébrités ; ensuite elle doit être remplacé par une nouvelle célébrité du même métier de nouveau achetable dans la boutique."
+
+## backend:
+  - task: "Système de mortalité des célébrités et remplacement automatique"
+    implemented: true
+    working: "NA"
+    file: "models/game_models.py, routes/celebrities_routes.py, routes/game_routes.py, services/game_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "✅ SYSTÈME IMPLÉMENTÉ: 1) Ajout champs is_dead/died_in_game_id/death_date au modèle Celebrity, 2) Création endpoints POST /{celebrity_id}/death pour marquer mort + générer remplacement, GET /alive/list et GET /dead/list, 3) Méthode generate_single_celebrity() pour créer remplacement du même métier/étoiles, 4) Modification APIs pour filtrer célébrités mortes (paramètre include_dead), 5) Détection mort de célébrités dans simulate_event() et simulation temps réel, 6) Helper function record_celebrity_death_in_game() pour appels API. Le système détecte quand une célébrité meurt (hasattr celebrityId), la marque comme morte, génère automatiquement un remplacement du même métier et filtre les mortes des APIs boutique/sélection."
+
+## frontend:
+  - task: "Mise à jour service célébrités pour gérer mortalité"
+    implemented: true
+    working: "NA"
+    file: "services/celebritiesService.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "✅ SERVICE FRONTEND MIS À JOUR: Modification de toutes les méthodes (getAllCelebrities, getOwnedCelebrities, getCelebritiesByStars, getCelebritiesByCategory) pour accepter paramètre includeDead=false par défaut. Ajout nouvelles méthodes getAliveCelebrities() et getDeadCelebrities() pour accéder aux endpoints spécialisés. Les célébrités mortes sont maintenant filtrées automatiquement de la boutique et sélection des jeux sauf si explicitement demandé."
+
+## metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 0
+  run_ui: false
+
+## test_plan:
+  current_focus:
+    - "Système de mortalité des célébrités et remplacement automatique"
+    - "Mise à jour service célébrités pour gérer mortalité"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+## agent_communication:
+    - agent: "main"
+      message: "Implémentation complète du système de mortalité des célébrités terminée. Le système détecte automatiquement quand une célébrité meurt dans un jeu, la marque comme morte, génère un remplacement du même métier, et filtre les célébrités mortes des boutiques/sélections. Prêt pour tests backend complets."
 
 ## backend:
   - task: "Correction du bug critique des épreuves infinies à 100%"
