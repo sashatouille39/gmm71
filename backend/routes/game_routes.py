@@ -19,8 +19,20 @@ async def record_celebrity_death_in_game(celebrity_id: str, game_id: str):
     """Helper function to record celebrity death in game"""
     try:
         # Import here to avoid circular imports
-        from routes.celebrities_routes import record_celebrity_death
-        await record_celebrity_death(celebrity_id, game_id)
+        from routes.celebrities_routes import record_celebrity_death, CelebrityDeathRequest
+        import requests
+        
+        # Appeler l'API REST au lieu de la fonction directement pour éviter les imports circulaires
+        response = requests.post(
+            f"http://localhost:8001/api/celebrities/{celebrity_id}/death",
+            json={"game_id": game_id},
+            headers={"Content-Type": "application/json"}
+        )
+        
+        if response.status_code == 200:
+            print(f"✅ Célébrité {celebrity_id} marquée comme morte dans le jeu {game_id}")
+        else:
+            print(f"⚠️ Erreur API lors de l'enregistrement de la mort de la célébrité {celebrity_id}: {response.status_code}")
     except Exception as e:
         print(f"⚠️ Erreur lors de l'enregistrement de la mort de la célébrité {celebrity_id}: {e}")
 
