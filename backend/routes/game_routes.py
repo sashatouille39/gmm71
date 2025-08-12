@@ -1087,6 +1087,11 @@ async def get_realtime_updates(game_id: str):
                 for eliminated_data in simulation["final_result"].eliminated:
                     if eliminated_data["number"] == player.number:
                         game.players[i].alive = False
+                        
+                        # Vérifier si le joueur éliminé était une célébrité ou un ancien gagnant
+                        if hasattr(player, 'celebrityId') and player.celebrityId:
+                            # Enregistrer la mort de la célébrité
+                            await record_celebrity_death_in_game(player.celebrityId, str(game.id))
                         break
             
             game.event_results.append(simulation["final_result"])
