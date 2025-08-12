@@ -4,10 +4,10 @@ export class CelebritiesService {
     this.backendUrl = process.env.REACT_APP_BACKEND_URL;
   }
 
-  // Récupère toutes les célébrités disponibles
-  async getAllCelebrities(limit = 1000) {
+  // Récupère toutes les célébrités disponibles (vivantes par défaut)
+  async getAllCelebrities(limit = 1000, includeDead = false) {
     try {
-      const response = await fetch(`${this.backendUrl}/api/celebrities/?limit=${limit}`);
+      const response = await fetch(`${this.backendUrl}/api/celebrities/?limit=${limit}&include_dead=${includeDead}`);
       if (!response.ok) {
         throw new Error('Erreur lors du chargement des célébrités');
       }
