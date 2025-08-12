@@ -922,6 +922,99 @@ class GameService:
         return celebrities
     
     @classmethod
+    def generate_single_celebrity(cls, category: str = None, stars: int = None) -> Celebrity:
+        """Génère une seule célébrité avec une catégorie et des étoiles spécifiques"""
+        categories = [
+            ("Ancien vainqueur", 5, 35000000, 60000000),      # 35-60 millions pour 5 étoiles
+            ("Sportif", 4, 15000000, 35000000),               # 15-35 millions pour 4 étoiles
+            ("Scientifique", 4, 15000000, 35000000),          # 15-35 millions pour 4 étoiles
+            ("Acteur", 3, 5000000, 15000000),                 # 5-15 millions pour 3 étoiles
+            ("Chanteuse", 3, 5000000, 15000000),              # 5-15 millions pour 3 étoiles
+            ("Influenceur", 2, 2000000, 5000000),             # 2-5 millions pour 2 étoiles
+            ("Chef", 2, 2000000, 5000000),                    # 2-5 millions pour 2 étoiles
+            ("Politicien", 3, 5000000, 15000000),             # 5-15 millions pour 3 étoiles
+            ("Écrivain", 2, 2000000, 5000000),                # 2-5 millions pour 2 étoiles
+            ("Artiste", 3, 5000000, 15000000)                 # 5-15 millions pour 3 étoiles
+        ]
+        
+        # Si catégorie et étoiles spécifiées, utiliser ces valeurs
+        if category and stars:
+            matching_categories = [c for c in categories if c[0] == category and c[1] == stars]
+            if matching_categories:
+                selected_category, selected_stars, min_price, max_price = matching_categories[0]
+            else:
+                # Fallback : chercher juste par catégorie
+                matching_categories = [c for c in categories if c[0] == category]
+                if matching_categories:
+                    selected_category, selected_stars, min_price, max_price = matching_categories[0]
+                else:
+                    # Fallback final : utiliser une catégorie aléatoire
+                    selected_category, selected_stars, min_price, max_price = random.choice(categories)
+        else:
+            # Générer aléatoirement
+            selected_category, selected_stars, min_price, max_price = random.choice(categories)
+        
+        # Generate price and round to nearest hundred thousand
+        raw_price = random.randint(min_price, max_price)
+        price = round(raw_price / 100000) * 100000
+        
+        # Générer des stats selon la catégorie
+        if selected_category == "Ancien vainqueur":
+            stats = PlayerStats(
+                intelligence=random.randint(7, 10),
+                force=random.randint(6, 9),
+                agilité=random.randint(7, 10)
+            )
+            wins = random.randint(1, 3)
+        elif selected_category == "Sportif":
+            stats = PlayerStats(
+                intelligence=random.randint(4, 7),
+                force=random.randint(8, 10),
+                agilité=random.randint(8, 10)
+            )
+            wins = 0
+        elif selected_category == "Scientifique":
+            stats = PlayerStats(
+                intelligence=random.randint(9, 10),
+                force=random.randint(2, 5),
+                agilité=random.randint(3, 6)
+            )
+            wins = 0
+        else:
+            stats = PlayerStats(
+                intelligence=random.randint(4, 8),
+                force=random.randint(3, 7),
+                agilité=random.randint(4, 8)
+            )
+            wins = 0
+        
+        first_names = ['Alex', 'Jordan', 'Taylor', 'Morgan', 'Casey', 'Riley', 'Avery', 'Quinn', 
+                      'Sage', 'River', 'Phoenix', 'Skyler', 'Rowan', 'Kai', 'Nova', 'Zara',
+                      'Luna', 'Atlas', 'Iris', 'Orion', 'Maya', 'Leo', 'Aria', 'Max', 'Zoe']
+        
+        last_names = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 
+                     'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 
+                     'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin']
+        
+        name = f"{random.choice(first_names)} {random.choice(last_names)}"
+        nationality_key = random.choice(list(cls.NATIONALITIES.keys()))
+        gender = random.choice(['M', 'F'])
+        nationality_display = cls.NATIONALITIES[nationality_key][gender]
+        
+        biography = cls._generate_biography(selected_category, name)
+        
+        return Celebrity(
+            name=name,
+            category=selected_category,
+            stars=selected_stars,
+            price=price,
+            nationality=nationality_display,
+            wins=wins,
+            stats=stats,
+            biography=biography
+        )
+    
+    @classmethod
     def _generate_biography(cls, category: str, name: str) -> str:
         """Génère une biographie pour une célébrité"""
         bios = {
