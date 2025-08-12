@@ -115,6 +115,18 @@
 ## user_problem_statement: "Correction du bug critique des épreuves infinies : quand je termine la simulation d'une épreuve et que ça arrive à 100%, l'épreuve ne se termine jamais. Le problème arrive toujours à 100% ou quelques secondes de la fin."
 
 ## backend:
+  - task: "Correction du bug critique des épreuves infinies à 100%"
+    implemented: true
+    working: "NA"
+    file: "routes/game_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "✅ CORRECTION CRITIQUE IMPLÉMENTÉE: Ajout d'un try/catch robuste autour de toute la logique de finalisation d'épreuve (lignes 1055-1183) avec un bloc 'finally' qui garantit la suppression de la simulation active même en cas d'erreur. Le problème était que si une exception se produisait pendant la finalisation (collection VIP, sauvegarde stats), la ligne 'del active_simulations[game_id]' n'était jamais exécutée, laissant la simulation tourner indéfiniment à 100%. Maintenant : 1) Protection par try/catch de toute la finalisation, 2) Bloc finally garantissant le nettoyage, 3) Logs détaillés pour diagnostic, 4) Gestion séparée des erreurs VIP et statistiques. Le bug des épreuves infinies devrait être complètement résolu."
+
   - task: "Test du nouveau système de tarification VIP avec bonus selon les célébrités et anciens gagnants"
     implemented: true
     working: true
