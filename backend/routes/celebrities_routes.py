@@ -1,11 +1,15 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import List, Optional
+from pydantic import BaseModel
 import random
 
 from models.game_models import Celebrity
 from services.game_service import GameService
 
 router = APIRouter(prefix="/api/celebrities", tags=["celebrities"])
+
+class CelebrityDeathRequest(BaseModel):
+    game_id: str
 
 # Stockage temporaire en mémoire
 celebrities_db = []
