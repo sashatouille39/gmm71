@@ -1589,14 +1589,16 @@ async def get_final_ranking(game_id: str, user_id: str = "default_user"):
             }
         })
     
-    # 🎯 CORRECTION COMPLÈTE : CALCUL PRÉCIS DES GAINS VIP
-    vip_earnings = 0
+    # 🎯 CORRECTION PROBLÈME AFFICHAGE VIP : CALCUL PRÉCIS DES GAINS AVEC BONUS
+    vip_earnings_total = 0
+    vip_base_earnings = 0
+    vip_bonus_details = {}
     events_completed = game.current_event_index
     
     # Récupérer les gains VIP s'ils existent dans la partie
     if hasattr(game, 'earnings') and game.earnings:
-        vip_earnings = game.earnings
-        print(f"💰 FINAL-RANKING: Gains VIP trouvés dans game.earnings: {vip_earnings:,}$")
+        vip_earnings_total = game.earnings
+        print(f"💰 FINAL-RANKING: Gains VIP trouvés dans game.earnings: {vip_earnings_total:,}$")
     else:
         # CORRECTION CRITIQUE: Rechercher les VIPs assignés à cette partie dans tous les salons possibles
         from routes.vip_routes import active_vips_by_game
@@ -1625,15 +1627,32 @@ async def get_final_ranking(game_id: str, user_id: str = "default_user"):
         
         # Calculer les gains VIP réels
         if game_vips:
-            vip_earnings = sum(vip.viewing_fee for vip in game_vips)
-            print(f"💰 FINAL-RANKING: Calculé gains VIP - Salon niveau {salon_level}: {len(game_vips)} VIPs = {vip_earnings:,}$")
+            vip_earnings_total = sum(vip.viewing_fee for vip in game_vips)
+            print(f"💰 FINAL-RANKING: Calculé gains VIP - Salon niveau {salon_level}: {len(game_vips)} VIPs = {vip_earnings_total:,}$")
             print(f"💰 Détail viewing_fees: {[f'{vip.name}: {vip.viewing_fee:,}$' for vip in game_vips]}")
         else:
-            vip_earnings = 0
+            vip_earnings_total = 0
             print(f"⚠️ FINAL-RANKING: Aucun VIP trouvé pour la partie {game_id}")
         
         # Mettre à jour les gains dans la partie pour cohérence
-        game.earnings = vip_earnings
+        game.earnings = vip_earnings_total
+
+    # 🎯 NOUVEAU : Calculer les détails des bonus pour l'affichage correct
+    if vip_earnings_total > 0:
+        # Obtenir les détails des bonus VIP appliqués
+        vip_bonus_details = get_vip_pricing_bonus_details(game.players)
+        
+        # Calculer le montant de base (avant bonus) si des bonus ont été appliqués
+        if vip_bonus_details["final_multiplier"] > 1.0:
+            vip_base_earnings = int(vip_earnings_total / vip_bonus_details["final_multiplier"])
+        else:
+            vip_base_earnings = vip_earnings_total
+        
+        print(f"💰 FINAL-RANKING BONUS DETAILS:")
+        print(f"   - Montant TOTAL (avec bonus): {vip_earnings_total:,}$")
+        print(f"   - Montant de BASE (sans bonus): {vip_base_earnings:,}$")
+        print(f"   - Multiplicateur appliqué: x{vip_bonus_details['final_multiplier']:.2f}")
+        print(f"   - Bonus description: {vip_bonus_details['bonus_description']}")
 
     return {
         "game_id": game_id,
@@ -1641,7 +1660,11 @@ async def get_final_ranking(game_id: str, user_id: str = "default_user"):
         "winner": game.winner,
         "total_players": len(game.players),
         "events_completed": events_completed,
-        "vip_earnings": vip_earnings,
+        # 🎯 CORRECTION PRINCIPALE : S'assurer que vip_earnings contient le montant TOTAL avec bonus
+        "vip_earnings": vip_earnings_total,  # Montant total avec bonus (ce que le joueur reçoit réellement)
+        "vip_base_earnings": vip_base_earnings,  # Montant de base sans bonus (pour information)
+        "vip_bonus_amount": vip_earnings_total - vip_base_earnings,  # Montant du bonus
+        "vip_bonus_details": vip_bonus_details,  # Détails complets des bonus
         "ranking": ranking
     }
 
