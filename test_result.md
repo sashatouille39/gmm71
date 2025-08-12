@@ -112,7 +112,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-## user_problem_statement: "Test the VIP salon initialization fix. The user reported that the game starts with a standard VIP salon already unlocked (level 1, capacity 3) when it should start with 0 VIP salons and require purchasing the first salon."
+## user_problem_statement: "Correction du bug critique des épreuves infinies : quand je termine la simulation d'une épreuve et que ça arrive à 100%, l'épreuve ne se termine jamais. Le problème arrive toujours à 100% ou quelques secondes de la fin."
 
 ## backend:
   - task: "Test du nouveau système de tarification VIP avec bonus selon les célébrités et anciens gagnants"
