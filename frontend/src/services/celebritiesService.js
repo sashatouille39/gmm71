@@ -69,10 +69,10 @@ export class CelebritiesService {
     }
   }
 
-  // Récupère les célébrités par catégorie
-  async getCelebritiesByCategory(category) {
+  // Récupère les célébrités par catégorie (vivantes par défaut)
+  async getCelebritiesByCategory(category, includeDead = false) {
     try {
-      const response = await fetch(`${this.backendUrl}/api/celebrities/?category=${encodeURIComponent(category)}`);
+      const response = await fetch(`${this.backendUrl}/api/celebrities/?category=${encodeURIComponent(category)}&include_dead=${includeDead}`);
       if (!response.ok) {
         throw new Error('Erreur lors du chargement des célébrités');
       }
