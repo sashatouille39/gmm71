@@ -70,9 +70,13 @@ def test_vip_earnings_bonus_problem():
         base_vip_total = 0
         if vip_response.status_code == 200:
             vips_data = vip_response.json()
-            base_vip_total = sum(vip.get('viewing_fee', 0) for vip in vips_data.get('vips', []))
-            print(f"   💰 VIPs salon niveau 3: {len(vips_data.get('vips', []))} VIPs")
-            print(f"   💰 Total viewing_fee de base: {base_vip_total:,}$")
+            # vips_data is a list directly, not a dict with 'vips' key
+            if isinstance(vips_data, list):
+                base_vip_total = sum(vip.get('viewing_fee', 0) for vip in vips_data)
+                print(f"   💰 VIPs salon niveau 3: {len(vips_data)} VIPs")
+                print(f"   💰 Total viewing_fee de base: {base_vip_total:,}$")
+            else:
+                print(f"   ⚠️ Format VIP inattendu: {type(vips_data)}")
         else:
             print(f"   ⚠️ Impossible de récupérer les VIPs salon niveau 3")
             base_vip_total = 0
