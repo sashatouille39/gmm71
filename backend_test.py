@@ -17698,7 +17698,7 @@ class BackendTester:
 if __name__ == "__main__":
     tester = BackendTester()
     
-    print(f"\n🎯 TEST DU BUG CRITIQUE DES ÉPREUVES INFINIES CORRIGÉ")
+    print(f"\n🎯 TEST DU PROBLÈME DES GAINS VIP AVEC BONUS - REVIEW REQUEST FRANÇAISE")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"API Base: {API_BASE}")
     print("=" * 80)
@@ -17708,11 +17708,10 @@ if __name__ == "__main__":
         print("❌ Server not accessible, aborting tests")
         exit(1)
     
-    # Run the INFINITE TRIALS BUG FIX tests according to review request
-    print("\n🔥 TESTS CRITIQUES - BUG DES ÉPREUVES INFINIES")
+    # Run the VIP EARNINGS BONUS PROBLEM test according to French review request
+    print("\n🔥 TEST CRITIQUE - PROBLÈME GAINS VIP AVEC BONUS")
     print("=" * 80)
-    tester.test_infinite_trials_bug_fix()
-    tester.test_simulation_cleanup_robustness()
+    tester.test_vip_earnings_bonus_problem()
     
     # Run some basic functionality tests to ensure system still works
     print("\n🔧 TESTS DE FONCTIONNALITÉ DE BASE")
