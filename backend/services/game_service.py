@@ -6,6 +6,7 @@ from models.game_models import (
     Game, GameEvent, EventResult, Celebrity, VipCharacter, EventType, EventCategory
 )
 from services.events_service import EventsService
+from services.portrait_generator_service import portrait_service
 
 class GameService:
     
