@@ -70,6 +70,11 @@ app.include_router(group_router)
 app.include_router(statistics_router)
 app.include_router(portrait_router)
 
+# Mount static files for portrait layers
+static_path = Path(__file__).parent / "static"
+static_path.mkdir(exist_ok=True)
+app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
