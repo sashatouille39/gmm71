@@ -497,8 +497,8 @@ class GameService:
         return players
     
     @classmethod
-    def _generate_portrait(cls, nationality: str) -> PlayerPortrait:
-        """Génère un portrait cohérent avec la nationalité"""
+    def _generate_portrait(cls, nationality: str, gender: str = 'M') -> PlayerPortrait:
+        """Génère un portrait cohérent avec la nationalité et sélectionne les calques PNG"""
         skin_color_ranges = {
             # Asie de l'Est
             'Chinois': (2, 10),
@@ -567,13 +567,25 @@ class GameService:
         skin_range = skin_color_ranges.get(nationality, (0, 15))
         skin_color_index = random.randint(skin_range[0], min(skin_range[1], len(cls.SKIN_COLORS) - 1))
         
+        # Sélectionner des calques PNG cohérents avec la nationalité
+        portrait_layers = portrait_service.select_random_portrait_layers(
+            nationality=nationality,
+            gender=gender
+        )
+        
         return PlayerPortrait(
             face_shape=random.choice(cls.FACE_SHAPES),
             skin_color=cls.SKIN_COLORS[skin_color_index],
             hairstyle=random.choice(cls.HAIRSTYLES),
             hair_color=random.choice(cls.HAIR_COLORS),
             eye_color=random.choice(['#8B4513', '#654321', '#2F4F2F', '#483D8B', '#556B2F', '#000000']),
-            eye_shape=random.choice(['Amande', 'Rond', 'Allongé', 'Tombant', 'Relevé', 'Petit', 'Grand'])
+            eye_shape=random.choice(['Amande', 'Rond', 'Allongé', 'Tombant', 'Relevé', 'Petit', 'Grand']),
+            # Ajout des calques PNG
+            layer_base=portrait_layers.get('base'),
+            layer_eyes=portrait_layers.get('eyes'),
+            layer_hair=portrait_layers.get('hair'),
+            layer_mouth=portrait_layers.get('mouth'),
+            layer_nose=portrait_layers.get('nose')
         )
     
     @classmethod
