@@ -67,6 +67,7 @@ app.include_router(celebrities_router)
 app.include_router(vip_router)
 app.include_router(group_router)
 app.include_router(statistics_router)
+app.include_router(portrait_router)
 
 app.add_middleware(
     CORSMiddleware,
